@@ -1,0 +1,15 @@
+joblib
+jupyter>=1.0.0
+jupyter-client>=5.3.4
+jupyter-console>=6.1.0
+jupyter-core>=4.6.1
+matplotlib>=3.2.1
+mkdocs
+numpy>=1.18
+pandas>=1.0
+plotly>=4.7.1
+pyarrow>=0.17
+requests
+scikit-learn>=0.22
+tensorflow
+xgboost
