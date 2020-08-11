@@ -17,8 +17,8 @@
 
 ## Experimental Roadmap
 
-- Time Transformer [`t2`] (Human-Activity-Recognition)
-- `transnova`
-- Astrophysical Transient Transformer [`att`]
+- Time Transformer [`t2`] (WISDM: Human-Activity-Recognition)
+- `transnova` (SPCC)
+- Astrophysical Transient Transformer [`att`] (PLAsTiCC)
 
 ## System Design
