@@ -22,3 +22,9 @@
 - Astrophysical Transient Transformer [`att`] (PLAsTiCC)
 
 ## System Design
+
+### Papers of Interest
+
+- [WISDM Smartphone and Smartwatch Activity and Biometrics Dataset AKA WISDM-2019]("./resources/papers/WISDM-dataset-description.pdf)
+-
+
