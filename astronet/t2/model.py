@@ -2,20 +2,28 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from astronet.t2.transformer import ConvEmbedding, EncoderBlock, DecoderBlock, ClassifyBlock
+# from astronet.t2.transformer import ConvEmbedding, EncoderBlock, DecoderBlock, ClassifyBlock, TransformerBlock
+from astronet.t2.transformer import TransformerBlock
+
+embed_dim = 32    # --> Embedding size for each token
+num_heads = 4     # --> Number of attention heads
+ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
 
 
 class T2Model(keras.Model):
     """Time-Transformer with Multi-headed."""
     def __init__(self):
         super(T2Model, self).__init__()
-        self.embedding  = ConvEmbedding()
-        self.encoder    = EcoderBlock()
-        self.decoder    = DecoderBlock()
-        self.classifier = ClassifyBlock()
+        # self.embedding  = ConvEmbedding(32)
+        # self.encoder    = EcoderBlock()
+        # self.decoder    = DecoderBlock()
+        # self.classifier = ClassifyBlock()
 
-    def call(self, inputs):
+    def call(self, X_train):
         model = keras.Sequential()
+
+        input_shape = X_train.shape
+        input_shape[1:]  # (TIMESTEPS, num_features)
 
         # model.add(layers.Dense(units=128))
 
@@ -37,4 +45,6 @@ class T2Model(keras.Model):
         model.add(layers.Dropout(0.1))
         model.add(layers.Dense(6, activation="softmax"))
 
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+        # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
+
+        return model
