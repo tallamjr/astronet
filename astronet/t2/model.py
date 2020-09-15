@@ -14,16 +14,22 @@ class T2Model(keras.Model):
     """Time-Transformer with Multi-headed."""
     def __init__(self):
         super(T2Model, self).__init__()
-        # self.embedding  = ConvEmbedding(32)
-        # self.encoder    = EcoderBlock()
-        # self.decoder    = DecoderBlock()
-        # self.classifier = ClassifyBlock()
+        self.embedding  = ConvEmbedding(32)
+        self.encoder    = EncoderBlock()
+        self.decoder    = DecoderBlock()
+        self.classifier = ClassifyBlock()
 
-    def call(self, X_train):
+    def call(self, inputs):
         model = keras.Sequential()
+        print("HEEEEEERE BRUV")
+        print(inputs)
+        print(type(inputs))
+        print(inputs.shape)
 
-        input_shape = X_train.shape
+        input_shape = inputs.shape
         input_shape[1:]  # (TIMESTEPS, num_features)
+        print(input_shape[1:])
+        print("HEEEEEERE BRUV 2")
 
         # model.add(layers.Dense(units=128))
 

@@ -5,9 +5,11 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorboard.plugins.hparams import api as hp
 
-from astronet.t2.model import T2Model
+# from astronet.t2.model import T2Model
 from astronet.t2.utils import train_val_test_split, create_dataset
 from astronet.t2.preprocess import robust_scale, one_hot_encode
+
+from astronet.t2.transformer import TransformerBlock
 
 RANDOM_SEED = 42
 
@@ -38,21 +40,21 @@ TIME_STEPS = 200
 STEP = 40
 
 X_train, y_train = create_dataset(
-    df_train[['x_axis', 'y_axis', 'z_axis']],
+    df_train[cols],
     df_train.activity,
     TIME_STEPS,
     STEP
 )
 
 X_val, y_val = create_dataset(
-    df_val[['x_axis', 'y_axis', 'z_axis']],
+    df_val[cols],
     df_val.activity,
     TIME_STEPS,
     STEP
 )
 
 X_test, y_test = create_dataset(
-    df_test[['x_axis', 'y_axis', 'z_axis']],
+    df_test[cols],
     df_test.activity,
     TIME_STEPS,
     STEP
@@ -74,7 +76,37 @@ logdir = "./logs/"
 
 print(type(X_train))
 
-model = T2Model()
+embed_dim = 32    # --> Embedding size for each token
+num_heads = 4     # --> Number of attention heads
+ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
+
+# model = T2Model()
+model = keras.Sequential()
+
+input_shape = X_train.shape
+print(input_shape[1:])  # (TIMESTEPS, num_features)
+
+# model.add(layers.Dense(units=128))
+
+# Old API
+# model.add(layers.Convolution1D(filters=128, kernel_size=16, activation='relu'))
+# New Keras API
+# model.add(layers.Conv1D(filters=128, kernel_size=16, activation='relu', input_shape=input_shape[1:]))
+
+# Inspired by this line: Note that a TimeDistributed(Dense(n)) layer is equivalent to a Conv1D(n, filter_size=1) layer.
+# Moving kernel_size from 16 to 1
+# Each time-step becomes a 32-vector, where one can think of a window of 200 time-steps being equivulent
+# to a sentence in NLP land
+model.add(layers.Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=input_shape[1:]))
+
+model.add(TransformerBlock(embed_dim, num_heads, ff_dim))
+model.add(layers.GlobalAveragePooling1D())
+model.add(layers.Dropout(0.1))
+model.add(layers.Dense(20, activation="relu"))
+model.add(layers.Dropout(0.1))
+model.add(layers.Dense(6, activation="softmax"))
+
+# model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
 
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
 

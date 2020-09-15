@@ -30,9 +30,12 @@ class TransformerBlock(layers.Layer):
         return self.layernorm2(out1 + ffn_output)
 
 
-# class ConvEmbedding(layers.Layer):
-#     def __init__(self, filters):
-#         super(ConvEmbedding, self).__init__()
+class ConvEmbedding(layers.Layer):
+    def __init__(self, filters, inputs):
+        super(ConvEmbedding, self).__init__()
+        self.filters = filters
+        self.conv1d = layers.Conv1D(filters=filters, kernel_size=1, activation='relu', input_shape=inputs[1:])
 
-#     def call(self, inputs, training):
-#         pass
+    def call(self, filters, inputs):
+        embedding = self.conv1d()
+        return embedding
