@@ -9,7 +9,7 @@ from tensorboard.plugins.hparams import api as hp
 from astronet.t2.utils import train_val_test_split, create_dataset
 from astronet.t2.preprocess import robust_scale, one_hot_encode
 
-from astronet.t2.transformer import TransformerBlock
+from astronet.t2.transformer import TransformerBlock, ConvEmbedding
 
 RANDOM_SEED = 42
 
@@ -97,7 +97,8 @@ print(input_shape[1:])  # (TIMESTEPS, num_features)
 # Moving kernel_size from 16 to 1
 # Each time-step becomes a 32-vector, where one can think of a window of 200 time-steps being equivulent
 # to a sentence in NLP land
-model.add(layers.Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=input_shape[1:]))
+# model.add(layers.Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=input_shape[1:]))
+model.add(ConvEmbedding(input_shape=input_shape[1:]))
 
 model.add(TransformerBlock(embed_dim, num_heads, ff_dim))
 model.add(layers.GlobalAveragePooling1D())
