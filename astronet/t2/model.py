@@ -42,3 +42,13 @@ class T2Model(keras.Model):
         classifier  = self.classifier(dropout2)
 
         return classifier
+
+    def build_graph(self, input_shape):
+        input_shape_nobatch = input_shape[1:]
+        self.build(input_shape)
+        inputs = keras.Input(shape=input_shape_nobatch)
+
+        if not hasattr(self, 'call'):
+            raise AttributeError("User should define 'call' method in sub-class model!")
+
+        _ = self.call(inputs)

@@ -125,6 +125,8 @@ history = model.fit(
     X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val)
 )
 
+model.build_graph(input_shape)
+
 print(model.summary())
 
 print(model.evaluate(X_test, y_test))
