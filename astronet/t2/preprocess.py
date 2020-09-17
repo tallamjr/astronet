@@ -1,8 +1,6 @@
 def robust_scale(df_train, df_val, df_test, scale_columns):
     from sklearn.preprocessing import RobustScaler
 
-    # scale_columns = ['x_axis', 'y_axis', 'z_axis']
-
     scaler = RobustScaler()
 
     scaler = scaler.fit(df_train[scale_columns])

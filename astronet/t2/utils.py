@@ -30,4 +30,5 @@ def create_dataset(X, y, time_steps=1, step=1):
         labels = y.iloc[i: i + time_steps]
         Xs.append(v)
         ys.append(stats.mode(labels)[0][0])
+
     return np.array(Xs), np.array(ys).reshape(-1, 1)
