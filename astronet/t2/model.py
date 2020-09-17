@@ -3,7 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 # from astronet.t2.transformer import ConvEmbedding, EncoderBlock, DecoderBlock, ClassifyBlock, TransformerBlock
-from astronet.t2.transformer import TransformerBlock
+from astronet.t2.transformer import ConvEmbedding, TransformerBlock
 
 embed_dim = 32    # --> Embedding size for each token
 num_heads = 4     # --> Number of attention heads
@@ -12,45 +12,32 @@ ff_dim = 32       # --> Hidden layer size in feed forward network inside transfo
 
 class T2Model(keras.Model):
     """Time-Transformer with Multi-headed."""
-    def __init__(self):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, **kwargs):
         super(T2Model, self).__init__()
-        self.embedding  = ConvEmbedding(32)
-        self.encoder    = EncoderBlock()
-        self.decoder    = DecoderBlock()
-        self.classifier = ClassifyBlock()
+        self.input_dim      = input_dim
+        self.embed_dim      = embed_dim
+        self.num_heads      = num_heads
+        self.ff_dim         = ff_dim
 
-    def call(self, inputs):
-        model = keras.Sequential()
-        print("HEEEEEERE BRUV")
-        print(inputs)
-        print(type(inputs))
-        print(inputs.shape)
+        self.embedding      = ConvEmbedding(input_shape=input_dim[1:])
+        self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
+        self.pooling        = layers.GlobalAveragePooling1D()
+        self.dropout1       = layers.Dropout(0.1)
+        self.fc             = layers.Dense(20, activation="relu")
+        self.dropout2       = layers.Dropout(0.1)
+        self.classifier     = layers.Dense(6, activation="softmax")
 
-        input_shape = inputs.shape
-        input_shape[1:]  # (TIMESTEPS, num_features)
-        print(input_shape[1:])
-        print("HEEEEEERE BRUV 2")
+        # self.decoder    = DecoderBlock()
+        # self.classifier = ClassifyBlock()
 
-        # model.add(layers.Dense(units=128))
+    def call(self, inputs, training=False):
 
-        # Old API
-        # model.add(layers.Convolution1D(filters=128, kernel_size=16, activation='relu'))
-        # New Keras API
-        # model.add(layers.Conv1D(filters=128, kernel_size=16, activation='relu', input_shape=input_shape[1:]))
+        embedding   = self.embedding(inputs)
+        encoder     = self.encoder(embedding)
+        pooling     = self.pooling(encoder)
+        dropout1    = self.dropout1(pooling)
+        fc          = self.fc(dropout1)
+        dropout2    = self.dropout2(fc)
+        classifier  = self.classifier(dropout2)
 
-        # Inspired by this line: Note that a TimeDistributed(Dense(n)) layer is equivalent to a Conv1D(n, filter_size=1) layer.
-        # Moving kernel_size from 16 to 1
-        # Each time-step becomes a 32-vector, where one can think of a window of 200 time-steps being equivulent
-        # to a sentence in NLP land
-        model.add(layers.Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=input_shape[1:]))
-
-        model.add(TransformerBlock(embed_dim, num_heads, ff_dim))
-        model.add(layers.GlobalAveragePooling1D())
-        model.add(layers.Dropout(0.1))
-        model.add(layers.Dense(20, activation="relu"))
-        model.add(layers.Dropout(0.1))
-        model.add(layers.Dense(6, activation="softmax"))
-
-        # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
-
-        return model
+        return classifier

@@ -5,7 +5,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorboard.plugins.hparams import api as hp
 
-# from astronet.t2.model import T2Model
+from astronet.t2.model import T2Model
 from astronet.t2.utils import train_val_test_split, create_dataset
 from astronet.t2.preprocess import robust_scale, one_hot_encode
 
@@ -80,11 +80,12 @@ embed_dim = 32    # --> Embedding size for each token
 num_heads = 4     # --> Number of attention heads
 ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
 
-# model = T2Model()
-model = keras.Sequential()
-
 input_shape = X_train.shape
 print(input_shape[1:])  # (TIMESTEPS, num_features)
+
+model = T2Model(input_dim=input_shape, embed_dim=embed_dim, num_heads=num_heads, ff_dim=ff_dim)
+
+# model = keras.Sequential()
 
 # model.add(layers.Dense(units=128))
 
@@ -98,14 +99,14 @@ print(input_shape[1:])  # (TIMESTEPS, num_features)
 # Each time-step becomes a 32-vector, where one can think of a window of 200 time-steps being equivulent
 # to a sentence in NLP land
 # model.add(layers.Conv1D(filters=32, kernel_size=1, activation='relu', input_shape=input_shape[1:]))
-model.add(ConvEmbedding(input_shape=input_shape[1:]))
+# model.add(ConvEmbedding(input_shape=input_shape[1:]))
 
-model.add(TransformerBlock(embed_dim, num_heads, ff_dim))
-model.add(layers.GlobalAveragePooling1D())
-model.add(layers.Dropout(0.1))
-model.add(layers.Dense(20, activation="relu"))
-model.add(layers.Dropout(0.1))
-model.add(layers.Dense(6, activation="softmax"))
+# model.add(TransformerBlock(embed_dim, num_heads, ff_dim))
+# model.add(layers.GlobalAveragePooling1D())
+# model.add(layers.Dropout(0.1))
+# model.add(layers.Dense(20, activation="relu"))
+# model.add(layers.Dropout(0.1))
+# model.add(layers.Dense(6, activation="softmax"))
 
 # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['acc'])
 
