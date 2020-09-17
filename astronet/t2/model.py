@@ -12,14 +12,15 @@ ff_dim = 32       # --> Hidden layer size in feed forward network inside transfo
 
 class T2Model(keras.Model):
     """Time-Transformer with Multi-headed."""
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
         self.ff_dim         = ff_dim
+        self.num_filters    = num_filters
 
-        self.embedding      = ConvEmbedding(input_shape=input_dim[1:])
+        self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim[1:])
         self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(0.1)

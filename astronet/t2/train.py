@@ -80,10 +80,19 @@ embed_dim = 32    # --> Embedding size for each token
 num_heads = 4     # --> Number of attention heads
 ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
 
+# --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+num_filters = embed_dim
+
 input_shape = X_train.shape
 print(input_shape[1:])  # (TIMESTEPS, num_features)
 
-model = T2Model(input_dim=input_shape, embed_dim=embed_dim, num_heads=num_heads, ff_dim=ff_dim)
+model = T2Model(
+            input_dim=input_shape,
+            embed_dim=embed_dim,
+            num_heads=num_heads,
+            ff_dim=ff_dim,
+            num_filters=num_filters
+        )
 
 # model = keras.Sequential()
 

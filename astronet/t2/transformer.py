@@ -31,9 +31,9 @@ class TransformerBlock(layers.Layer):
 
 
 class ConvEmbedding(layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
-        self.conv1d = layers.Conv1D(32, kernel_size=1, activation='relu')
+        self.conv1d     = layers.Conv1D(filters=num_filters, kernel_size=1, activation='relu')
 
     def call(self, inputs):
         embedding = self.conv1d(inputs)
