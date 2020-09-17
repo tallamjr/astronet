@@ -44,6 +44,8 @@ class T2Model(keras.Model):
         return classifier
 
     def build_graph(self, input_shape):
+        # Code lifted from example:
+        # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
         input_shape_nobatch = input_shape[1:]
         self.build(input_shape)
         inputs = keras.Input(shape=input_shape_nobatch)
