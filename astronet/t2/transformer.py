@@ -4,10 +4,6 @@ from tensorflow.keras import layers
 
 from astronet.t2.attention import MultiHeadSelfAttention
 
-# embed_dim = 32    --> Embedding size for each token
-# num_heads = 4     --> Number of attention heads
-# ff_dim = 32       --> Hidden layer size in feed forward network inside transformer
-
 
 class TransformerBlock(layers.Layer):
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
@@ -33,7 +29,7 @@ class TransformerBlock(layers.Layer):
 class ConvEmbedding(layers.Layer):
     def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
-        self.conv1d     = layers.Conv1D(filters=num_filters, kernel_size=1, activation='relu')
+        self.conv1d = layers.Conv1D(filters=num_filters, kernel_size=1, activation='relu')
 
     def call(self, inputs):
         embedding = self.conv1d(inputs)
