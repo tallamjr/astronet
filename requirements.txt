@@ -1,7 +1,4 @@
 joblib
-jupyter-client>=5.3.4
-jupyter-console>=6.1.0
-jupyter-core>=4.6.1
 jupyter>=1.0.0
 matplotlib>=3.2.1
 mkdocs
