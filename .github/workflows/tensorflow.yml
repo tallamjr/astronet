@@ -32,7 +32,7 @@ jobs:
         conda info
         conda list
         # conda env create -q
-        # conda activate astronet
+        conda activate astronet
     - name: Check Environment
       run: |
         echo $PWD
