@@ -11,7 +11,7 @@ on:
        - master
 
 jobs:
-  flake8:
+  pytest:
 
     runs-on: ubuntu-latest
 
