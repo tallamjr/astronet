@@ -32,6 +32,5 @@ jobs:
         echo $HOME
     - name: Run TensorFlow TestCase
       run: |
-        echo $PWD
         python ${{ github.workspace }}/astronet/t2/tests/tf_test_dense_layer.py
         python ${{ github.workspace }}/astronet/t2/tests/tf_test_multihead_attention.py
