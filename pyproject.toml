@@ -5,4 +5,25 @@ build-backend = "setuptools.build_meta"
 # Not necessary for packaging but every self-respecting Python
 # package should a) use black and b) fix the WRONG default.
 [tool.black]
-line-length = 79
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
