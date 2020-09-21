@@ -31,13 +31,16 @@ jobs:
       run: |
         conda info
         conda list
-        # conda env create -q
-        conda activate astronet
     - name: Check Environment
       run: |
         echo $PWD
         ls -la ${{ github.workspace }}/astronet/t2/tests/
         echo $HOME
+        which python
+        which pip
+        python --version
+        echo $PATH
+        PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         which python
         which pip
         python --version
