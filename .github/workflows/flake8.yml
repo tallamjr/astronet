@@ -5,7 +5,7 @@ on:
    # but only for the master branch
    push:
      branches:
-       - issues/8/test-cov
+       - master
    pull_request:
      branches:
        - master
@@ -27,4 +27,4 @@ jobs:
         pip install flake8
     - name: Lint with flake8
       run: |
-        flake8 --builtins=ArgumentError .
+        flake8 --ignore=E221 --builtins=ArgumentError .
