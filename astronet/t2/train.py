@@ -51,13 +51,24 @@ TIME_STEPS = 200
 STEP = 40
 
 X_train, y_train = create_dataset(
-    df_train[cols], df_train.activity, TIME_STEPS, STEP
+    df_train[cols],
+    df_train.activity,
+    TIME_STEPS,
+    STEP
 )
 
-X_val, y_val = create_dataset(df_val[cols], df_val.activity, TIME_STEPS, STEP)
+X_val, y_val = create_dataset(
+    df_val[cols],
+    df_val.activity,
+    TIME_STEPS,
+    STEP
+)
 
 X_test, y_test = create_dataset(
-    df_test[cols], df_test.activity, TIME_STEPS, STEP
+    df_test[cols],
+    df_test.activity,
+    TIME_STEPS,
+    STEP
 )
 
 print(X_train.shape, y_train.shape)
