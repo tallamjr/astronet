@@ -20,9 +20,8 @@ class DenseLayerTest(tf.test.TestCase):
         )
         input_x = np.array([[1, 2], [2, 3]])
         output = self.my_dense(input_x)
-        expected_output = np.array([[5.5, 6.0], [8.5, 9]])
+        with self.subTest():
+            expected_output = np.array([[5.5, 6.0], [8.5, 9]])
+            self.assertAllEqual(expected_output, output)
 
-        self.assertAllEqual(expected_output, output)
-
-
-tf.test.main()
+# tf.test.main()
