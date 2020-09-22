@@ -1,11 +1,11 @@
-name: TensorFlow CI
+name: Custom TensorFlow Layers
 
 on:
    # Trigger the workflow on push or pull request,
    # but only for the master branch
    push:
      branches:
-       - issues/8/test-cov
+       - master
    pull_request:
      branches:
        - master
