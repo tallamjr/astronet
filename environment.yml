@@ -12,6 +12,8 @@ dependencies:
 
   - pip:
     - pytest
+    - pytest-cov
+    - pytest-subtests
     - pep517
     - twine
     - -r file:requirements.txt
