@@ -1,7 +1,8 @@
 import tensorflow as tf
 
+
 class MultiHeadAttention(tf.keras.layers.Layer):
-    def __init__(self, d_model, num_heads, debug_mode):
+    def __init__(self, d_model, num_heads, debug_mode=True):
         super(MultiHeadAttention, self).__init__()
         self.num_heads = num_heads
         self.d_model = d_model
