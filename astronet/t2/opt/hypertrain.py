@@ -10,9 +10,9 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.NOTSET,
+logging.basicConfig(level=logging.INFO,
         format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
-        handlers= [
+        handlers=[
             logging.FileHandler(filename='studies.log', mode='a'),
             logging.StreamHandler(sys.stdout)
         ]
