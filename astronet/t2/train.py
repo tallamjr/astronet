@@ -148,7 +148,8 @@ def objective(trial):
     # print(model.evaluate(X_test, y_test))
 
     # Evaluate the model accuracy on the validation set.
-    score = model.evaluate(X_val, y_val, verbose=0)
+    # score = model.evaluate(X_val, y_val, verbose=0)
+    score = model.evaluate(X_test, y_test, verbose=0)
     return score[1]
     # history = model.fit(
     #         X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val),
