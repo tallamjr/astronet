@@ -164,7 +164,7 @@ def objective(trial):
 
     # model.build(input_shape)
 
-    logger.info(model.summary())
+    model.summary(print_fn=logging.info)
     # print(model.evaluate(X_test, y_test))
 
     # Evaluate the model accuracy on the validation set.
