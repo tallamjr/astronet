@@ -69,6 +69,10 @@ def objective(trial):
 
     # Evaluate the model accuracy on the validation set.
     score = model.evaluate(x_valid, y_valid, verbose=0)
+    # import pickle
+    # # Save a trained model to a file.
+    # with open('{}.pkl'.format(trial.number), 'wb') as fout:
+    #     pickle.dump(model, fout)
     return score[1]
 
 
@@ -82,7 +86,7 @@ if __name__ == "__main__":
         "REF:https://github.com/keras-team/keras/releases/tag/2.4.0"
     )
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=50, timeout=600)
+    study.optimize(objective, n_trials=5, timeout=600)
 
     print("Number of finished trials: {}".format(len(study.trials)))
 
