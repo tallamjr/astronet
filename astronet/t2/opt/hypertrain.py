@@ -117,7 +117,7 @@ def objective(trial):
     # print(X_test.shape, y_test.shape)
 
     BATCH_SIZE = 32
-    EPOCHS = 2
+    EPOCHS = 20
 
     # logdir = "./logs/"
 
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(objective, n_trials=3, timeout=600)
+    study.optimize(objective, n_trials=10, timeout=1000)
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
