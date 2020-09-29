@@ -1,5 +1,9 @@
+import joblib
 import json
+import logging
 import optuna
+import subprocess
+import sys
 import warnings
 
 import numpy as np
@@ -146,7 +150,35 @@ print(model.summary())
 
 print(model.evaluate(X_test, y_test))
 
-model.save("./models/model-XXX"
+import time
+unixtimestamp = int(time.time())
+label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+
+model_params = {}
+model_params['name'] = str(unixtimestamp) + "-" + label
+model_params['hypername'] = event['name']
+model_params['embed_dim'] = event['embed_dim']
+model_params['ff_dim'] = event['ff_dim']
+model_params['num_heads'] = event['num_heads']
+model_params['lr'] = event['lr']
+
+with open(f"{Path().absolute()}/models/results.json") as jf:
+    data = json.load(jf)
+    print(data)
+
+    previous_results = data['training_result']
+    # appending data to optuna_result
+    print(previous_results)
+    previous_results.append(model_params)
+    print(previous_results)
+    print(data)
+
+with open(f"{Path().absolute()}/models/results.json", "w") as rf:
+    json.dump(data, rf, sort_keys=True, indent=4)
+
+
+# TODO: Save model model-<time-hash>.h5
+model.save(f"{Path().absolute()}/models/model-{unixtimestamp}-{label}", save_format="tf")
 
 # Evaluate the model accuracy on the validation set.
 # score = model.evaluate(X_val, y_val, verbose=0)

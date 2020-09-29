@@ -1,0 +1,28 @@
+{
+    "training_result": [
+        {
+            "embed_dim": 32,
+            "ff_dim": 64,
+            "hypername": "1601415144-61e4279",
+            "lr": 0.025068014761509952,
+            "name": "1601422759-68fcd4d",
+            "num_heads": 8
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 64,
+            "hypername": "1601415144-61e4279",
+            "lr": 0.025068014761509952,
+            "name": "1601423099-68fcd4d",
+            "num_heads": 8
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 64,
+            "hypername": "1601415144-61e4279",
+            "lr": 0.025068014761509952,
+            "name": "1601423372-68fcd4d",
+            "num_heads": 8
+        }
+    ]
+}
