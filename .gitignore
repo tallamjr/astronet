@@ -4,6 +4,8 @@ data/WISDM_ar_v1.1/*
 data/wisdm-dataset
 data/WISDM_ar_latest.tar.gz
 logs/
+*.log
+*.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
