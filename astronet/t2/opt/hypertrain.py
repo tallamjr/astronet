@@ -193,7 +193,7 @@ if __name__ == "__main__":
     unixtimestamp = int(time.time())
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
-    study = optuna.create_study(study_name="{unixtimestamp}", direction="maximize")
+    study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
     study.optimize(objective, n_trials=3, timeout=600)
 
     best_result = {}
@@ -203,7 +203,9 @@ if __name__ == "__main__":
 
     print("Best trial:")
     trial = study.best_trial
-    best_result['best_trial'] = trial
+    # best_result['best_trial'] = trial
+    df_study = study.trials_dataframe()
+    print(df_study.head())
 
     print("  Value: {}".format(trial.value))
     best_result['value'] = trial.value
@@ -211,18 +213,24 @@ if __name__ == "__main__":
     print("  Params: ")
     for key, value in trial.params.items():
         print("    {}: {}".format(key, value))
-        best_result["{}".format(key)] = value
+        # best_result["{}".format(key)] = value
 
     best_result.update(study.best_params)
+    # print(study.best_params)
+    print(best_result)
 
     with open(f"{Path().absolute()}/runs/results.json") as jf:
         data = json.load(jf)
+        print(data)
 
         previous_results = data['optuna_result']
         # appending data to optuna_result
+        print(previous_results)
         previous_results.append(best_result)
+        print(previous_results)
+        print(data)
 
-    with open(f"{Path().absolute()}/runs/result.json", "w") as rf:
+    with open(f"{Path().absolute()}/runs/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
     with open(f"{Path().absolute()}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
