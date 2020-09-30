@@ -97,7 +97,7 @@ enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 # print(X_test.shape, y_test.shape)
 
 BATCH_SIZE = 32
-EPOCHS = 2
+EPOCHS = 100
 
 
 with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
@@ -161,6 +161,7 @@ model_params['embed_dim'] = event['embed_dim']
 model_params['ff_dim'] = event['ff_dim']
 model_params['num_heads'] = event['num_heads']
 model_params['lr'] = event['lr']
+model_params['value'] = model.evaluate(X_test, y_test)[1]
 
 with open(f"{Path().absolute()}/models/results.json") as jf:
     data = json.load(jf)
