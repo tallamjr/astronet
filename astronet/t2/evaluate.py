@@ -99,4 +99,5 @@ print("             Results for Test Set\n\n" +
 # TODO
 # 1. Load saved model.
 # 2. Run inference.
-# 3. Save plots of performance.
+# 3. Save plots of performance. import visuals.py plotting functions and call them here.
+
