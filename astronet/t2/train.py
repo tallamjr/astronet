@@ -97,7 +97,7 @@ enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 # print(X_test.shape, y_test.shape)
 
 BATCH_SIZE = 32
-EPOCHS = 100
+EPOCHS = 2
 
 
 with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
