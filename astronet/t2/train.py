@@ -179,7 +179,7 @@ with open(f"{Path().absolute()}/models/results.json", "w") as rf:
 
 
 # TODO: Save model model-<time-hash>.h5
-model.save(f"{Path().absolute()}/models/model-{unixtimestamp}-{label}", save_format="tf")
+model.save(f"{Path().absolute()}/models/model-{unixtimestamp}-{label}")
 
 # Evaluate the model accuracy on the validation set.
 # score = model.evaluate(X_val, y_val, verbose=0)
