@@ -1,14 +1,14 @@
-name: func, unit and int tests with code cov
+name: Test Suite with Code Coverage
 
 on:
    # Trigger the workflow on push or pull request,
    # but only for the master branch
    push:
      branches:
-       - master
+       - __master
    pull_request:
      branches:
-       - master
+       - __master
 
 jobs:
   pytest:
