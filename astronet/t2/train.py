@@ -97,7 +97,7 @@ enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 # print(X_test.shape, y_test.shape)
 
 BATCH_SIZE = 32
-EPOCHS = 2
+EPOCHS = 50
 
 
 with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
@@ -135,16 +135,14 @@ model.compile(
 
 model.build_graph(input_shape)
 
-_ = model.fit(
-    X_train,
-    y_train,
-    batch_size=BATCH_SIZE,
-    epochs=EPOCHS,
-    validation_data=(X_val, y_val),
-    verbose=False,
-)
-
-# model.build(input_shape)
+history = model.fit(
+        X_train,
+        y_train,
+        batch_size=BATCH_SIZE,
+        epochs=EPOCHS,
+        validation_data=(X_val, y_val),
+        verbose=False,
+        )
 
 print(model.summary())
 
@@ -162,6 +160,10 @@ model_params['ff_dim'] = event['ff_dim']
 model_params['num_heads'] = event['num_heads']
 model_params['lr'] = event['lr']
 model_params['value'] = model.evaluate(X_test, y_test)[1]
+print("  Params: ")
+for key, value in history.history.items():
+    print("    {}: {}".format(key, value))
+    model_params["{}".format(key)] = value
 
 with open(f"{Path().absolute()}/models/results.json") as jf:
     data = json.load(jf)

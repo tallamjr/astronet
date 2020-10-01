@@ -194,7 +194,7 @@ if __name__ == "__main__":
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(objective, n_trials=10, timeout=1000)
+    study.optimize(objective, n_trials=20, timeout=1000)
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
