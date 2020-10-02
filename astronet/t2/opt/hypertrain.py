@@ -41,7 +41,7 @@ from pathlib import Path
 
 log = t2_logger(__file__)
 log.info("_________________________________")
-log.info("File      Path:" + str(Path(__file__).absolute()))
+log.info("File Path:" + str(Path(__file__).absolute()))
 log.info("Parent of Directory Path:" + str(Path().absolute().parent))
 
 RANDOM_SEED = 42
@@ -59,20 +59,8 @@ def objective(trial):
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-    # print(X_train.shape, y_train.shape)
-    # print(X_val.shape, y_val.shape)
-    # print(X_test.shape, y_test.shape)
-
     BATCH_SIZE = 32
     EPOCHS = 2
-
-    # logdir = "./logs/"
-
-    # print(type(X_train))
-
-    # embed_dim = 32  # --> Embedding size for each token
-    # num_heads = 4  # --> Number of attention heads
-    # ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
 
     embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
     num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
@@ -109,22 +97,12 @@ def objective(trial):
         verbose=False,
     )
 
-    # model.build(input_shape)
-
     model.summary(print_fn=logging.info)
-    # print(model.evaluate(X_test, y_test))
 
     # Evaluate the model accuracy on the validation set.
     # score = model.evaluate(X_val, y_val, verbose=0)
     score = model.evaluate(X_test, y_test, verbose=0)
     return score[1]
-    # history = model.fit(
-    #         X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val),
-    #         callbacks=[
-    #             tf.keras.callbacks.TensorBoard(logdir),  # log metrics
-    #             hp.KerasCallback(logdir, hparams),  # log hparams
-    #             ],)
-
 
 if __name__ == "__main__":
     warnings.warn(
@@ -150,7 +128,6 @@ if __name__ == "__main__":
 
     print("Best trial:")
     trial = study.best_trial
-    # best_result['best_trial'] = trial
     df_study = study.trials_dataframe()
     print(df_study.head())
 
@@ -163,7 +140,6 @@ if __name__ == "__main__":
         # best_result["{}".format(key)] = value
 
     best_result.update(study.best_params)
-    # print(study.best_params)
     print(best_result)
 
     with open(f"{Path().absolute()}/runs/results.json") as jf:
@@ -171,7 +147,7 @@ if __name__ == "__main__":
         print(data)
 
         previous_results = data['optuna_result']
-        # appending data to optuna_result
+        # Appending data to optuna_result
         print(previous_results)
         previous_results.append(best_result)
         print(previous_results)
