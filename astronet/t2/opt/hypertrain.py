@@ -118,8 +118,8 @@ if __name__ == "__main__":
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
     BATCH_SIZE = 32
-    EPOCHS = 2
-    N_TRIALS = 3
+    EPOCHS = 20
+    N_TRIALS = 20
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
     study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS, timeout=1000)

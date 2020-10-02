@@ -125,7 +125,7 @@ class Training(object):
 if __name__ == "__main__":
 
     BATCH_SIZE = 32
-    EPOCHS = 2
+    EPOCHS = 50
 
     training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE)
     training()
