@@ -13,6 +13,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#SBATCH --job-name=serial_job_test    # Job name
+#SBATCH --mail-type=END,FAIL          # Mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=email@ufl.edu     # Where to send mail
+#SBATCH --ntasks=1                    # Run on a single CPU
+#SBATCH --mem=1gb                     # Job memory request
+#SBATCH --time=00:05:00               # Time limit hrs:min:sec
+#SBATCH --output=serial_test_%j.log   # Standard output and error log
 set -o pipefail -e # https://stackoverflow.com/a/34381499/4521950
 
 hmsg="Help message..."
@@ -22,4 +29,11 @@ if [[ $1 == "" ]]; then
   exit 1
 fi
 
-pushd $(cd "`dirname "$0"`"/..; pwd)
+# pushd $(cd "`dirname "$0"`"/..; pwd)
+pwd; hostname; date
+
+echo "Running plot script on a single CPU core"
+
+date
+
+python -c "import numpy as np; print(np.__version__)"
