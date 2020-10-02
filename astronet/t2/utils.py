@@ -43,13 +43,17 @@ def t2_logger(name, level="INFO"):
 
     # Create formatter
     # Format of the log message to be printed
-    FORMAT = "[%(asctime)-15s]"
-    FORMAT += "[%(filename)s:"
-    FORMAT += "%(lineno)s] -- "
+    FORMAT = "[%(asctime)s] "
+    FORMAT += "{%(filename)s:%(lineno)d} "
     FORMAT += "%(levelname)s "
-    FORMAT += "%(message)s"
+    FORMAT += "- %(message)s"
+    # FORMAT = "[%(asctime)-15s]"
+    # FORMAT += "[%(filename)s:"
+    # FORMAT += "%(lineno)s] -- "
+    # FORMAT += "%(levelname)s "
+    # FORMAT += "%(message)s"
     # Date format
-    DATEFORMAT = "%y/%m/%d %H:%M:%S"
+    DATEFORMAT = "%y-%m-%d.%H:%M:%S"
 
     formatter = logging.Formatter(fmt=FORMAT, datefmt=DATEFORMAT)
     # Add formatter to ch
