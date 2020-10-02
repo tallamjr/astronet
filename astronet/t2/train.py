@@ -1,32 +1,29 @@
-import joblib
 import json
 import logging
-import optuna
-import subprocess
-import sys
-import warnings
-
 import numpy as np
-import pandas as pd
+import subprocess
 import tensorflow as tf
-from tensorflow import keras
+import time
+
 from keras.backend import clear_session
-from tensorflow.keras import layers
-from tensorflow.keras import optimizers
+from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
+from tensorflow import keras
+from tensorflow.keras import layers, optimizers
 
 from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_WISDM
 from astronet.t2.preprocess import one_hot_encode
-
 from astronet.t2.transformer import TransformerBlock, ConvEmbedding
+from astronet.t2.utils import t2_logger, load_WISDM
 
-from pathlib import Path
-
-log = t2_logger(__file__)
-log.info("_________________________________")
-log.info("File      Path:" + str(Path(__file__).absolute()))
-log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+try:
+    log = t2_logger(__file__)
+    log.info("_________________________________")
+    log.info("File Path:" + str(Path(__file__).absolute()))
+    log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+except:
+    print("Seems you are running from a notebook...")
+    __file__ = str(Path().resolve().parent) + "/astronet/t2/train.py"
 
 RANDOM_SEED = 42
 
@@ -38,7 +35,7 @@ X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
 # One hot encode y
 enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-# print(X_train.shape, y_train.shape)
+log.info(print(X_train.shape, y_train.shape))
 # print(X_val.shape, y_val.shape)
 # print(X_test.shape, y_test.shape)
 
@@ -49,10 +46,6 @@ with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
     events = json.load(f)
     event = max(events['optuna_result'], key=lambda ev: ev['value'])
     print(event)
-
-# embed_dim = 32  # --> Embedding size for each token
-# num_heads = 4  # --> Number of attention heads
-# ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
 
 embed_dim = event['embed_dim']  # --> Embedding size for each token
 num_heads = event['num_heads']  # --> Number of attention heads
@@ -89,11 +82,9 @@ history = model.fit(
         verbose=False,
         )
 
-print(model.summary())
-
+model.summary(print_fn=logging.info)
 print(model.evaluate(X_test, y_test))
 
-import time
 unixtimestamp = int(time.time())
 label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
@@ -110,7 +101,7 @@ for key, value in history.history.items():
     print("    {}: {}".format(key, value))
     model_params["{}".format(key)] = value
 
-with open(f"{Path().absolute()}/models/results.json") as jf:
+with open(f"{Path(__file__).absolute()}/models/results.json") as jf:
     data = json.load(jf)
     print(data)
 
@@ -121,7 +112,7 @@ with open(f"{Path().absolute()}/models/results.json") as jf:
     print(previous_results)
     print(data)
 
-with open(f"{Path().absolute()}/models/results.json", "w") as rf:
+with open(f"{Path(__file__).absolute()}/models/results.json", "w") as rf:
     json.dump(data, rf, sort_keys=True, indent=4)
 
-model.save(f"{Path().absolute()}/models/model-{unixtimestamp}-{label}")
+model.save(f"{Path(__file__).absolute()}/models/model-{unixtimestamp}-{label}")
