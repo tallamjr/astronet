@@ -31,28 +31,14 @@ logging.basicConfig(level=logging.INFO,
 optuna.logging.enable_propagation()  # Propagate logs to the root logger.
 optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-
-from tensorflow import keras
-from keras.backend import clear_session
-from tensorflow.keras import layers
-from tensorflow.keras import optimizers
-from tensorboard.plugins.hparams import api as hp
-
-from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_WISDM
-from astronet.t2.preprocess import one_hot_encode
-
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
-
-from pathlib import Path
-
-log = t2_logger(__file__)
-log.info("_________________________________")
-log.info("File Path:" + str(Path(__file__).absolute()))
-log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+try:
+    log = t2_logger(__file__)
+    log.info("_________________________________")
+    log.info("File Path:" + str(Path(__file__).absolute()))
+    log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+except:
+    print("Seems you are running from a notebook...")
+    __file__ = str(Path().resolve().parent) + "/astronet/t2/opt/hypertrain.py"
 
 RANDOM_SEED = 42
 
@@ -158,7 +144,7 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{Path().absolute()}/runs/results.json") as jf:
+    with open(f"{Path(__file__).absolute().parent}/runs/results.json") as jf:
         data = json.load(jf)
         print(data)
 
@@ -169,8 +155,8 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{Path().absolute()}/runs/results.json", "w") as rf:
+    with open(f"{Path(__file__).absolute().parent}/runs/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{Path().absolute()}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(f"{Path(__file__).absolute().parent}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
         joblib.dump(study, sf)
