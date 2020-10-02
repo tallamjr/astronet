@@ -61,9 +61,9 @@ class Objective(object):
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-        embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
-        num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
-        ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
+        embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
+        num_heads = trial.suggest_categorical("num_heads", [4, 8, 16])  # --> Number of attention heads
+        ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
 
