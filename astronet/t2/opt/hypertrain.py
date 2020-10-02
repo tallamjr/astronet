@@ -50,59 +50,61 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 
-def objective(trial):
-    # Clear clutter from previous Keras session graphs.
-    clear_session()
+class Objective(object):
+    def __init__(self, epochs, batch_size):
+        self.epochs = EPOCHS
+        self.batch_size = BATCH_SIZE
 
-    # Load WISDM-2010
-    X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
-    # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    def __call__(self, trial):
+        # Clear clutter from previous Keras session graphs.
+        clear_session()
 
-    BATCH_SIZE = 32
-    EPOCHS = 2
+        # Load WISDM-2010
+        X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+        # One hot encode y
+        enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-    embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
-    num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
-    ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
+        embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
+        num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
+        ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
 
-    # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-    num_filters = embed_dim
+        num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
 
-    input_shape = X_train.shape
-    # print(input_shape[1:])  # (TIMESTEPS, num_features)
+        input_shape = X_train.shape
+        # print(input_shape[1:])  # --> (TIMESTEPS, num_features)
 
-    model = T2Model(
-        input_dim=input_shape,
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        ff_dim=ff_dim,
-        num_filters=num_filters,
-    )
+        model = T2Model(
+            input_dim=input_shape,
+            embed_dim=embed_dim,
+            num_heads=num_heads,
+            ff_dim=ff_dim,
+            num_filters=num_filters,
+        )
 
-    # We compile our model with a sampled learning rate.
-    lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
-    model.compile(
-        loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
-    )
+        # We compile our model with a sampled learning rate.
+        lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+        model.compile(
+            loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
+        )
 
-    model.build_graph(input_shape)
+        model.build_graph(input_shape)
 
-    _ = model.fit(
-        X_train,
-        y_train,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        validation_data=(X_val, y_val),
-        verbose=False,
-    )
+        _ = model.fit(
+            X_train,
+            y_train,
+            batch_size=BATCH_SIZE,
+            epochs=EPOCHS,
+            validation_data=(X_val, y_val),
+            verbose=False,
+        )
 
-    model.summary(print_fn=logging.info)
+        model.summary(print_fn=logging.info)
 
-    # Evaluate the model accuracy on the validation set.
-    # score = model.evaluate(X_val, y_val, verbose=0)
-    score = model.evaluate(X_test, y_test, verbose=0)
-    return score[1]
+        # Evaluate the model accuracy on the validation set.
+        # score = model.evaluate(X_val, y_val, verbose=0)
+        score = model.evaluate(X_test, y_test, verbose=0)
+        return score[1]
+
 
 if __name__ == "__main__":
     warnings.warn(
@@ -118,8 +120,12 @@ if __name__ == "__main__":
     unixtimestamp = int(time.time())
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
+    BATCH_SIZE = 32
+    EPOCHS = 2
+    N_TRIALS = 3
+
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(objective, n_trials=3, timeout=1000)
+    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS, timeout=1000)
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
