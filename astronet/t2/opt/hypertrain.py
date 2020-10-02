@@ -1,15 +1,26 @@
 import joblib
 import json
 import logging
+import numpy as np
 import optuna
 import subprocess
 import sys
+import tensorflow as tf
 import warnings
 
+from keras.backend import clear_session
 from pathlib import Path
+from tensorboard.plugins.hparams import api as hp
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras import optimizers
+
+from astronet.t2.model import T2Model
+from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.transformer import TransformerBlock, ConvEmbedding
+from astronet.t2.utils import t2_logger, load_WISDM
 
 logger = logging.getLogger(__name__)
-
 logging.basicConfig(level=logging.INFO,
         format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
         handlers=[
@@ -21,28 +32,14 @@ logging.basicConfig(level=logging.INFO,
 optuna.logging.enable_propagation()  # Propagate logs to the root logger.
 optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-
-from tensorflow import keras
-from keras.backend import clear_session
-from tensorflow.keras import layers
-from tensorflow.keras import optimizers
-from tensorboard.plugins.hparams import api as hp
-
-from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_WISDM
-from astronet.t2.preprocess import one_hot_encode
-
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
-
-from pathlib import Path
-
-log = t2_logger(__file__)
-log.info("_________________________________")
-log.info("File      Path:" + str(Path(__file__).absolute()))
-log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+try:
+    log = t2_logger(__file__)
+    log.info("_________________________________")
+    log.info("File Path:" + str(Path(__file__).absolute()))
+    log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+except:
+    print("Seems you are running from a notebook...")
+    __file__ = str(Path().resolve().parent) + "/astronet/t2/opt/hypertrain.py"
 
 RANDOM_SEED = 42
 
@@ -50,80 +47,60 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 
-def objective(trial):
-    # Clear clutter from previous Keras session graphs.
-    clear_session()
+class Objective(object):
+    def __init__(self, epochs, batch_size):
+        self.epochs = EPOCHS
+        self.batch_size = BATCH_SIZE
 
-    # Load WISDM-2010
-    X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
-    # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    def __call__(self, trial):
+        # Clear clutter from previous Keras session graphs.
+        clear_session()
 
-    # print(X_train.shape, y_train.shape)
-    # print(X_val.shape, y_val.shape)
-    # print(X_test.shape, y_test.shape)
+        # Load WISDM-2010
+        X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+        # One hot encode y
+        enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-    BATCH_SIZE = 32
-    EPOCHS = 2
+        embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
+        num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
+        ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
 
-    # logdir = "./logs/"
+        num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
 
-    # print(type(X_train))
+        input_shape = X_train.shape
+        # print(input_shape[1:])  # --> (TIMESTEPS, num_features)
 
-    # embed_dim = 32  # --> Embedding size for each token
-    # num_heads = 4  # --> Number of attention heads
-    # ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
+        model = T2Model(
+            input_dim=input_shape,
+            embed_dim=embed_dim,
+            num_heads=num_heads,
+            ff_dim=ff_dim,
+            num_filters=num_filters,
+        )
 
-    embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
-    num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
-    ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
+        # We compile our model with a sampled learning rate.
+        lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+        model.compile(
+            loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
+        )
 
-    # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-    num_filters = embed_dim
+        model.build_graph(input_shape)
 
-    input_shape = X_train.shape
-    # print(input_shape[1:])  # (TIMESTEPS, num_features)
+        _ = model.fit(
+            X_train,
+            y_train,
+            batch_size=BATCH_SIZE,
+            epochs=EPOCHS,
+            validation_data=(X_val, y_val),
+            verbose=False,
+        )
 
-    model = T2Model(
-        input_dim=input_shape,
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        ff_dim=ff_dim,
-        num_filters=num_filters,
-    )
+        model.summary(print_fn=logging.info)
 
-    # We compile our model with a sampled learning rate.
-    lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
-    model.compile(
-        loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
-    )
-
-    model.build_graph(input_shape)
-
-    _ = model.fit(
-        X_train,
-        y_train,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        validation_data=(X_val, y_val),
-        verbose=False,
-    )
-
-    # model.build(input_shape)
-
-    model.summary(print_fn=logging.info)
-    # print(model.evaluate(X_test, y_test))
-
-    # Evaluate the model accuracy on the validation set.
-    # score = model.evaluate(X_val, y_val, verbose=0)
-    score = model.evaluate(X_test, y_test, verbose=0)
-    return score[1]
-    # history = model.fit(
-    #         X_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(X_val, y_val),
-    #         callbacks=[
-    #             tf.keras.callbacks.TensorBoard(logdir),  # log metrics
-    #             hp.KerasCallback(logdir, hparams),  # log hparams
-    #             ],)
+        # Evaluate the model accuracy on the validation set.
+        # score = model.evaluate(X_val, y_val, verbose=0)
+        score = model.evaluate(X_test, y_test, verbose=0)
+        return score[1]
 
 
 if __name__ == "__main__":
@@ -140,8 +117,12 @@ if __name__ == "__main__":
     unixtimestamp = int(time.time())
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
+    BATCH_SIZE = 32
+    EPOCHS = 2
+    N_TRIALS = 3
+
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(objective, n_trials=3, timeout=1000)
+    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS, timeout=1000)
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
@@ -150,7 +131,6 @@ if __name__ == "__main__":
 
     print("Best trial:")
     trial = study.best_trial
-    # best_result['best_trial'] = trial
     df_study = study.trials_dataframe()
     print(df_study.head())
 
@@ -163,22 +143,21 @@ if __name__ == "__main__":
         # best_result["{}".format(key)] = value
 
     best_result.update(study.best_params)
-    # print(study.best_params)
     print(best_result)
 
-    with open(f"{Path().absolute()}/runs/results.json") as jf:
+    with open(f"{Path(__file__).absolute().parent}/runs/results.json") as jf:
         data = json.load(jf)
         print(data)
 
         previous_results = data['optuna_result']
-        # appending data to optuna_result
+        # Appending data to optuna_result
         print(previous_results)
         previous_results.append(best_result)
         print(previous_results)
         print(data)
 
-    with open(f"{Path().absolute()}/runs/results.json", "w") as rf:
+    with open(f"{Path(__file__).absolute().parent}/runs/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{Path().absolute()}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(f"{Path(__file__).absolute().parent}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
         joblib.dump(study, sf)

@@ -1,26 +1,23 @@
-from itertools import cycle
-from numpy import interp
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve, auc
-from tensorflow import keras
+import argparse
 import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sn
 import seaborn as sns
 import tensorflow as tf
 
+from itertools import cycle
+from numpy import interp
 from pathlib import Path
-# print("File      Path:", Path(__file__).absolute())
-# print("Parent of Directory Path:", Path().absolute().parent)
-from astronet.t2.utils import t2_logger, load_WISDM
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve, auc
+from tensorflow import keras
+
 from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.utils import t2_logger, load_WISDM
 
-import argparse
 
-
-def plot_history(model_name, event):
+def plot_history(model_name, event, save=True):
     plt.plot(event['acc'], label='train')
     plt.plot(event['val_acc'], label='validation')
     plt.xlabel("Epoch")
@@ -29,12 +26,16 @@ def plot_history(model_name, event):
     plt.legend()
     plt.title(r'Training vs. Validation per Epoch')
 
-    fname = str(Path().absolute()) + f"/plots/model-acc-{model_name}.pdf"
-    plt.savefig(fname, format='pdf')
-    plt.clf()
+    if save:
+        fname = str(Path(__file__).absolute().parent) + f"/plots/model-acc-{model_name}.pdf"
+        plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
 
 
-def plot_confusion_matrix(model_name, y_true, y_pred, class_names):
+def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(18, 10))
@@ -63,12 +64,17 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names):
     # apply offset transform to all x ticklabels.
     for label in ax.yaxis.get_majorticklabels():
         label.set_transform(label.get_transform() + offset)
-    fname = str(Path().absolute()) + f"/plots/model-cm-{model_name}.pdf"
-    plt.savefig(fname, format='pdf')
-    plt.clf()
+    if save:
+        fname = str(Path(__file__).absolute().parent) + f"/plots/model-cm-{model_name}.pdf"
+        plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
 
 
-def plot_multiROC(model_name, model, X_test, y_test, enc):
+def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
+
     # Plot linewidth.
     lw = 2
 
@@ -78,8 +84,8 @@ def plot_multiROC(model_name, model, X_test, y_test, enc):
     roc_auc = dict()
     y_score = model.predict(X_test)
     n_classes = len(enc.categories_[0])
-    print(enc.categories_[0][0])
-    print(type(enc.categories_[0]))
+    # print(enc.categories_[0][0])
+    # print(type(enc.categories_[0]))
 
     for i in range(n_classes):
         fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
@@ -132,15 +138,25 @@ def plot_multiROC(model_name, model, X_test, y_test, enc):
     plt.title('Multi-Class Receiver Operating Characteristic')
     plt.legend(loc="lower right")
 
-    fname = str(Path().absolute()) + f"/plots/model-roc-{model_name}.pdf"
-    plt.savefig(fname, format='pdf')
-    plt.clf()
+    if save:
+        fname = str(Path(__file__).absolute().parent) + f"/plots/model-roc-{model_name}.pdf"
+        plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
 
 
 if __name__ == '__main__':
 
-    log = t2_logger(__file__)
-    log.info("_________________________________")
+    try:
+        log = t2_logger(__file__)
+        log.info("_________________________________")
+        log.info("File Path:" + str(Path(__file__).absolute()))
+        log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+    except:
+        print("Seems you are running from a notebook...")
+        __file__ = str(Path().resolve().parent) + "/astronet/t2/visuals.py"
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -170,7 +186,7 @@ if __name__ == '__main__':
     print(X_val.shape, y_val.shape)
     print(X_test.shape, y_test.shape)
 
-    with open(str(Path().absolute()) + '/models/results.json') as f:
+    with open(str(Path(__file__).absolute().parent) + '/models/results.json') as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
@@ -183,7 +199,7 @@ if __name__ == '__main__':
 
     model_name = event['name']
 
-    model = keras.models.load_model(str(Path().absolute()) + f"/models/model-{model_name}")
+    model = keras.models.load_model(str(Path(__file__).absolute().parent) + f"/models/model-{model_name}")
 
     y_pred = model.predict(X_test)
 

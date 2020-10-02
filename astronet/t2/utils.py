@@ -6,8 +6,6 @@ import tensorflow as tf
 import logging
 
 from pathlib import Path
-# print("File      Path:", Path(__file__).absolute())
-# print("Parent of Directory Path:", Path().absolute().parent)
 from astronet.t2.preprocess import robust_scale
 
 
@@ -43,13 +41,12 @@ def t2_logger(name, level="INFO"):
 
     # Create formatter
     # Format of the log message to be printed
-    FORMAT = "[%(asctime)-15s]"
-    FORMAT += "[%(filename)s:"
-    FORMAT += "%(lineno)s] -- "
+    FORMAT = "[%(asctime)s] "
+    FORMAT += "{%(filename)s:%(lineno)d} "
     FORMAT += "%(levelname)s "
-    FORMAT += "%(message)s"
+    FORMAT += "- %(message)s"
     # Date format
-    DATEFORMAT = "%y/%m/%d %H:%M:%S"
+    DATEFORMAT = "%y-%m-%d %H:%M:%S"
 
     formatter = logging.Formatter(fmt=FORMAT, datefmt=DATEFORMAT)
     # Add formatter to ch
