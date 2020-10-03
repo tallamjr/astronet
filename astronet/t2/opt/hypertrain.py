@@ -8,7 +8,7 @@ import sys
 import tensorflow as tf
 import warnings
 
-from tensorflow import kereas
+from tensorflow import keras
 from keras.backend import clear_session
 from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
