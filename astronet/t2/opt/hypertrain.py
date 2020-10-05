@@ -3,6 +3,7 @@ import json
 import logging
 import numpy as np
 import optuna
+import os
 import subprocess
 import sys
 import tensorflow as tf
@@ -19,11 +20,18 @@ from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.transformer import TransformerBlock, ConvEmbedding
 from astronet.t2.utils import t2_logger, load_WISDM
 
+try:
+    print(os.environ['ASNWD'])
+    log_filename = str(os.environ['ASNWD']) + "astronet/t2/opt/studies.log"
+except KeyError:
+    print("Please set the environment ASNWD in 'conf/astronet.conf'")
+    sys.exit(1)
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
         format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(filename='studies.log', mode='a'),
+            logging.FileHandler(filename=log_filename, mode='a'),
             logging.StreamHandler(sys.stdout)
         ]
 )
