@@ -13,8 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=serial_job_test      # Job name
-#SBATCH --time=00:05:00                 # Time limit hrs:min:sec
+#SBATCH --job-name=t2-WISDM             # Job name
+#SBATCH --time=36:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
 # Add a -e or --error with an error file name to separate output and error
 # logs. Note this will ignore the --output option if used afterwards
@@ -37,6 +37,6 @@ which python
 python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 # Hyperparameter Optimisation
-# python $PWD/astronet/t2/opt/hypertrain.py
+python $ASNWD/astronet/t2/opt/hypertrain.py
 # Train
-# python $PWD/astronet/t2/train.py
+python $ASNWD/astronet/t2/train.py
