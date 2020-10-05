@@ -8,13 +8,11 @@ import sys
 import tensorflow as tf
 import warnings
 
-from tensorflow import keras
-from keras.backend import clear_session
 from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
-from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import optimizers
+from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
