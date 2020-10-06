@@ -5,11 +5,10 @@ import subprocess
 import tensorflow as tf
 import time
 
-from keras.backend import clear_session
 from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
-from tensorflow import keras
 from tensorflow.keras import layers, optimizers
+from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
@@ -29,6 +28,7 @@ RANDOM_SEED = 42
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
 
 class Training(object):
     def __init__(self, epochs, batch_size):
