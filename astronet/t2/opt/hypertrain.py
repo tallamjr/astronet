@@ -129,7 +129,14 @@ if __name__ == "__main__":
     N_TRIALS = 20
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS, timeout=1000)
+
+    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE, n_trials=N_TRIALS,
+                                timeout=None, n_jobs=-1, show_progress_bar=False))
+
+    log.warn("""show_progress_bar: Flag to show progress bars \n
+        "or not. To disable progress bar, set this ``False``.  Currently, \n
+        progress bar is experimental feature and disabled when \n
+        ``n_jobs`` != 1`.""")
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
