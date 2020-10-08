@@ -131,7 +131,7 @@ if __name__ == "__main__":
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
 
     study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS,
-                                timeout=None, n_jobs=-1, show_progress_bar=False)
+                                timeout=86400, n_jobs=-1, show_progress_bar=False)
 
     log.warn("""show_progress_bar: Flag to show progress bars \n
         "or not. To disable progress bar, set this ``False``.  Currently, \n
