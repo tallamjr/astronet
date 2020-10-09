@@ -140,12 +140,18 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--dataset", default="wisdm_2010",
             help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
+    parser.add_argument("-b", "--batch-size", default=32,
+            help="Number of training examples per batch")
+
+    parser.add_argument("-e", "--epochs", default=20,
+            help="How many epochs to run training for")
+
     args = parser.parse_args()
     argsdict = vars(args)
 
-    BATCH_SIZE = 32
-    EPOCHS = 2
     dataset = args.dataset
+    BATCH_SIZE = args.batch_size
+    EPOCHS = args.epochs
 
     training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset)
     training()
