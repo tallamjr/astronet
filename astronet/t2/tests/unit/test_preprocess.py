@@ -14,6 +14,7 @@ def test_one_hot_encode():
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
     assert y_train.shape == (21960, 6)
+    assert y_train.shape[1] == 6
     assert y_val.shape == (4114, 6)
     assert y_test.shape == (1368, 6)
 

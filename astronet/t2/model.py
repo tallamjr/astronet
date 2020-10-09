@@ -1,4 +1,3 @@
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -8,15 +7,17 @@ from astronet.t2.transformer import ConvEmbedding, TransformerBlock
 # num_heads = 4     # --> Number of attention heads
 # ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
 
+
 class T2Model(keras.Model):
     """Time-Transformer with Multi-headed."""
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
         self.ff_dim         = ff_dim
         self.num_filters    = num_filters
+        self.num_classes    = num_classes
 
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim[1:])
         self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
@@ -24,7 +25,7 @@ class T2Model(keras.Model):
         self.dropout1       = layers.Dropout(0.1)
         self.fc             = layers.Dense(20, activation="relu")
         self.dropout2       = layers.Dropout(0.1)
-        self.classifier     = layers.Dense(6, activation="softmax")
+        self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs, training=False):
 

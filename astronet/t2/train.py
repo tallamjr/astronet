@@ -3,6 +3,7 @@ import json
 import logging
 import numpy as np
 import subprocess
+import sys
 import tensorflow as tf
 import time
 
@@ -51,6 +52,7 @@ class Training(object):
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+        num_classes = y_train.shape[1]
 
         log.info(print(X_train.shape, y_train.shape))
         # print(X_val.shape, y_val.shape)
@@ -77,6 +79,7 @@ class Training(object):
             num_heads=num_heads,
             ff_dim=ff_dim,
             num_filters=num_filters,
+            num_classes=num_classes,
         )
 
         # We compile our model with a sampled learning rate.
@@ -154,8 +157,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dataset = args.dataset
-    BATCH_SIZE = args.batch_size
-    EPOCHS = args.epochs
+    BATCH_SIZE = int(args.batch_size)
+    EPOCHS = int(args.epochs)
 
     training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset)
     training()

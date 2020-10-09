@@ -77,6 +77,7 @@ class Objective(object):
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+        num_classes = y_train.shape[1]
 
         embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
         num_heads = trial.suggest_categorical("num_heads", [4, 8, 16])  # --> Number of attention heads
@@ -93,6 +94,7 @@ class Objective(object):
             num_heads=num_heads,
             ff_dim=ff_dim,
             num_filters=num_filters,
+            num_classes=num_classes,
         )
 
         # We compile our model with a sampled learning rate.
@@ -156,9 +158,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dataset = args.dataset
-    BATCH_SIZE = args.batch_size
-    EPOCHS = args.epochs
-    N_TRIALS = args.num_trials
+    BATCH_SIZE = int(args.batch_size)
+    EPOCHS = int(args.epochs)
+    N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
 
