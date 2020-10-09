@@ -5,10 +5,10 @@ on:
   # but only for the master branch
   push:
     branches:
-      - master
+      - issues/16/nbval
   pull_request:
     branches:
-      - master
+      - issues/16/nbval
 
 jobs:
   tutorials:
@@ -68,4 +68,4 @@ jobs:
 
     - name: Mini-Analysis Pipeline
       run: |
-        pytest --nbval notebooks/T2-Mini-Analysis-Pipeline.ipynb
+        # pytest --nbval notebooks/T2-Mini-Analysis-Pipeline.ipynb

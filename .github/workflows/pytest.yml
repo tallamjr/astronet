@@ -5,10 +5,10 @@ on:
    # but only for the master branch
    push:
      branches:
-       - __master
+       - master
    pull_request:
      branches:
-       - __master
+       - master
 
 jobs:
   pytest:
