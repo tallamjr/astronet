@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(description='Evaluate best performing model for
 parser.add_argument('-m', '--model',
         help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
-parser.add_argument("-d", "--dataset",
+parser.add_argument("-d", "--dataset", default="wisdm_2010",
         help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
 args = parser.parse_args()
