@@ -45,7 +45,7 @@ class Training(object):
         # print(X_val.shape, y_val.shape)
         # print(X_test.shape, y_test.shape)
 
-        with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
+        with open(f"{Path(__file__).absolute().parent}/opt/runs/results.json") as f:
             events = json.load(f)
             event = max(events['optuna_result'], key=lambda ev: ev['value'])
             print(event)
