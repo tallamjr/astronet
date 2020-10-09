@@ -1,6 +1,6 @@
+import argparse
 import json
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
 from pathlib import Path
@@ -8,7 +8,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from tensorflow import keras
 
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 from astronet.t2.preprocess import one_hot_encode
 
 try:
@@ -25,19 +25,36 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
-# Load WISDM-2010
-X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+parser = argparse.ArgumentParser(description='Evaluate best performing model for a given dataset')
+
+parser.add_argument('-m', '--model',
+        help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+
+parser.add_argument("-d", "--dataset",
+        help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+
+args = parser.parse_args()
+argsdict = vars(args)
+
+if args.dataset == "wisdm_2010":
+    load_dataset = load_wisdm_2010
+elif args.dataset == "wisdm_2019":
+    load_dataset = load_wisdm_2019
+
+# Load data
+X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
+
 # One hot encode y
 enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-with open(str(Path(__file__).absolute().parent) + '/models/results.json') as f:
+with open(f"{Path(__file__).absolute().parent}/models/{args.dataset}/results.json") as f:
     events = json.load(f)
     event = max(events['training_result'], key=lambda ev: ev['value'])
     print(event)
 
 model_name = event['name']
 
-model = keras.models.load_model(f"{Path(__file__).absolute().parent/models/model-{model_name}")
+model = keras.models.load_model(f"{Path(__file__).absolute().parent}/models/{args.dataset}/model-{model_name}")
 
 model.evaluate(X_test, y_test)
 y_pred = model.predict(X_test)
