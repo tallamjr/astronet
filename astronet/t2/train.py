@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import numpy as np
@@ -12,8 +13,7 @@ from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 try:
     log = t2_logger(__file__)
@@ -31,13 +31,24 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Training(object):
-    def __init__(self, epochs, batch_size):
-        self.epochs = epochs
-        self.batch_size = batch_size
+    def __init__(self, epochs, batch_size, dataset):
+        self.epochs = EPOCHS
+        self.batch_size = BATCH_SIZE
+        self.dataset = dataset
 
     def __call__(self):
-        # Load WISDM-2010
-        X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+
+        if dataset == "wisdm_2010":
+            load_dataset = load_wisdm_2010
+        elif dataset == "wisdm_2019":
+            load_dataset = load_wisdm_2019
+        # elif dataset == "spcc":
+        #     load_dataset = load_spcc
+        # elif dataset == "plasticc":
+        #     load_dataset = load_plasticc
+
+        # Load data
+        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
@@ -45,7 +56,7 @@ class Training(object):
         # print(X_val.shape, y_val.shape)
         # print(X_test.shape, y_test.shape)
 
-        with open(f"{Path(__file__).absolute().parent}/opt/runs/results.json") as f:
+        with open(f"{Path(__file__).absolute().parent}/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
             event = max(events['optuna_result'], key=lambda ev: ev['value'])
             print(event)
@@ -105,7 +116,7 @@ class Training(object):
             print("    {}: {}".format(key, value))
             model_params["{}".format(key)] = value
 
-        with open(f"{Path(__file__).absolute().parent}/models/results.json") as jf:
+        with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as jf:
             data = json.load(jf)
             print(data)
 
@@ -116,16 +127,25 @@ class Training(object):
             print(previous_results)
             print(data)
 
-        with open(f"{Path(__file__).absolute().parent}/models/results.json", "w") as rf:
+        with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json", "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
-        model.save(f"{Path(__file__).absolute().parent}/models/model-{unixtimestamp}-{label}")
+        model.save(f"{Path(__file__).absolute().parent}/models/{dataset}/model-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
 
-    BATCH_SIZE = 32
-    EPOCHS = 50
+    parser = argparse.ArgumentParser(description='Process named model')
 
-    training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE)
+    parser.add_argument("-d", "--dataset", default="wisdm_2010",
+            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+
+    args = parser.parse_args()
+    argsdict = vars(args)
+
+    BATCH_SIZE = 32
+    EPOCHS = 2
+    dataset = args.dataset
+
+    training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset)
     training()
