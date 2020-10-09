@@ -29,7 +29,7 @@ Within `bin` are the relevant slurm scripts for running jobs on the cluster.
 Below is an example of the `t2` script to run the T2 analysis (file snapshot as
 of 20201009)
 
-```
+```bash
 #!/bin/bash
 # Copyright 2020
 # Author: Tarek Allam Jr.
