@@ -146,8 +146,12 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=20,
             help="How many epochs to run training for")
 
-    args = parser.parse_args()
-    argsdict = vars(args)
+    try:
+        args = parser.parse_args()
+        argsdict = vars(args)
+    except KeyError:
+        parser.print_help()
+        sys.exit(0)
 
     dataset = args.dataset
     BATCH_SIZE = args.batch_size

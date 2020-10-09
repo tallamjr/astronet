@@ -33,8 +33,12 @@ parser.add_argument('-m', '--model',
 parser.add_argument("-d", "--dataset", default="wisdm_2010",
         help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
-args = parser.parse_args()
-argsdict = vars(args)
+try:
+    args = parser.parse_args()
+    argsdict = vars(args)
+except KeyError:
+    parser.print_help()
+    sys.exit(0)
 
 if args.dataset == "wisdm_2010":
     load_dataset = load_wisdm_2010

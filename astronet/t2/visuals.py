@@ -177,8 +177,12 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--dataset", default="wisdm_2010",
             help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
-    args = parser.parse_args()
-    argsdict = vars(args)
+    try:
+        args = parser.parse_args()
+        argsdict = vars(args)
+    except KeyError:
+        parser.print_help()
+        sys.exit(0)
 
     dataset = args.dataset
 
