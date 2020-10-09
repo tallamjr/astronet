@@ -82,6 +82,9 @@ $ sbatch bin/t2
 This will send a job to the scheduler. The logs for the specified job would be
 in the `astronet/logs` directory within `<JOB-ID>.log` file
 
+**NOTE** The `$ASNWD` is set via the `conf/astronet.conf` file. This is where
+the home directory of the `astronet` repository should be set.
+
 ### Papers of Interest
 
 - [WISDM Smartphone and Smartwatch Activity and Biometrics Dataset AKA WISDM-2019]("./resources/papers/WISDM-dataset-description.pdf)
