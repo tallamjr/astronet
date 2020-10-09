@@ -1,3 +1,4 @@
+import argparse
 import joblib
 import json
 import logging
@@ -17,8 +18,7 @@ from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 try:
     print(os.environ['ASNWD'])
@@ -42,11 +42,11 @@ optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 try:
     log = t2_logger(__file__)
     log.info("_________________________________")
-    log.info("File Path:" + str(Path(__file__).absolute()))
-    log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+    log.info(f"File Path: {Path(__file__).absolute()}")
+    log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
     print("Seems you are running from a notebook...")
-    __file__ = str(Path().resolve().parent) + "/astronet/t2/opt/hypertrain.py"
+    __file__ = f"{Path().resolve().parent}/astronet/t2/opt/hypertrain.py"
 
 RANDOM_SEED = 42
 
@@ -55,18 +55,29 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, batch_size):
+    def __init__(self, epochs, batch_size, dataset):
         self.epochs = EPOCHS
         self.batch_size = BATCH_SIZE
+        self.dataset = dataset
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        # Load WISDM-2010
-        X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+        if dataset == "wisdm_2010":
+            load_dataset = load_wisdm_2010
+        elif dataset == "wisdm_2019":
+            load_dataset = load_wisdm_2019
+        # elif dataset == "spcc":
+        #     load_dataset = load_spcc
+        # elif dataset == "plasticc":
+        #     load_dataset = load_plasticc
+
+        # Load data
+        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+        num_classes = y_train.shape[1]
 
         embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
         num_heads = trial.suggest_categorical("num_heads", [4, 8, 16])  # --> Number of attention heads
@@ -83,6 +94,7 @@ class Objective(object):
             num_heads=num_heads,
             ff_dim=ff_dim,
             num_filters=num_filters,
+            num_classes=num_classes,
         )
 
         # We compile our model with a sampled learning rate.
@@ -124,14 +136,41 @@ if __name__ == "__main__":
     unixtimestamp = int(time.time())
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
-    BATCH_SIZE = 32
-    EPOCHS = 10
-    N_TRIALS = 15
+    parser = argparse.ArgumentParser(description='Optimising hyperparameters')
+
+    parser.add_argument("-d", "--dataset", default="wisdm_2010",
+            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+
+    parser.add_argument("-b", "--batch-size", default=32,
+            help="Number of training examples per batch")
+
+    parser.add_argument("-e", "--epochs", default=10,
+            help="How many epochs to run training for")
+
+    parser.add_argument("-n", "--num-trials", default=15,
+            help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
+
+    try:
+        args = parser.parse_args()
+        argsdict = vars(args)
+    except KeyError:
+        parser.print_help()
+        sys.exit(0)
+
+    dataset = args.dataset
+    BATCH_SIZE = int(args.batch_size)
+    EPOCHS = int(args.epochs)
+    N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
 
-    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS,
-                                timeout=86400, n_jobs=-1, show_progress_bar=False)
+    study.optimize(
+        Objective(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset),
+        n_trials=N_TRIALS,
+        timeout=86400,
+        n_jobs=-1,
+        show_progress_bar=False,
+    )
 
     log.warn("""show_progress_bar: Flag to show progress bars \n
         "or not. To disable progress bar, set this ``False``.  Currently, \n
@@ -159,7 +198,7 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/results.json") as jf:
+    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/results.json") as jf:
         data = json.load(jf)
         print(data)
 
@@ -170,8 +209,8 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/results.json", "w") as rf:
+    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
         joblib.dump(study, sf)

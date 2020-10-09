@@ -1,33 +1,27 @@
 import pytest
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorboard.plugins.hparams import api as hp
 
 from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010
 from astronet.t2.preprocess import one_hot_encode
-
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
 
 from pathlib import Path
 
 log = t2_logger(__file__)
 log.info("_________________________________")
-log.info("File      Path:" + str(Path(__file__).absolute()))
-log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+log.info(f"File      Path: {Path(__file__).absolute()}")
+log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 
 RANDOM_SEED = 42
-
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
-def test_training_pipeline():
+
+def test_training_pipeline_wisdm_2010():
 
     # Load WISDM-2010
-    X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+    X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 

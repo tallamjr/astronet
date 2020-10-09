@@ -1,11 +1,13 @@
-from sklearn.metrics import confusion_matrix
-from tensorflow import keras
+import logging
 import numpy as np
 import pandas as pd
+import pickle
 import tensorflow as tf
-import logging
 
 from pathlib import Path
+from sklearn.metrics import confusion_matrix
+from tensorflow import keras
+
 from astronet.t2.preprocess import robust_scale
 
 
@@ -93,13 +95,13 @@ def create_dataset(X, y, time_steps=1, step=1):
     return np.array(Xs), np.array(ys).reshape(-1, 1)
 
 
-def load_WISDM(timesteps=200, step=40):
+def load_wisdm_2010(timesteps=200, step=40):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
-    # Load WISDM-2010 or WISDM-2019 dataset
+    # Load WISDM-2010 dataset
     column_names = [
         "user_id",
         "activity",
@@ -118,14 +120,10 @@ def load_WISDM(timesteps=200, step=40):
     df["z_axis"] = df.z_axis.astype(np.float64)
     df.dropna(axis=0, how="any", inplace=True)
 
-    # print(df.head())
-
     cols = ["x_axis", "y_axis", "z_axis"]
 
-    # print(df[cols].head())
-
     df_train, df_val, df_test, num_features = train_val_test_split(df, cols)
-    # print(num_features)  # Should = 3 in this case
+    assert num_features == 3  # Should = 3 in this case
 
     # Perfrom robust scaling
     robust_scale(df_train, df_val, df_test, cols)
@@ -153,5 +151,84 @@ def load_WISDM(timesteps=200, step=40):
         TIME_STEPS,
         STEP
     )
+
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+def load_wisdm_2019(timesteps=100, step=40):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    # Load WISDM-2019 dataset
+    # column_names = [
+    #     "phone_accel_x",
+    #     "phone_accel_y",
+    #     "phone_accel_z",
+    #     "phone_gyro_x",
+    #     "phone_gyro_y",
+    #     "phone_gyro_z",
+    # ]
+
+    with open(f"{Path(__file__).absolute().parent.parent.parent}/data/wisdm-dataset/activity_key.txt") as f:
+        activity_list = f.read().split("\n")
+
+    # Use activity_map.values() for activity names when plotting, but then the confusion matrix will
+    # be squashed
+    activity_map = {}
+    for element in activity_list:
+        split = element.split(" = ")
+        if len(split) < 2:
+            continue
+        activity_map[split[1]] = split[0]
+
+    # As this is quite a large dataset, to save pre-processing time, I have taken "ready-made"
+    # dataframe files from: https://github.com/LACoderDeBH/CS230_HAR_WISDM
+
+    # The work presented there and published by Susana Benavidez et al 2019 is what will be used to
+    # compare results with laatest attempts at applying deep learning methods to the updated WISDM
+    # dataset
+    with open(f"{Path(__file__).absolute().parent.parent.parent}/data/wisdm-dataset/phone.df", "rb") as df:
+            phone = pickle.load(df)
+
+    assert phone.shape == (4780251, 9)
+
+    cols = [
+        "phone_accel_x",
+        "phone_accel_y",
+        "phone_accel_z",
+    ]
+
+    df_train, df_val, df_test, num_features = train_val_test_split(phone, cols)
+    assert num_features == 3
+
+    robust_scale(df_train, df_val, df_test, cols)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    X_train, y_train = create_dataset(
+        df_train[cols],
+        df_train.activity,
+        TIME_STEPS,
+        STEP
+    )
+
+    X_val, y_val = create_dataset(
+        df_val[cols],
+        df_val.activity,
+        TIME_STEPS,
+        STEP
+    )
+
+    X_test, y_test = create_dataset(
+        df_test[cols],
+        df_test.activity,
+        TIME_STEPS,
+        STEP
+    )
+
+    assert y_train.shape == (95603, 1)
 
     return X_train, y_train, X_val, y_val, X_test, y_test
