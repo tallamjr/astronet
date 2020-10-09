@@ -14,7 +14,7 @@ from sklearn.metrics import roc_curve, auc
 from tensorflow import keras
 
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 
 def plot_history(model_name, event, save=True):
@@ -174,11 +174,19 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model',
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
+    parser.add_argument("-d", "--dataset",
+            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+
     args = parser.parse_args()
     argsdict = vars(args)
 
-    # Load WISDM-2010
-    X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+    if args.dataset == "wisdm_2010":
+        load_dataset = load_wisdm_2010
+    elif args.dataset == "wisdm_2019":
+        load_dataset = load_wisdm_2019
+
+    # Load data
+    X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
@@ -186,7 +194,7 @@ if __name__ == '__main__':
     print(X_val.shape, y_val.shape)
     print(X_test.shape, y_test.shape)
 
-    with open(f"{Path(__file__).absolute().parent}/models/results.json") as f:
+    with open(f"{Path(__file__).absolute().parent}/models/{args.dataset}/results.json") as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
@@ -199,7 +207,7 @@ if __name__ == '__main__':
 
     model_name = event['name']
 
-    model = keras.models.load_model(f"{Path(__file__).absolute().parent}/models/model-{model_name}")
+    model = keras.models.load_model(f"{Path(__file__).absolute().parent}/models/{args.dataset}/model-{model_name}")
 
     y_pred = model.predict(X_test)
 
