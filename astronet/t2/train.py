@@ -5,11 +5,10 @@ import subprocess
 import tensorflow as tf
 import time
 
-from keras.backend import clear_session
 from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
-from tensorflow import keras
 from tensorflow.keras import layers, optimizers
+from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
@@ -30,6 +29,7 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
+
 class Training(object):
     def __init__(self, epochs, batch_size):
         self.epochs = epochs
@@ -45,7 +45,7 @@ class Training(object):
         # print(X_val.shape, y_val.shape)
         # print(X_test.shape, y_test.shape)
 
-        with open(str(Path().absolute()) + '/opt/runs/results.json') as f:
+        with open(f"{Path(__file__).absolute().parent}/opt/runs/results.json") as f:
             events = json.load(f)
             event = max(events['optuna_result'], key=lambda ev: ev['value'])
             print(event)
@@ -125,7 +125,7 @@ class Training(object):
 if __name__ == "__main__":
 
     BATCH_SIZE = 32
-    EPOCHS = 2
+    EPOCHS = 50
 
     training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE)
     training()

@@ -3,28 +3,35 @@ import json
 import logging
 import numpy as np
 import optuna
+import os
 import subprocess
 import sys
 import tensorflow as tf
 import warnings
 
-from keras.backend import clear_session
 from pathlib import Path
 from tensorboard.plugins.hparams import api as hp
-from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras import optimizers
+from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.transformer import TransformerBlock, ConvEmbedding
 from astronet.t2.utils import t2_logger, load_WISDM
 
+try:
+    print(os.environ['ASNWD'])
+    log_filename = str(os.environ['ASNWD']) + "astronet/t2/opt/studies.log"
+except KeyError:
+    print("Please set the environment ASNWD in 'conf/astronet.conf'")
+    sys.exit(1)
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO,
         format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(filename='studies.log', mode='a'),
+            logging.FileHandler(filename=log_filename, mode='a'),
             logging.StreamHandler(sys.stdout)
         ]
 )
@@ -61,9 +68,9 @@ class Objective(object):
         # One hot encode y
         enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-        embed_dim = trial.suggest_categorical("embed_dim", [32, 64])  # --> Embedding size for each token
-        num_heads = trial.suggest_categorical("num_heads", [4, 8])  # --> Number of attention heads
-        ff_dim = trial.suggest_categorical("ff_dim", [32, 64])  # --> Hidden layer size in feed forward network inside transformer
+        embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
+        num_heads = trial.suggest_categorical("num_heads", [4, 8, 16])  # --> Number of attention heads
+        ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
 
@@ -118,11 +125,18 @@ if __name__ == "__main__":
     label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
     BATCH_SIZE = 32
-    EPOCHS = 2
-    N_TRIALS = 3
+    EPOCHS = 10
+    N_TRIALS = 15
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
-    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS, timeout=1000)
+
+    study.optimize(Objective(epochs=EPOCHS, batch_size=BATCH_SIZE), n_trials=N_TRIALS,
+                                timeout=86400, n_jobs=-1, show_progress_bar=False)
+
+    log.warn("""show_progress_bar: Flag to show progress bars \n
+        "or not. To disable progress bar, set this ``False``.  Currently, \n
+        progress bar is experimental feature and disabled when \n
+        ``n_jobs`` != 1`.""")
 
     best_result = {}
     best_result['name'] = str(unixtimestamp) + "-" + label
