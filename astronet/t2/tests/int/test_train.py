@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_WISDM
+from astronet.t2.utils import t2_logger, load_wisdm_2010
 from astronet.t2.preprocess import one_hot_encode
 
 from pathlib import Path
@@ -18,10 +18,10 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 
-def test_training_pipeline():
+def test_training_pipeline_wisdm_2010():
 
     # Load WISDM-2010
-    X_train, y_train, X_val, y_val, X_test, y_test = load_WISDM()
+    X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
