@@ -1,28 +1,22 @@
 import pytest
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorboard.plugins.hparams import api as hp
 
 from astronet.t2.model import T2Model
 from astronet.t2.utils import t2_logger, load_WISDM
 from astronet.t2.preprocess import one_hot_encode
 
-from astronet.t2.transformer import TransformerBlock, ConvEmbedding
-
 from pathlib import Path
 
 log = t2_logger(__file__)
 log.info("_________________________________")
-log.info("File      Path:" + str(Path(__file__).absolute()))
-log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+log.info(f"File      Path: {Path(__file__).absolute()}")
+log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 
 RANDOM_SEED = 42
-
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
 
 def test_training_pipeline():
 

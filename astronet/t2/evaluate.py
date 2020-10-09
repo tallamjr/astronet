@@ -10,16 +10,15 @@ from tensorflow import keras
 
 from astronet.t2.utils import t2_logger, load_WISDM
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.preprocess import robust_scale, one_hot_encode
 
 try:
     log = t2_logger(__file__)
     log.info("_________________________________")
-    log.info("File Path:" + str(Path(__file__).absolute()))
-    log.info("Parent of Directory Path:" + str(Path().absolute().parent))
+    log.info(f"File Path: {Path(__file__).absolute()}")
+    log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
     print("Seems you are running from a notebook...")
-    __file__ = str(Path().resolve().parent) + "/astronet/t2/evaluate.py"
+    __file__ = f"{Path().resolve().parent}/astronet/t2/evaluate.py"
 
 RANDOM_SEED = 42
 
@@ -38,7 +37,7 @@ with open(str(Path(__file__).absolute().parent) + '/models/results.json') as f:
 
 model_name = event['name']
 
-model = keras.models.load_model(str(Path(__file__).absolute().parent) + f"/models/model-{model_name}")
+model = keras.models.load_model(f"{Path(__file__).absolute().parent/models/model-{model_name}")
 
 model.evaluate(X_test, y_test)
 y_pred = model.predict(X_test)
