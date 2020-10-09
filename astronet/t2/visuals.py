@@ -27,7 +27,7 @@ def plot_history(model_name, event, save=True):
     plt.title(r'Training vs. Validation per Epoch')
 
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/model-acc-{model_name}.pdf"
+        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -65,7 +65,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
     for label in ax.yaxis.get_majorticklabels():
         label.set_transform(label.get_transform() + offset)
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/model-cm-{model_name}.pdf"
+        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -139,7 +139,7 @@ def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
     plt.legend(loc="lower right")
 
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/model-roc-{model_name}.pdf"
+        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-roc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -174,11 +174,13 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model',
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
-    parser.add_argument("-d", "--dataset",
+    parser.add_argument("-d", "--dataset", default="wisdm_2010",
             help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
     args = parser.parse_args()
     argsdict = vars(args)
+
+    dataset = args.dataset
 
     if args.dataset == "wisdm_2010":
         load_dataset = load_wisdm_2010
@@ -211,13 +213,14 @@ if __name__ == '__main__':
 
     y_pred = model.predict(X_test)
 
-    plot_history(model_name, event)
+    plot_history(dataset, model_name, event)
 
     plot_confusion_matrix(
+            dataset,
             model_name,
             enc.inverse_transform(y_test),
             enc.inverse_transform(y_pred),
             enc.categories_[0]
         )
 
-    plot_multiROC(model_name, model, X_test, y_test, enc)
+    plot_multiROC(dataset, model_name, model, X_test, y_test, enc)
