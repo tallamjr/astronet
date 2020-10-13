@@ -80,6 +80,7 @@ jobs:
         pip install matplotlib
         pip install pytest
         pip install pytest-cov
+        pip install nbval
 
     - name: Run pytest
       run: |
