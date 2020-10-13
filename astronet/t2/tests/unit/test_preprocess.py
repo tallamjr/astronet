@@ -1,3 +1,6 @@
+import os
+import pytest
+
 from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
 
@@ -19,6 +22,10 @@ def test_one_hot_encode():
     assert y_test.shape == (1368, 6)
 
     del enc, X_train, y_train, X_val, y_val, X_test, y_test
+
+
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large 'phone.df' file")
+def test_one_hot_encode_local():
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
 
