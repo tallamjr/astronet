@@ -53,11 +53,16 @@ X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
 dataset = args.dataset
-
 with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as f:
     events = json.load(f)
-    event = max(events['training_result'], key=lambda ev: ev['value'])
-    print(event)
+    if args.model:
+        # Get params for model chosen with cli args
+        event = next(item for item in events['training_result'] if item["name"] == args.model)
+        print(event)
+    else:
+        # Get params for best model with highest test accuracy
+        event = max(events['training_result'], key=lambda ev: ev['value'])
+        print(event)
 
 model_name = event['name']
 

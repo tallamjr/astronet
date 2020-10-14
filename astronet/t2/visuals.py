@@ -222,7 +222,8 @@ if __name__ == '__main__':
     print(X_val.shape, y_val.shape)
     print(X_test.shape, y_test.shape)
 
-    with open(f"{Path(__file__).absolute().parent}/models/{args.dataset}/results.json") as f:
+    dataset = args.dataset
+    with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
@@ -239,14 +240,16 @@ if __name__ == '__main__':
 
     y_pred = model.predict(X_test)
 
-    plot_history(dataset, model_name, event)
+    plot_acc_history(dataset, model_name, event)
+
+    plot_loss_history(dataset, model_name, event)
 
     plot_confusion_matrix(
-            dataset,
-            model_name,
-            enc.inverse_transform(y_test),
-            enc.inverse_transform(y_pred),
-            enc.categories_[0]
-        )
+        dataset,
+        model_name,
+        enc.inverse_transform(y_test),
+        enc.inverse_transform(y_pred),
+        enc.categories_[0],
+    )
 
     plot_multiROC(dataset, model_name, model, X_test, y_test, enc)
