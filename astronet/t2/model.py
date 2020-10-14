@@ -3,13 +3,13 @@ from tensorflow.keras import layers
 
 from astronet.t2.transformer import ConvEmbedding, TransformerBlock
 
-# embed_dim = 32    # --> Embedding size for each token
-# num_heads = 4     # --> Number of attention heads
-# ff_dim = 32       # --> Hidden layer size in feed forward network inside transformer
-
 
 class T2Model(keras.Model):
-    """Time-Transformer with Multi-headed."""
+    """Time-Transformer with Multi-headed.
+    embed_dim --> Embedding size for each token
+    num_heads --> Number of attention heads
+    ff_dim    --> Hidden layer size in feed forward network inside transformer
+    """
     def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
