@@ -11,6 +11,7 @@ dependencies:
   - python=3.7
 
   - pip:
+    - nbval
     - pytest
     - pytest-cov
     - pytest-subtests

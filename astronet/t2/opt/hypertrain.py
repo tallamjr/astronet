@@ -117,8 +117,7 @@ class Objective(object):
         model.summary(print_fn=logging.info)
 
         # Evaluate the model accuracy on the validation set.
-        # score = model.evaluate(X_val, y_val, verbose=0)
-        score = model.evaluate(X_test, y_test, verbose=0)
+        score = model.evaluate(X_val, y_val, verbose=0)
         return score[1]
 
 

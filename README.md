@@ -13,6 +13,9 @@
     \__,_/ /____/ \__/ /_/    \____//_/ /_/\___/\__/
 
 
+![Test Suite with Code Coverage](https://github.com/tallamjr/astronet/workflows/Test%20Suite%20with%20Code%20Coverage/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet)
+
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
 
 ## Experimental Roadmap

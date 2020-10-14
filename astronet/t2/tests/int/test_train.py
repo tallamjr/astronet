@@ -24,6 +24,7 @@ def test_training_pipeline_wisdm_2010():
     X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    num_classes = y_train.shape[1]
 
     print(X_train.shape, y_train.shape)
     print(X_val.shape, y_val.shape)
@@ -50,6 +51,7 @@ def test_training_pipeline_wisdm_2010():
         num_heads=num_heads,
         ff_dim=ff_dim,
         num_filters=num_filters,
+        num_classes=num_classes,
     )
 
     model.compile(
