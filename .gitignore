@@ -5,7 +5,6 @@ data/wisdm-dataset
 data/WISDM_ar_latest.tar.gz
 logs/
 *.log
-*.pkl
 *.pdf
 
 # Byte-compiled / optimized / DLL files
