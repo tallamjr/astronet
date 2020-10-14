@@ -5,10 +5,10 @@ on:
   # but only for the master branch
   push:
     branches:
-      - issues/16/nbval
+      - master
   pull_request:
     branches:
-      - issues/16/nbval
+      - master
 
 jobs:
   tutorials:
@@ -81,19 +81,6 @@ jobs:
         pip install pytest
         pip install pytest-cov
         pip install nbval
-
-    - name: Run pytest
-      run: |
-        pytest --cov astronet/t2/tests/
-
-    - name: Install compilers for OSX
-      if: runner.os == 'macOS'
-      run: |
-        if [ "${{ matrix.compiler }}" = "gcc-9" ]; then
-          brew install gcc
-        else
-          sudo xcode-select -s /Applications/Xcode_11.app/Contents/Developer
-        fi
 
     - name: Mini-Analysis Pipeline
       run: |
