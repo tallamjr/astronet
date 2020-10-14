@@ -17,7 +17,9 @@ from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 
-def plot_history(model_name, event, save=True):
+def plot_acc_history(model_name, event, save=True):
+
+    plt.figure(figsize=(16, 9))
     plt.plot(event['acc'], label='train')
     plt.plot(event['val_acc'], label='validation')
     plt.xlabel("Epoch")
@@ -35,19 +37,39 @@ def plot_history(model_name, event, save=True):
         plt.show()
 
 
+def plot_loss_history(model_name, event, save=True):
+
+    plt.figure(figsize=(16, 9))
+    plt.plot(event['loss'], label='train')
+    plt.plot(event['val_loss'], label='validation')
+    plt.xlabel("Epoch")
+    # plt.xticks(np.arange(len(event['acc'])))
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.title(r'Training vs. Validation per Epoch')
+
+    if save:
+        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-loss-{model_name}.pdf"
+        plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
+
+
 def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(18, 10))
     ax = sns.heatmap(
-          cm / np.sum(cm, axis=1, keepdims=1),
-          annot=True,
-          # fmt="d",
-          fmt=".2f",
-          # cmap=sns.diverging_palette(220, 20, n=7),
-          # cmap="coolwarm",
-          ax=ax
-          )
+        cm / np.sum(cm, axis=1, keepdims=1),
+        annot=True,
+        # fmt="d",
+        fmt=".2f",
+        # cmap=sns.diverging_palette(220, 20, n=7),
+        # cmap="coolwarm",
+        ax=ax,
+    )
 
     import matplotlib.transforms
     # plt.setp( ax.xaxis.get_majorticklabels(), rotation=-45)
