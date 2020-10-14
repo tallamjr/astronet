@@ -1,6 +1,7 @@
 import argparse
 import json
 import numpy as np
+import sys
 import tensorflow as tf
 
 from pathlib import Path
@@ -51,7 +52,9 @@ X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 # One hot encode y
 enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-with open(f"{Path(__file__).absolute().parent}/models/{args.dataset}/results.json") as f:
+dataset = args.dataset
+
+with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as f:
     events = json.load(f)
     event = max(events['training_result'], key=lambda ev: ev['value'])
     print(event)
