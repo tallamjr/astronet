@@ -33,11 +33,9 @@ def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
     """
     guess_length_scale = 20.0  # a parameter of the Matern32Kernel
 
-    #obj_data = preprocess_obs(obj_data, **kwargs)  # preprocess obs
-
-    obj_times = obj_data.mjd
-    obj_flux = obj_data.flux
-    obj_flux_error = obj_data.flux_error
+    obj_times = obj_data.mjd.astype(float)
+    obj_flux = obj_data.flux.astype(float)
+    obj_flux_error = obj_data.flux_error.astype(float)
     obj_wavelengths = obj_data['filter'].map(pb_wavelengths)
 
     def neg_log_like(p):  # Objective function: negative log-likelihood
