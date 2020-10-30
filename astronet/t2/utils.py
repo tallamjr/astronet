@@ -248,8 +248,6 @@ def __remap_filters(df):
 def __filter_dataframe_only_supernova(object_list_filename, dataframe):
 
     plasticc_object_list = np.genfromtxt(object_list_filename, dtype='U')
-    print(len(plasticc_object_list))
-    print(dataframe.shape)
     filtered_dataframe = dataframe[dataframe['object_id'].isin(plasticc_object_list)]
     return filtered_dataframe
 

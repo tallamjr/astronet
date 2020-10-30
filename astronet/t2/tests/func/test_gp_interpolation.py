@@ -30,6 +30,7 @@ def test_plasticc_gp_interpolation():
     assert df.shape == (764572, 6)
 
     object_list = list(np.unique(df['object_id']))
+    assert len(object_list) == 3990
     object_list = object_list[2:3]
     assert object_list == [1124]
 
