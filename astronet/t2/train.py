@@ -2,23 +2,22 @@ import argparse
 import json
 import logging
 import numpy as np
+import shutil
 import subprocess
 import sys
 import tensorflow as tf
 import time
 
 from pathlib import Path
-from tensorboard.plugins.hparams import api as hp
-from tensorflow.keras import layers, optimizers
-from tensorflow.keras.backend import clear_session
+from tensorflow.keras import optimizers
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 try:
     log = t2_logger(__file__)
-    log.info("_________________________________")
+    log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
@@ -43,10 +42,8 @@ class Training(object):
             load_dataset = load_wisdm_2010
         elif dataset == "wisdm_2019":
             load_dataset = load_wisdm_2019
-        # elif dataset == "spcc":
-        #     load_dataset = load_spcc
-        # elif dataset == "plasticc":
-        #     load_dataset = load_plasticc
+        elif dataset == "plasticc":
+            load_dataset = load_plasticc
 
         # Load data
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
