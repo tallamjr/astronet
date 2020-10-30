@@ -6,7 +6,7 @@ from pathlib import Path
 
 from astronet.t2.constants import pb_wavelengths
 from astronet.t2.preprocess import predict_2d_gp, fit_2d_gp
-from astronet.t2.utils import transient_trim, __filter_dataframe_only_supernova, __remap_filters
+from astronet.t2.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
 
 
 def test_plasticc_gp_interpolation():
@@ -35,7 +35,7 @@ def test_plasticc_gp_interpolation():
     object_list = object_list[2:3]
     assert object_list == [1124]
 
-    obs_transient_single = transient_trim(object_list, df)
+    obs_transient_single = __transient_trim(object_list, df)
 
     gp_predict = fit_2d_gp(obs_transient_single)
     number_gp = 100
