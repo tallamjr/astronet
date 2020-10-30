@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
+from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
 def test_load_wisdm_2010():
@@ -31,5 +31,14 @@ def test_load_wisdm_2019():
     assert y_test.shape == (5973, 1)
 
 
-def test_plasticc():
-    pass
+def test_load_plasticc():
+
+    X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc()
+
+    assert X_train.shape == (15959, 20, 6)
+    assert X_val.shape == (2992, 20, 6)
+    assert X_test.shape == (997, 20, 6)
+
+    assert y_train.shape == (15959, 1)
+    assert y_val.shape == (2992, 1)
+    assert y_test.shape == (997, 1)
