@@ -1,9 +1,11 @@
 import george
 import numpy as np
-import pandas as pd
-from astropy.table import Table, vstack
 import scipy.optimize as op
+
+from astropy.table import Table, vstack
 from functools import partial
+
+from astronet.t2.constants import pb_wavelengths
 
 
 def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
