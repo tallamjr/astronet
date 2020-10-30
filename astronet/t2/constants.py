@@ -1,3 +1,5 @@
+from pathlib import Path
+
 # Central passbands wavelengths
 pb_wavelengths = {
     "lsstu": 3685.0,
@@ -17,3 +19,5 @@ pb_colors = {
     "lsstz": "#ff7f00",  # Orange: https://www.color-hex.com/color/ff7f00
     "lssty": "#e3c530",  # Yellow: https://www.color-hex.com/color/e3c530
 }
+
+astronet_working_directory = f"{Path(__file__).absolute().parent.parent.parent}"

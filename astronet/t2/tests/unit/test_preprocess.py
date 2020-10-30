@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pathlib import Path
-
-from astronet.t2.constants import pb_wavelengths
+from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
 from astronet.t2.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
 from astronet.t2.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
 from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
@@ -55,7 +53,7 @@ def test_plasticc_fit_2d_gp():
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
-        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/training_set.csv",
+        f"{asnwd}/data/plasticc/training_set.csv",
         sep=",",
     )
     data = __remap_filters(df=data)
@@ -67,7 +65,7 @@ def test_plasticc_predict_2d_gp():
     filters = list(np.unique(filters))
 
     df = __filter_dataframe_only_supernova(
-        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/train_subset.txt",
+        f"{asnwd}/data/plasticc/train_subset.txt",
         data,
     )
 
