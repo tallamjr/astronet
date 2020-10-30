@@ -52,8 +52,6 @@ class Training(object):
         num_classes = y_train.shape[1]
 
         log.info(print(X_train.shape, y_train.shape))
-        # print(X_val.shape, y_val.shape)
-        # print(X_test.shape, y_test.shape)
 
         with open(f"{Path(__file__).absolute().parent}/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
@@ -88,13 +86,13 @@ class Training(object):
         model.build_graph(input_shape)
 
         history = model.fit(
-                X_train,
-                y_train,
-                batch_size=BATCH_SIZE,
-                epochs=EPOCHS,
-                validation_data=(X_val, y_val),
-                verbose=False,
-                )
+            X_train,
+            y_train,
+            batch_size=BATCH_SIZE,
+            epochs=EPOCHS,
+            validation_data=(X_val, y_val),
+            verbose=False,
+        )
 
         model.summary(print_fn=logging.info)
 
