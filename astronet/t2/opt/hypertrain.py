@@ -5,20 +5,19 @@ import logging
 import numpy as np
 import optuna
 import os
+import shutil
 import subprocess
 import sys
 import tensorflow as tf
 import warnings
 
 from pathlib import Path
-from tensorboard.plugins.hparams import api as hp
-from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 try:
     print(os.environ['ASNWD'])
@@ -28,12 +27,13 @@ except KeyError:
     sys.exit(1)
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO,
-        format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
-        handlers=[
-            logging.FileHandler(filename=log_filename, mode='a'),
-            logging.StreamHandler(sys.stdout)
-        ]
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(filename=log_filename, mode="a"),
+        logging.StreamHandler(sys.stdout),
+    ],
 )
 
 optuna.logging.enable_propagation()  # Propagate logs to the root logger.
@@ -41,7 +41,7 @@ optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 
 try:
     log = t2_logger(__file__)
-    log.info("_________________________________")
+    log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
@@ -68,10 +68,8 @@ class Objective(object):
             load_dataset = load_wisdm_2010
         elif dataset == "wisdm_2019":
             load_dataset = load_wisdm_2019
-        # elif dataset == "spcc":
-        #     load_dataset = load_spcc
-        # elif dataset == "plasticc":
-        #     load_dataset = load_plasticc
+        elif dataset == "plasticc":
+            load_dataset = load_plasticc
 
         # Load data
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
