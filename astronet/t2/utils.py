@@ -5,10 +5,12 @@ import pickle
 import tensorflow as tf
 
 from pathlib import Path
-from sklearn.metrics import confusion_matrix
-from tensorflow import keras
 
-from astronet.t2.preprocess import robust_scale
+from astronet.t2.constants import pb_wavelengths
+from astronet.t2.preprocess import robust_scale, fit_2d_gp, predict_2d_gp
+
+# 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def t2_logger(name, level="INFO"):
@@ -74,13 +76,6 @@ def train_val_test_split(df, cols):
     return df_train, df_val, df_test, num_features
 
 
-def plot_activity(activity, df, cols):
-    data = df[df["activity"] == activity][cols][:400]
-    axis = data.plot(subplots=True, figsize=(16, 12), title=activity)
-    for ax in axis:
-        ax.legend(loc="lower left", bbox_to_anchor=(1.0, 0.5))
-
-
 def create_dataset(X, y, time_steps=1, step=1):
     from scipy import stats
     import numpy as np
@@ -111,11 +106,13 @@ def load_wisdm_2010(timesteps=200, step=40):
         "z_axis",
     ]
 
-    df = pd.read_csv(str(Path(__file__).absolute().parent.parent.parent) +
+    df = pd.read_csv(
+        str(Path(__file__).absolute().parent.parent.parent) +
         "/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
         header=None,
         names=column_names,
     )
+
     df.z_axis.replace(regex=True, inplace=True, to_replace=r";", value=r"")
     df["z_axis"] = df.z_axis.astype(np.float64)
     df.dropna(axis=0, how="any", inplace=True)
@@ -230,5 +227,164 @@ def load_wisdm_2019(timesteps=100, step=40):
     )
 
     assert y_train.shape == (95603, 1)
+
+    return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+def __remap_filters(df):
+    """Function to remap integer filters to the corresponding lsst filters and
+    also to set filter name syntax to what snmachine already recognizes
+
+    df: pandas.dataframe
+        Dataframe of lightcurve observations
+    """
+    df.rename({'passband': 'filter'}, axis='columns', inplace=True)
+    filter_replace = {0: 'lsstu', 1: 'lsstg', 2: 'lsstr', 3: 'lssti',
+                      4: 'lsstz', 5: 'lssty'}
+    df['filter'].replace(to_replace=filter_replace, inplace=True)
+    return df
+
+
+def __filter_dataframe_only_supernova(object_list_filename, dataframe):
+
+    plasticc_object_list = np.genfromtxt(object_list_filename, dtype='U')
+    filtered_dataframe = dataframe[dataframe['object_id'].isin(plasticc_object_list)]
+    return filtered_dataframe
+
+
+def __transient_trim(object_list, df):
+    adf = pd.DataFrame(data=[], columns=df.columns)
+    for obj in object_list:
+        obs = df[df['object_id'] == obj]
+        obs_time = obs['mjd']
+        obs_detected_time = obs_time[obs['detected'] == 1]
+        is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
+        obs_transient = obs[is_obs_transient]
+        obs_transient['mjd'] -= min(obs_transient['mjd'])  # so all transients start at time 0
+        adf = np.vstack((adf, obs_transient))
+
+    obs_transient = pd.DataFrame(data=adf, columns=obs_transient.columns)
+
+    return obs_transient
+
+
+def __generate_gp_all_objects(object_list, obs_transient):
+    adf = pd.DataFrame(
+        data=[],
+        columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
+    )
+
+    filters = obs_transient['filter']
+    filters = list(np.unique(filters))
+    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+
+    for object_id in object_list:
+
+        df = obs_transient[obs_transient["object_id"] == object_id]
+
+        gp_predict = fit_2d_gp(df)
+
+        number_gp = 100
+        gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+        obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
+        obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+
+        obj_gps = obj_gps.pivot(index="mjd", columns="filter", values="flux")
+        obj_gps = obj_gps.reset_index()
+        obj_gps["object_id"] = object_id
+        adf = np.vstack((adf, obj_gps))
+    return pd.DataFrame(data=adf, columns=obj_gps.columns)
+
+
+def load_plasticc(timesteps=20, step=20):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    data = pd.read_csv(
+        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/training_set.csv",
+        sep=",",
+    )
+    data = __remap_filters(df=data)
+    data.rename(
+        {"flux_err": "flux_error"}, axis="columns", inplace=True
+    )  # snmachine and PLAsTiCC uses a different denomination
+
+    filters = data['filter']
+    filters = list(np.unique(filters))
+    print(filters)
+
+    cols = filters
+
+    df = __filter_dataframe_only_supernova(
+        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/train_subset.txt",
+        data,
+    )
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient)
+    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/training_set_metadata.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df = df_with_labels.drop(
+        columns=[
+            "ra",
+            "decl",
+            "gal_l",
+            "gal_b",
+            "ddf",
+            "hostgal_specz",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "distmod",
+            "mwebv",
+        ]
+    )
+
+    df_train, df_val, df_test, num_features = train_val_test_split(df, cols)
+    assert num_features == 6
+
+    robust_scale(df_train, df_val, df_test, cols)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    X_train, y_train = create_dataset(
+        df_train[cols],
+        df_train.target,
+        TIME_STEPS,
+        STEP
+    )
+
+    X_val, y_val = create_dataset(
+        df_val[cols],
+        df_val.target,
+        TIME_STEPS,
+        STEP
+    )
+
+    X_test, y_test = create_dataset(
+        df_test[cols],
+        df_test.target,
+        TIME_STEPS,
+        STEP
+    )
+
+    # Recalcuate for plasticc
+    # assert y_train.shape == (95603, 1)
 
     return X_train, y_train, X_val, y_val, X_test, y_test
