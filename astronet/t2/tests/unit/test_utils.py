@@ -29,3 +29,7 @@ def test_load_wisdm_2019():
     assert y_train.shape == (95603, 1)
     assert y_val.shape == (17924, 1)
     assert y_test.shape == (5973, 1)
+
+
+def test_plasticc():
+    pass

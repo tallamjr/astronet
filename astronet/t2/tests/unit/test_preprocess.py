@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.preprocess import *
 from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
 
 
@@ -39,3 +39,11 @@ def test_one_hot_encode_local():
     assert y_train.shape == (95603, 18)
     assert y_val.shape == (17924, 18)
     assert y_test.shape == (5973, 18)
+
+
+def test_plasticc_fit_2d_gp():
+    pass
+
+
+def test_plasticc_predict_2d_gp():
+    pass
