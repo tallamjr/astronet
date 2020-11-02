@@ -1,3 +1,4 @@
+astropy>=1.1.2
 george>=0.3.0
 joblib
 jupyter-client>=5.3.4
