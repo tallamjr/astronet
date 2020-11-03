@@ -132,6 +132,7 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
 
 
 def robust_scale(df_train, df_val, df_test, scale_columns):
+    # TODO: Docstrings
     from sklearn.preprocessing import RobustScaler
 
     scaler = RobustScaler()
@@ -150,6 +151,7 @@ def robust_scale(df_train, df_val, df_test, scale_columns):
 
 
 def one_hot_encode(y_train, y_val, y_test):
+    # TODO: Docstrings
     from sklearn.preprocessing import OneHotEncoder
 
     enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
@@ -161,5 +163,3 @@ def one_hot_encode(y_train, y_val, y_test):
     y_test = enc.transform(y_test)
 
     return enc, y_train, y_val, y_test
-
-

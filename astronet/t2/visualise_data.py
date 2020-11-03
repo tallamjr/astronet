@@ -10,6 +10,7 @@ rcParams['figure.figsize'] = 12, 8
 
 
 def plot_wisdm_activity(activity, df, cols):
+    # TODO: Update docstrings
     data = df[df["activity"] == activity][cols][:400]
     axis = data.plot(subplots=True, figsize=(16, 12), title=activity)
     for ax in axis:
@@ -17,6 +18,7 @@ def plot_wisdm_activity(activity, df, cols):
 
 
 def plot_plasticc_object(object_name, df, filters):
+    # TODO: Update docstrings
     for passband in filters:
         data = df[df["object_id"] == object_name]
         data = data[data["filter"] == passband]
@@ -31,6 +33,7 @@ def plot_plasticc_object(object_name, df, filters):
 
 
 def plot_plasticc_single_object_gp_mean(df, object_id):
+    # TODO: Update docstrings
     df = df[df['object_id'] == object_id]
     print(object_id, df['target'].values[0])
     gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(columns=['object_id', 'target'])
@@ -38,6 +41,7 @@ def plot_plasticc_single_object_gp_mean(df, object_id):
 
 
 def plot_plasticc_real_data_and_model(obj_data, obj_model=None, number_col=2, show_title=False, show_legend=True):
+    # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
 
     passbands = np.unique(obj_data['filter'])

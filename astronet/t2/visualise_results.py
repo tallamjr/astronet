@@ -3,6 +3,7 @@ import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import shutil
 import seaborn as sns
 import tensorflow as tf
 
@@ -13,12 +14,13 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc
 from tensorflow import keras
 
+from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 
 def plot_acc_history(model_name, event, save=True):
-
+    # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['acc'], label='train')
     plt.plot(event['val_acc'], label='validation')
@@ -29,7 +31,7 @@ def plot_acc_history(model_name, event, save=True):
     plt.title(r'Training vs. Validation per Epoch')
 
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-acc-{model_name}.pdf"
+        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -38,7 +40,7 @@ def plot_acc_history(model_name, event, save=True):
 
 
 def plot_loss_history(model_name, event, save=True):
-
+    # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['loss'], label='train')
     plt.plot(event['val_loss'], label='validation')
@@ -49,7 +51,7 @@ def plot_loss_history(model_name, event, save=True):
     plt.title(r'Training vs. Validation per Epoch')
 
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-loss-{model_name}.pdf"
+        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -58,6 +60,7 @@ def plot_loss_history(model_name, event, save=True):
 
 
 def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
+    # TODO: Update docstrings
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(18, 10))
@@ -87,7 +90,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
     for label in ax.yaxis.get_majorticklabels():
         label.set_transform(label.get_transform() + offset)
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-cm-{model_name}.pdf"
+        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -96,7 +99,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
 
 
 def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
-
+    # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
 
@@ -161,7 +164,7 @@ def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
     plt.legend(loc="lower right")
 
     if save:
-        fname = f"{Path(__file__).absolute().parent}/plots/{dataset}/model-roc-{model_name}.pdf"
+        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -173,7 +176,7 @@ if __name__ == '__main__':
 
     try:
         log = t2_logger(__file__)
-        log.info("_________________________________")
+        log.info("=" * shutil.get_terminal_size((80, 20))[0])
         log.info(f"File Path: {Path(__file__).absolute()}")
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")
     except:
@@ -223,7 +226,7 @@ if __name__ == '__main__':
     print(X_test.shape, y_test.shape)
 
     dataset = args.dataset
-    with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as f:
+    with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
@@ -236,7 +239,7 @@ if __name__ == '__main__':
 
     model_name = event['name']
 
-    model = keras.models.load_model(f"{Path(__file__).absolute().parent}/models/{args.dataset}/model-{model_name}")
+    model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{dataset}/model-{model_name}")
 
     y_pred = model.predict(X_test)
 

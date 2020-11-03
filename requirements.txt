@@ -1,3 +1,5 @@
+astropy>=1.1.2
+george>=0.3.0
 joblib
 jupyter-client>=5.3.4
 jupyter-console>=6.1.0
@@ -11,8 +13,8 @@ pandas>=1.0
 plotly>=4.7.1
 pyarrow>=0.17
 requests
-seaborn>=0.11.0
 scikit-learn>=0.22
 scipy==1.4.1
+seaborn>=0.11.0
 tensorflow>=2.0.0
 xgboost

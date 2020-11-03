@@ -5,6 +5,7 @@ from astronet.t2.transformer import ConvEmbedding, TransformerBlock
 
 
 class T2Model(keras.Model):
+    # TODO: Update docstrings
     """Time-Transformer with Multi-headed.
     embed_dim --> Embedding size for each token
     num_heads --> Number of attention heads

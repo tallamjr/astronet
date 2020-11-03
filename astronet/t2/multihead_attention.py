@@ -2,6 +2,7 @@ import tensorflow as tf
 
 
 class MultiHeadAttention(tf.keras.layers.Layer):
+    # TODO: Docstrings
     def __init__(self, d_model, num_heads, debug_mode=True):
         super(MultiHeadAttention, self).__init__()
         self.num_heads = num_heads
