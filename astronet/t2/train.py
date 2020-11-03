@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from tensorflow.keras import optimizers
 
+from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
@@ -54,7 +55,7 @@ class Training(object):
 
         log.info(print(X_train.shape, y_train.shape))
 
-        with open(f"{Path(__file__).absolute().parent}/opt/runs/{dataset}/results.json") as f:
+        with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
             event = max(events['optuna_result'], key=lambda ev: ev['value'])
             print(event)
@@ -115,7 +116,7 @@ class Training(object):
             print("    {}: {}".format(key, value))
             model_params["{}".format(key)] = value
 
-        with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as jf:
+        with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as jf:
             data = json.load(jf)
             print(data)
 
@@ -126,10 +127,10 @@ class Training(object):
             print(previous_results)
             print(data)
 
-        with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json", "w") as rf:
+        with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json", "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
-        model.save(f"{Path(__file__).absolute().parent}/models/{dataset}/model-{unixtimestamp}-{label}")
+        model.save(f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ from pathlib import Path
 from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
 
+from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
@@ -195,7 +196,7 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/results.json") as jf:
+    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as jf:
         data = json.load(jf)
         print(data)
 
@@ -206,8 +207,8 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/results.json", "w") as rf:
+    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{Path(__file__).absolute().parent}/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
         joblib.dump(study, sf)

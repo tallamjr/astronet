@@ -1,6 +1,7 @@
 import argparse
 import json
 import numpy as np
+import shutil
 import sys
 import tensorflow as tf
 
@@ -9,12 +10,13 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from tensorflow import keras
 
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 try:
     log = t2_logger(__file__)
-    log.info("_________________________________")
+    log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
@@ -55,7 +57,7 @@ X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
 dataset = args.dataset
-with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") as f:
+with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as f:
     events = json.load(f)
     if args.model:
         # Get params for model chosen with cli args
@@ -68,7 +70,7 @@ with open(f"{Path(__file__).absolute().parent}/models/{dataset}/results.json") a
 
 model_name = event['name']
 
-model = keras.models.load_model(f"{Path(__file__).absolute().parent}/models/{args.dataset}/model-{model_name}")
+model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{args.dataset}/model-{model_name}")
 
 model.evaluate(X_test, y_test)
 y_pred = model.predict(X_test)
