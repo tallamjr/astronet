@@ -6,6 +6,7 @@ from astronet.t2.attention import MultiHeadSelfAttention
 
 
 class TransformerBlock(layers.Layer):
+    # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
         self.att = MultiHeadSelfAttention(embed_dim, num_heads)

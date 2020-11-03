@@ -5,6 +5,7 @@ from tensorflow.keras import layers
 
 
 class MultiHeadSelfAttention(layers.Layer):
+    # TODO: Docstrings
     def __init__(self, embed_dim, num_heads=8):
         super(MultiHeadSelfAttention, self).__init__()
         self.embed_dim = embed_dim

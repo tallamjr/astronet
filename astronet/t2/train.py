@@ -31,6 +31,7 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Training(object):
+    # TODO: Update docstrings
     def __init__(self, epochs, batch_size, dataset):
         self.epochs = EPOCHS
         self.batch_size = BATCH_SIZE

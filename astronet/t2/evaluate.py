@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from tensorflow import keras
 
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 from astronet.t2.preprocess import one_hot_encode
 
 try:
@@ -45,6 +45,8 @@ if args.dataset == "wisdm_2010":
     load_dataset = load_wisdm_2010
 elif args.dataset == "wisdm_2019":
     load_dataset = load_wisdm_2019
+elif args.dataset == "plasticc":
+    load_dataset = load_plasticc
 
 # Load data
 X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()

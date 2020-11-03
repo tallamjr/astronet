@@ -18,7 +18,7 @@ from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
 
 
 def plot_acc_history(model_name, event, save=True):
-
+    # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['acc'], label='train')
     plt.plot(event['val_acc'], label='validation')
@@ -38,7 +38,7 @@ def plot_acc_history(model_name, event, save=True):
 
 
 def plot_loss_history(model_name, event, save=True):
-
+    # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['loss'], label='train')
     plt.plot(event['val_loss'], label='validation')
@@ -58,6 +58,7 @@ def plot_loss_history(model_name, event, save=True):
 
 
 def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
+    # TODO: Update docstrings
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(18, 10))
@@ -96,7 +97,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
 
 
 def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
-
+    # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
 
