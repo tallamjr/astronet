@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import shutil
+import sys
 import seaborn as sns
 import tensorflow as tf
 
@@ -16,10 +17,10 @@ from tensorflow import keras
 
 from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019
+from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
-def plot_acc_history(model_name, event, save=True):
+def plot_acc_history(dataset, model_name, event, save=True):
     # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['acc'], label='train')
@@ -39,7 +40,7 @@ def plot_acc_history(model_name, event, save=True):
         plt.show()
 
 
-def plot_loss_history(model_name, event, save=True):
+def plot_loss_history(dataset, model_name, event, save=True):
     # TODO: Update docstrings
     plt.figure(figsize=(16, 9))
     plt.plot(event['loss'], label='train')
@@ -59,7 +60,7 @@ def plot_loss_history(model_name, event, save=True):
         plt.show()
 
 
-def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
+def plot_confusion_matrix(dataset, model_name, y_true, y_pred, class_names, cmap=None, save=True):
     # TODO: Update docstrings
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
@@ -70,7 +71,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
         # fmt="d",
         fmt=".2f",
         # cmap=sns.diverging_palette(220, 20, n=7),
-        # cmap="coolwarm",
+        cmap=cmap,
         ax=ax,
     )
 
@@ -78,14 +79,15 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
     # plt.setp( ax.xaxis.get_majorticklabels(), rotation=-45)
 
     # Create offset transform by 5 points in y direction
-    dy = 20/72.; dx = 0/72.
+    dy = 20 / 72.0
+    dx = 0 / 72.0
     offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
 
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
-    plt.setp( ax.yaxis.get_majorticklabels(), ha="right" )
+    plt.setp(ax.yaxis.get_majorticklabels(), ha="right")
     # apply offset transform to all x ticklabels.
     for label in ax.yaxis.get_majorticklabels():
         label.set_transform(label.get_transform() + offset)
@@ -98,7 +100,7 @@ def plot_confusion_matrix(model_name, y_true, y_pred, class_names, save=True):
         plt.show()
 
 
-def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
+def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -108,7 +110,7 @@ def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
     tpr = dict()
     roc_auc = dict()
     y_score = model.predict(X_test)
-    n_classes = len(enc.categories_[0])
+    n_classes = len(class_names)
     # print(enc.categories_[0][0])
     # print(type(enc.categories_[0]))
 
@@ -153,7 +155,7 @@ def plot_multiROC(model_name, model, X_test, y_test, enc, save=True):
     for i, color in zip(range(n_classes), colors):
         plt.plot(fpr[i], tpr[i], color=color, lw=lw,
                  label='ROC: {0} (area = {1:0.2f})'
-                 ''.format(enc.categories_[0][i], roc_auc[i]))
+                 ''.format(class_names[i], roc_auc[i]))
 
     plt.plot([0, 1], [0, 1], 'k--', lw=lw)
     plt.xlim([0.0, 1.0])
@@ -215,11 +217,33 @@ if __name__ == '__main__':
         load_dataset = load_wisdm_2010
     elif args.dataset == "wisdm_2019":
         load_dataset = load_wisdm_2019
+    elif args.dataset == "plasticc":
+        load_dataset = load_plasticc
+        class_mapping = {
+            15: "TDE",
+            42: "SNII",
+            52: "SNIax",
+            62: "SNIbc",
+            64: "KN",
+            67: "SNIa-91bg",
+            88: "AGN",
+            90: "SNIa",
+            95: "SLSN-I",
+            1: "SNIa",
+            2: "SNII",
+            3: "SNIbc",
+        }
 
     # Load data
     X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
     # One hot encode y
     enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    class_encoding = enc.categories_[0]
+
+    if args.dataset == "plasticc":
+        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+    else:
+        class_names = class_encoding
 
     print(X_train.shape, y_train.shape)
     print(X_val.shape, y_val.shape)
@@ -239,20 +263,18 @@ if __name__ == '__main__':
 
     model_name = event['name']
 
-    model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{dataset}/model-{model_name}")
-
-    y_pred = model.predict(X_test)
-
     plot_acc_history(dataset, model_name, event)
-
     plot_loss_history(dataset, model_name, event)
+
+    model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{dataset}/model-{model_name}")
+    y_pred = model.predict(X_test)
 
     plot_confusion_matrix(
         dataset,
         model_name,
         enc.inverse_transform(y_test),
         enc.inverse_transform(y_pred),
-        enc.categories_[0],
+        class_names,  # enc.categories_[0]
     )
 
-    plot_multiROC(dataset, model_name, model, X_test, y_test, enc)
+    plot_multiROC(dataset, model_name, model, X_test, y_test, class_names)
