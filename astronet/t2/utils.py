@@ -229,7 +229,7 @@ def load_wisdm_2019(timesteps=200, step=200):
         STEP
     )
 
-    assert y_train.shape == (95603, 1)
+    # assert y_train.shape == (95603, 1)
 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
