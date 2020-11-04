@@ -155,7 +155,7 @@ def load_wisdm_2010(timesteps=200, step=40):
 #  TODO:
 # Investigate performance of timesteps=200 for wisdm_2019 since this is the timesteps used for
 # widsm_2010 which obtains better performance.
-def load_wisdm_2019(timesteps=100, step=40):
+def load_wisdm_2019(timesteps=200, step=40):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
