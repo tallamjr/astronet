@@ -8,13 +8,13 @@ def test_load_wisdm_2010():
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
 
-    assert X_train.shape == (21960, 200, 3)
-    assert X_val.shape == (4114, 200, 3)
-    assert X_test.shape == (1368, 200, 3)
+    assert X_train.shape == (4392, 200, 3)
+    assert X_val.shape == (823, 200, 3)
+    assert X_test.shape == (274, 200, 3)
 
-    assert y_train.shape == (21960, 1)
-    assert y_val.shape == (4114, 1)
-    assert y_test.shape == (1368, 1)
+    assert y_train.shape == (4392, 1)
+    assert y_val.shape == (823, 1)
+    assert y_test.shape == (274, 1)
 
 
 @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large 'phone.df' file")
@@ -22,13 +22,15 @@ def test_load_wisdm_2019():
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
 
-    assert X_train.shape == (95603, 100, 3)
-    assert X_val.shape == (17924, 100, 3)
-    assert X_test.shape == (5973, 100, 3)
+    ((19120, 200, 3), (19120, 1), (3585, 200, 3), (3585, 1), (1195, 200, 3), (1195, 1))
 
-    assert y_train.shape == (95603, 1)
-    assert y_val.shape == (17924, 1)
-    assert y_test.shape == (5973, 1)
+    assert X_train.shape == (19120, 200, 3)
+    assert X_val.shape == (17924, 200, 3)
+    assert X_test.shape == (5973, 200, 3)
+
+    assert y_train.shape == (19120, 1)
+    assert y_val.shape == (3585, 1)
+    assert y_test.shape == (1195, 1)
 
 
 def test_load_plasticc():
