@@ -90,7 +90,7 @@ def create_dataset(X, y, time_steps=1, step=1):
     return np.array(Xs), np.array(ys).reshape(-1, 1)
 
 
-def load_wisdm_2010(timesteps=200, step=40):
+def load_wisdm_2010(timesteps=200, step=200):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -155,7 +155,7 @@ def load_wisdm_2010(timesteps=200, step=40):
 #  TODO:
 # Investigate performance of timesteps=200 for wisdm_2019 since this is the timesteps used for
 # widsm_2010 which obtains better performance.
-def load_wisdm_2019(timesteps=200, step=40):
+def load_wisdm_2019(timesteps=200, step=200):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
