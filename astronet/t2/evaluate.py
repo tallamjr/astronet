@@ -85,9 +85,7 @@ print("             Results for Test Set\n\n" +
 
 
 probs = y_pred
-print(f"PROBS --> {probs}")
 y_true = enc.inverse_transform(y_test)
-print(f"y_true --> {y_true}")
 
 """Implementation of weighted log loss used for the Kaggle challenge.
 
@@ -107,7 +105,6 @@ float
 predictions = probs.copy()
 labels = np.unique(y_true) # assumes the probabilities are also ordered in the same way
 # labels = np.unique(enc.inverse_transform(y_test))
-print(f"LABELS--> {labels}")
 
 weights_dict = {
     6: 1 / 18,
@@ -133,24 +130,16 @@ weights_dict = {
 # sanitize predictions
 epsilon = sys.float_info.epsilon  # this is machine dependent but essentially prevents log(0)
 predictions = np.clip(predictions, epsilon, 1.0 - epsilon)
-print(f"PREDICTIONS--> {predictions}")
-print(f"PREDICTIONS.SHAPE--> {predictions.shape}")
 predictions = predictions / np.sum(predictions, axis=1)[:, np.newaxis]
-print(f"PREDICTIONS.SHAPE--> {predictions.shape}")
 predictions = np.log(predictions) # logarithm because we want a log loss
-print(f"PREDICTIONS.LOG.SHAPE--> {predictions.shape}")
 
 class_logloss, weights = [], [] # initialize the classes logloss and weights
-print(f"PREDICTIONS.[1].SHAPE--> {np.shape(predictions)[1]}")
 for i in range(np.shape(predictions)[1]): # run for each class
     current_label = labels[i]
     # import pdb; pdb.set_trace()
     result = np.average(predictions[y_true.ravel()==current_label, i]) # only those events are from that class
-    print(f"RESULT.SHAPE--> {result}")
     class_logloss.append(result)
     weights.append(weights_dict[current_label])
-print(class_logloss)
-print(weights)
 
 print(-1 * np.average(class_logloss, weights=weights))
 print("=" * shutil.get_terminal_size((80, 20))[0])
@@ -188,3 +177,9 @@ y_w = y_log_ones * class_arr / nb_pos
 loss = - np.sum(y_w) / np.sum(class_arr)
 # assert loss == -1 * np.average(class_logloss, weights=weights)
 print(loss)
+
+tfloss = tf.keras.losses.categorical_crossentropy(y_test, y_pred)
+print(np.average(tfloss.numpy()))
+
+cce = tf.keras.losses.CategoricalCrossentropy()
+print(cce(y_test, y_pred).numpy())
