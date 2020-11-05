@@ -117,7 +117,7 @@ class Objective(object):
 
         # Evaluate the model accuracy on the validation set.
         score = model.evaluate(X_val, y_val, verbose=0)
-        return score[1]
+        return -1 * score[0]
 
 
 if __name__ == "__main__":
