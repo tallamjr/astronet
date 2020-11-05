@@ -6,8 +6,13 @@ import sys
 import tensorflow as tf
 
 from pathlib import Path
+from tensorflow import keras
 
-from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
+from astronet.t2.constants import (
+    pb_wavelengths,
+    plasticc_weights_dict,
+    astronet_working_directory as asnwd,
+)
 from astronet.t2.preprocess import robust_scale, fit_2d_gp, predict_2d_gp
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
@@ -230,8 +235,6 @@ def load_wisdm_2019(timesteps=200, step=200):
         STEP
     )
 
-    # assert y_train.shape == (95603, 1)
-
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
@@ -404,9 +407,6 @@ def load_plasticc(timesteps=20, step=20):
         STEP
     )
 
-    # Recalcuate for plasticc
-    # assert y_train.shape == (95603, 1)
-
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
@@ -433,29 +433,8 @@ def plasticc_log_loss(y_true, probs):
     - https://astrorapid.readthedocs.io/en/latest/_modules/astrorapid/classifier_metrics.html
     - https://www.kaggle.com/c/PLAsTiCC-2018/overview/evaluation
     """
-    predictions = probs.copy()
+    predictions = probs
     labels = np.unique(y_true)
-
-    weights_dict = {
-        6: 1 / 18,
-        15: 1 / 9,
-        16: 1 / 18,
-        42: 1 / 18,
-        52: 1 / 18,
-        53: 1 / 18,
-        62: 1 / 18,
-        64: 1 / 9,
-        65: 1 / 18,
-        67: 1 / 18,
-        88: 1 / 18,
-        90: 1 / 18,
-        92: 1 / 18,
-        95: 1 / 18,
-        99: 1 / 19,
-        1: 1 / 18,
-        2: 1 / 18,
-        3: 1 / 18,
-    }
 
     # sanitize predictions
     epsilon = (
@@ -477,6 +456,42 @@ def plasticc_log_loss(y_true, probs):
         # but 3 were indexed
 
         class_logloss.append(result)
-        weights.append(weights_dict[current_label])
+        weights.append(plasticc_weights_dict[current_label])
 
     return -1 * np.average(class_logloss, weights=weights)
+
+
+class CustomLogLoss(keras.losses.Loss):
+    def __init__(self, encoding, name="plasticc_log_loss"):
+        super().__init__(name=name)
+        self.encoding = encoding
+
+    def call(self, y_true, y_pred):
+        y_true = tf.numpy_function(self.encoding.inverse_transform(y_true))
+
+        predictions = y_pred
+        labels = np.unique(y_true)
+
+        # sanitize predictions
+        epsilon = (
+            sys.float_info.epsilon
+        )  # this is machine dependent but essentially prevents log(0)
+        predictions = tf.experimental.numpy.clip(predictions, epsilon, 1.0 - epsilon)
+        predictions = predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+        predictions = tf.math.log(predictions)  # logarithm because we want a log loss
+
+        class_logloss, weights = [], []  # initialize the classes logloss and weights
+        for i in range(np.shape(predictions)[1]):  # run for each class
+            current_label = labels[i]
+            result = tf.experimental.numpy.average(
+                predictions[y_true.ravel() == current_label, i]
+            )
+            # works like a boolean mask to provide results for current class. ravel() required to fix
+            # IndexError: result = np.average(predictions[y_true==current_label, i]) # only those
+            # events are from that class IndexError: too many indices for array: array is 2-dimensional,
+            # but 3 were indexed
+
+            class_logloss.append(result)
+            weights.append(plasticc_weights_dict[current_label])
+
+        return -1 * tf.experimental.numpy.average(class_logloss, weights=weights)

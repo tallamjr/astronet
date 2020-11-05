@@ -13,7 +13,13 @@ from tensorflow import keras
 
 from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.t2.utils import (
+    t2_logger,
+    load_wisdm_2010,
+    load_wisdm_2019,
+    load_plasticc,
+    plasticc_log_loss,
+)
 
 try:
     log = t2_logger(__file__)
@@ -74,37 +80,14 @@ model_name = event['name']
 model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{args.dataset}/model-{model_name}")
 
 model.evaluate(X_test, y_test)
-y_pred = model.predict(X_test)
+y_probs = model.predict(X_test)
 
-cm = confusion_matrix(enc.inverse_transform(y_test), enc.inverse_transform(y_pred))
+cm = confusion_matrix(enc.inverse_transform(y_test), enc.inverse_transform(y_probs))
 print(cm / np.sum(cm, axis=1, keepdims=1))
 
 print("             Results for Test Set\n\n" +
-      classification_report(enc.inverse_transform(y_pred),
+      classification_report(enc.inverse_transform(y_probs),
                             enc.inverse_transform(y_test)))
-
-
-probs = y_pred
-y_true = enc.inverse_transform(y_test)
-
-"""Implementation of weighted log loss used for the Kaggle challenge.
-
-Parameters
-----------
-y_true: np.array of shape (# samples,)
-    Array of the true classes
-probs : np.array of shape (# samples, # features)
-    Class probabilities for each sample. The order of the classes corresponds to
-    that in the attribute `classes_` of the classifier used.
-
-Returns
--------
-float
-    Weighted log loss used for the Kaggle challenge
-"""
-predictions = probs.copy()
-labels = np.unique(y_true) # assumes the probabilities are also ordered in the same way
-# labels = np.unique(enc.inverse_transform(y_test))
 
 weights_dict = {
     6: 1 / 18,
@@ -127,59 +110,66 @@ weights_dict = {
     3: 1 / 18,
 }
 
-# sanitize predictions
-epsilon = sys.float_info.epsilon  # this is machine dependent but essentially prevents log(0)
-predictions = np.clip(predictions, epsilon, 1.0 - epsilon)
-predictions = predictions / np.sum(predictions, axis=1)[:, np.newaxis]
-predictions = np.log(predictions) # logarithm because we want a log loss
 
-class_logloss, weights = [], [] # initialize the classes logloss and weights
-for i in range(np.shape(predictions)[1]): # run for each class
-    current_label = labels[i]
-    # import pdb; pdb.set_trace()
-    result = np.average(predictions[y_true.ravel()==current_label, i]) # only those events are from that class
-    class_logloss.append(result)
-    weights.append(weights_dict[current_label])
+def custom_log_loss(y_true, y_pred):
+    """
+    References:
+    -----------
+    -
 
-print(-1 * np.average(class_logloss, weights=weights))
-print("=" * shutil.get_terminal_size((80, 20))[0])
+    """
 
-class_weight = {
-    42: 1,
-    62: 1,
-    90: 1,
-}
-"""
-@author olivier https://www.kaggle.com/ogrellier
-multi logloss for PLAsTiCC challenge
-"""
-# class_weights taken from Giba's topic : https://www.kaggle.com/titericz
-# https://www.kaggle.com/c/PLAsTiCC-2018/discussion/67194
-# with Kyle Boone's post https://www.kaggle.com/kyleboone
+    yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
+    loss = -(tf.reduce_mean(tf.reduce_mean(y_true * tf.math.log(yc), axis=0) * len(y_pred)))
+    # labels = np.unique(y_true)
+    # loss = tf.reduce_sum(tf.multiply(- labels, tf.math.log(y_pred))) / len(y_pred)
+    return loss
 
-y_p = probs
-# Trasform y_true in dummies
-y_ohe = pd.get_dummies(y_true.ravel())
-# Normalize rows and limit y_preds to 1e-15, 1-1e-15
-y_p = np.clip(a=y_p, a_min=1e-15, a_max=1 - 1e-15)
-# Transform to log
-y_p_log = np.log(y_p)
-# Get the log for ones, .values is used to drop the index of DataFrames
-# Exclude class 99 for now, since there is no class99 in the training set
-# we gave a special process for that class
-y_log_ones = np.sum(y_ohe.values * y_p_log, axis=0)
-# Get the number of positives for each class
-nb_pos = y_ohe.sum(axis=0).values.astype(float)
-# Weight average and divide by the number of positives
-class_arr = np.array([class_weight[k] for k in sorted(class_weight.keys())])
-y_w = y_log_ones * class_arr / nb_pos
 
-loss = - np.sum(y_w) / np.sum(class_arr)
-# assert loss == -1 * np.average(class_logloss, weights=weights)
-print(loss)
+print(custom_log_loss(y_test, y_probs))
 
-tfloss = tf.keras.losses.categorical_crossentropy(y_test, y_pred)
+
+# def custom_plasticc_loss(y_true, y_pred):
+
+#     predictions = y_pred
+#     labels = np.unique(y_true)
+
+#     # sanitize predictions
+#     epsilon = (
+#         sys.float_info.epsilon
+#     )  # this is machine dependent but essentially prevents log(0)
+#     predictions = tf.experimental.numpy.clip(predictions, epsilon, 1.0 - epsilon)
+#     predictions = predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+#     predictions = tf.math.log(predictions)  # logarithm because we want a log loss
+
+#     class_logloss, weights = [], []  # initialize the classes logloss and weights
+#     for i in range(np.shape(predictions)[1]):  # run for each class
+#         current_label = labels[i]
+#         result = tf.experimental.numpy.average(
+#             predictions[y_true.ravel() == current_label, i]
+#         )
+#         # works like a boolean mask to provide results for current class. ravel() required to fix
+#         # IndexError: result = np.average(predictions[y_true==current_label, i]) # only those
+#         # events are from that class IndexError: too many indices for array: array is 2-dimensional,
+#         # but 3 were indexed
+
+#         class_logloss.append(result)
+#         weights.append(weights_dict[current_label])
+
+#     return -1 * tf.experimental.numpy.average(class_logloss, weights=weights)
+
+
+# print(custom_plasticc_loss(y_test, y_pred))
+
+if args.dataset == "plasticc":
+
+    y_true = enc.inverse_transform(y_test)
+
+    loss = plasticc_log_loss(y_true, y_probs)
+    print(loss)
+
+tfloss = tf.keras.losses.categorical_crossentropy(y_test, y_probs)
 print(np.average(tfloss.numpy()))
 
 cce = tf.keras.losses.CategoricalCrossentropy()
-print(cce(y_test, y_pred).numpy())
+print(cce(y_test, y_probs).numpy())
