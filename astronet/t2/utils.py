@@ -2,11 +2,12 @@ import logging
 import numpy as np
 import pandas as pd
 import pickle
+import sys
 import tensorflow as tf
 
 from pathlib import Path
 
-from astronet.t2.constants import pb_wavelengths
+from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
 from astronet.t2.preprocess import robust_scale, fit_2d_gp, predict_2d_gp
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
@@ -171,7 +172,7 @@ def load_wisdm_2019(timesteps=200, step=200):
     #     "phone_gyro_z",
     # ]
 
-    with open(f"{Path(__file__).absolute().parent.parent.parent}/data/wisdm-dataset/activity_key.txt") as f:
+    with open(f"{asnwd}/data/wisdm-dataset/activity_key.txt") as f:
         activity_list = f.read().split("\n")
 
     # Use activity_map.values() for activity names when plotting, but then the confusion matrix will
@@ -189,7 +190,7 @@ def load_wisdm_2019(timesteps=200, step=200):
     # The work presented there and published by Susana Benavidez et al 2019 is what will be used to
     # compare results with laatest attempts at applying deep learning methods to the updated WISDM
     # dataset
-    with open(f"{Path(__file__).absolute().parent.parent.parent}/data/wisdm-dataset/phone.df", "rb") as df:
+    with open(f"{asnwd}/data/wisdm-dataset/phone.df", "rb") as df:
             phone = pickle.load(df)
 
     assert phone.shape == (4780251, 9)
@@ -300,14 +301,14 @@ def __generate_gp_all_objects(object_list, obs_transient):
     return pd.DataFrame(data=adf, columns=obj_gps.columns)
 
 
-def load_plasticc(timesteps=20, step=20):
+def __load_plasticc_dataset_from_csv():
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
     data = pd.read_csv(
-        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/training_set.csv",
+        f"{asnwd}/data/plasticc/training_set.csv",
         sep=",",
     )
     data = __remap_filters(df=data)
@@ -315,14 +316,9 @@ def load_plasticc(timesteps=20, step=20):
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
 
-    filters = data['filter']
-    filters = list(np.unique(filters))
-    print(filters)
-
-    cols = filters
 
     df = __filter_dataframe_only_supernova(
-        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/train_subset.txt",
+        f"{asnwd}/data/plasticc/train_subset.txt",
         data,
     )
 
@@ -333,7 +329,7 @@ def load_plasticc(timesteps=20, step=20):
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
-        f"{Path(__file__).absolute().parent.parent.parent}/data/plasticc/training_set_metadata.csv",
+        f"{asnwd}/data/plasticc/training_set_metadata.csv",
         sep=",",
         index_col="object_id",
     )
@@ -357,6 +353,27 @@ def load_plasticc(timesteps=20, step=20):
             "mwebv",
         ]
     )
+
+    df.to_parquet(
+        f"{asnwd}/data/plasticc/transformed_df.parquet",
+        engine="pyarrow",
+        compression="snappy",
+    )
+
+    return df
+
+
+def load_plasticc(timesteps=20, step=20):
+
+    try:
+        df = pd.read_parquet(
+            f"{asnwd}/data/plasticc/transformed_df.parquet",
+            engine="pyarrow",
+        )
+    except IOError:
+        df = __load_plasticc_dataset_from_csv()
+
+    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
 
     df_train, df_val, df_test, num_features = train_val_test_split(df, cols)
     assert num_features == 6
