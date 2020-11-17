@@ -105,6 +105,39 @@ def plasticc_log_loss(y_true, probs):
     return -1 * np.average(class_logloss, weights=weights)
 
 
+def custom_tensorflow_plasticc_loss(y_true, y_pred, flip):
+    """An attempt to migrate Dan's implementation into tensorflow operations"""
+
+    predictions = y_pred
+    labels = np.unique(flip)
+
+    tf_y_test
+
+    # sanitize predictions
+    epsilon = (
+        sys.float_info.epsilon
+    )  # this is machine dependent but essentially prevents log(0)
+    predictions = tf.experimental.numpy.clip(predictions, epsilon, 1.0 - epsilon)
+    predictions = predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+    predictions = tf.math.log(predictions)  # logarithm because we want a log loss
+
+    class_logloss, weights = [], []  # initialize the classes logloss and weights
+    for i in range(np.shape(predictions)[1]):  # run for each class
+        current_label = labels[i]
+        result = tf.experimental.numpy.average(
+            predictions[flip == current_label, i]
+        )
+        # works like a boolean mask to provide results for current class. ravel() required to fix
+        # IndexError: result = np.average(predictions[y_true==current_label, i]) # only those
+        # events are from that class IndexError: too many indices for array: array is 2-dimensional,
+        # but 3 were indexed
+
+        class_logloss.append(result)
+        weights.append(plasticc_weights_dict[current_label])
+
+    return -1 * tf.experimental.numpy.average(class_logloss, weights=weights)
+
+
 class CustomLogLoss(keras.losses.Loss):
     def __init__(self, name="plasticc_log_loss"):
         super().__init__(name=name)
