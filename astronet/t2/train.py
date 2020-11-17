@@ -12,8 +12,9 @@ from pathlib import Path
 from tensorflow.keras import optimizers
 
 from astronet.t2.constants import astronet_working_directory as asnwd
+from astronet.t2.metrics import custom_log_loss
 from astronet.t2.model import T2Model
-from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 try:
@@ -41,16 +42,29 @@ class Training(object):
     def __call__(self):
 
         if dataset == "wisdm_2010":
-            load_dataset = load_wisdm_2010
-        elif dataset == "wisdm_2019":
-            load_dataset = load_wisdm_2019
-        elif dataset == "plasticc":
-            load_dataset = load_plasticc
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            # One hot encode y
+            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-        # Load data
-        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-        # One hot encode y
-        enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            loss = "categorical_crossentropy"
+
+        elif dataset == "wisdm_2019":
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            # One hot encode y
+            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+
+            loss = "categorical_crossentropy"
+
+        elif dataset == "plasticc":
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc()
+            # One hot encode y
+            y_train, y_val, y_test = tf_one_hot_encode(y_train, y_val, y_test)
+
+            loss = custom_log_loss
+
         num_classes = y_train.shape[1]
 
         log.info(print(X_train.shape, y_train.shape))
@@ -58,7 +72,7 @@ class Training(object):
         with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
             event = max(events['optuna_result'], key=lambda ev: ev['value'])
-            print(event)
+            # print(event)
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
         num_heads = event['num_heads']  # --> Number of attention heads
@@ -82,7 +96,12 @@ class Training(object):
         # We compile our model with a sampled learning rate.
         lr = event['lr']
         model.compile(
-            loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
+            loss=loss,
+            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+            metrics=["acc"],
+            # Allows for values to be show when debugging
+            # Also required for use with custom_log_loss
+            run_eagerly=True,
         )
 
         model.build_graph(input_shape)
@@ -118,20 +137,19 @@ class Training(object):
 
         with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as jf:
             data = json.load(jf)
-            print(data)
+            # print(data)
 
             previous_results = data['training_result']
             # appending data to optuna_result
-            print(previous_results)
+            # print(previous_results)
             previous_results.append(model_params)
-            print(previous_results)
-            print(data)
+            # print(previous_results)
+            # print(data)
 
         with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json", "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
         model.save(f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}")
-
 
 if __name__ == "__main__":
 
