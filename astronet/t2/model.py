@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -23,9 +24,9 @@ class T2Model(keras.Model):
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim[1:])
         self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
         self.pooling        = layers.GlobalAveragePooling1D()
-        self.dropout1       = layers.Dropout(0.2)
-        self.fc             = layers.Dense(100, activation="relu")
-        self.dropout2       = layers.Dropout(0.2)
+        self.dropout1       = layers.Dropout(0.1)
+        self.fc             = layers.Dense(20, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        self.dropout2       = layers.Dropout(0.1)
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs, training=None):
