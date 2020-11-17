@@ -1,3 +1,4 @@
+import joblib
 import numpy as np
 import pandas as pd
 import sys
@@ -5,10 +6,52 @@ import tensorflow as tf
 
 from tensorflow import keras
 
-from astronet.t2.constants import plasticc_weights_dict
+from astronet.t2.constants import (
+    plasticc_weights_dict,
+    astronet_working_directory as asnwd,
+)
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
 pd.options.mode.chained_assignment = None  # default='warn'
+
+np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
+
+
+def custom_log_loss(y_true, y_pred):
+    """
+    Parameters:
+    -----------
+    `y_true`: Tensor
+
+    `y_pred`: numpy.ndarray
+
+    References:
+    -----------
+    - https://www.kaggle.com/c/PLAsTiCC-2018/discussion/69795
+    def mywloss(y_true, y_pred):
+        yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
+        loss = -(tf.reduce_mean(tf.reduce_mean(y_true * tf.log(yc), axis=0) / wtable))
+        return loss
+    Where:
+    wtable - is a numpy 1d array with (the number of times class y_true occur in the data set)/(size of data set)
+    """
+
+    # import pdb; pdb.set_trace();
+    wtable = tf.experimental.numpy.sum(y_true, axis=0) / y_true.shape[0]
+
+    yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
+
+    yc = tf.cast(yc, tf.float64)
+    y_true = tf.cast(y_true, tf.float64)
+    wtable = tf.cast(wtable, tf.float64)
+
+    loss = -(
+        tf.reduce_mean(
+            tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+        )
+    )
+
+    return loss
 
 
 def plasticc_log_loss(y_true, probs):
@@ -63,12 +106,16 @@ def plasticc_log_loss(y_true, probs):
 
 
 class CustomLogLoss(keras.losses.Loss):
-    def __init__(self, encoding, name="plasticc_log_loss"):
+    def __init__(self, name="plasticc_log_loss"):
         super().__init__(name=name)
-        self.encoding = encoding
+        self.dataset = "plasticc"
 
     def call(self, y_true, y_pred):
-        y_true = tf.numpy_function(self.encoding.inverse_transform(y_true))
+
+        with open(f"{asnwd}/data/{self.dataset}/encoder.joblib", "rb") as eb:
+            encoding = joblib.load(eb)
+
+        y_true = encoding.inverse_transform(y_true)
 
         predictions = y_pred
         labels = np.unique(y_true)
