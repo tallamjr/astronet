@@ -34,3 +34,5 @@ python $ASNWD/astronet/t2/opt/hypertrain.py --dataset "plasticc" --epochs 40 --b
 # Train
 python $ASNWD/astronet/t2/train.py --dataset "plasticc" --epochs 200 --batch-size 256
 date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/t2

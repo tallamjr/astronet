@@ -33,3 +33,5 @@ python -c "import tensorflow as tf; print(tf.__version__)"
 # Run test suite
 pytest $ASNWD/astronet/t2/tests
 date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/sbin/tests_t2
