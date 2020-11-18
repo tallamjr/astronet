@@ -205,7 +205,7 @@ if __name__ == "__main__":
     print(df_study.head())
 
     print("  Value: {}".format(trial.value))
-    best_result['value'] = trial.value
+    best_result['objective_score'] = trial.value
 
     print("  Params: ")
     for key, value in trial.params.items():

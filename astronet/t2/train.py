@@ -71,7 +71,7 @@ class Training(object):
 
         with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
-            event = max(events['optuna_result'], key=lambda ev: ev['value'])
+            event = max(events['optuna_result'], key=lambda ev: ev['objective_score'])
             # print(event)
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
@@ -129,7 +129,8 @@ class Training(object):
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
         model_params['lr'] = event['lr']
-        model_params['value'] = model.evaluate(X_test, y_test)[1]
+        model_params['model_evaluate_on_test_acc'] = model.evaluate(X_test, y_test)[1]
+        model_params['model_evaluate_on_test_loss'] = model.evaluate(X_test, y_test)[0]
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
@@ -150,6 +151,7 @@ class Training(object):
             json.dump(data, rf, sort_keys=True, indent=4)
 
         model.save(f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}")
+
 
 if __name__ == "__main__":
 
