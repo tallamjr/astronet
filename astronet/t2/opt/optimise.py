@@ -73,7 +73,7 @@ def objective(trial):
     # # Save a trained model to a file.
     # with open('{}.pkl'.format(trial.number), 'wb') as fout:
     #     pickle.dump(model, fout)
-    return score[1]
+    return -1 * score[0]
 
 
 if __name__ == "__main__":
