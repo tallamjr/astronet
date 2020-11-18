@@ -16,8 +16,9 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
 
 from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
+from astronet.t2.metrics import custom_log_loss
 from astronet.t2.model import T2Model
-from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 try:
@@ -66,16 +67,29 @@ class Objective(object):
         clear_session()
 
         if dataset == "wisdm_2010":
-            load_dataset = load_wisdm_2010
-        elif dataset == "wisdm_2019":
-            load_dataset = load_wisdm_2019
-        elif dataset == "plasticc":
-            load_dataset = load_plasticc
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            # One hot encode y
+            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
-        # Load data
-        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-        # One hot encode y
-        enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            loss = "categorical_crossentropy"
+
+        elif dataset == "wisdm_2019":
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
+            # One hot encode y
+            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+
+            loss = "categorical_crossentropy"
+
+        elif dataset == "plasticc":
+            # Load data
+            X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc()
+            # One hot encode y
+            y_train, y_val, y_test = tf_one_hot_encode(y_train, y_val, y_test)
+
+            loss = custom_log_loss
+
         num_classes = y_train.shape[1]
 
         embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
@@ -99,7 +113,12 @@ class Objective(object):
         # We compile our model with a sampled learning rate.
         lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
         model.compile(
-            loss="categorical_crossentropy", optimizer=optimizers.Adam(lr=lr), metrics=["acc"]
+            loss=loss,
+            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+            metrics=["acc"],
+            # Allows for values to be show when debugging
+            # Also required for use with custom_log_loss
+            run_eagerly=True,
         )
 
         model.build_graph(input_shape)

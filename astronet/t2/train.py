@@ -51,7 +51,7 @@ class Training(object):
 
         elif dataset == "wisdm_2019":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
             # One hot encode y
             enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
 
