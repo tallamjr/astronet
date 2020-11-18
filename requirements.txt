@@ -16,5 +16,5 @@ requests
 scikit-learn>=0.22
 scipy==1.4.1
 seaborn>=0.11.0
-tensorflow>=2.0.0
+tensorflow==2.4.0rc1
 xgboost
