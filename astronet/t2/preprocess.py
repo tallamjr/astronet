@@ -1,6 +1,7 @@
 import george
 import numpy as np
 import scipy.optimize as op
+import tensorflow as tf
 
 from astropy.table import Table, vstack
 from functools import partial
@@ -163,3 +164,23 @@ def one_hot_encode(y_train, y_val, y_test):
     y_test = enc.transform(y_test)
 
     return enc, y_train, y_val, y_test
+
+
+def tf_one_hot_encode(y_train, y_val, y_test):
+    # TODO: Docstrings
+
+    dct = {42: 0, 62: 1, 90: 2}
+
+    lst = y_train.flatten().tolist()
+    flabels = list(map(dct.get, lst))
+    y_train = tf.one_hot(flabels, len(np.unique(y_train)))
+
+    lst = y_val.flatten().tolist()
+    flabels = list(map(dct.get, lst))
+    y_val = tf.one_hot(flabels, len(np.unique(y_val)))
+
+    lst = y_test.flatten().tolist()
+    flabels = list(map(dct.get, lst))
+    y_test = tf.one_hot(flabels, len(np.unique(y_test)))
+
+    return y_train, y_val, y_test

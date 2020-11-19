@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=w2019             # Job name
+#SBATCH --job-name=plasticc             # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
 #SBATCH --exclusive                     # Request exclusive access to a node
@@ -30,11 +30,9 @@ which python
 python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 # Hyperparameter Optimisation
-# echo "Hyperparameter Optimisation" >> logs/{$SLURM_JOB_ID}.log
-python $ASNWD/astronet/t2/opt/hypertrain.py --dataset "wisdm_2019"
-# echo !! >> logs/{$SLURM_JOB_ID}.log
+python $ASNWD/astronet/t2/opt/hypertrain.py --dataset "plasticc" --epochs 40 --batch-size 256
 # Train
-# echo "Train" >> logs/{$SLURM_JOB_ID}.log
-python $ASNWD/astronet/t2/train.py --dataset "wisdm_2019"
-# echo !! >> logs/{$SLURM_JOB_ID}.log
+python $ASNWD/astronet/t2/train.py --dataset "plasticc" --epochs 200 --batch-size 256
 date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/t2
