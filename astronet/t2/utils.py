@@ -366,7 +366,7 @@ def __load_plasticc_dataset_from_csv():
     return df
 
 
-def load_plasticc(timesteps=100, step=100):
+def load_plasticc(timesteps=20, step=20):
 
     try:
         df = pd.read_parquet(
