@@ -9,6 +9,7 @@ import tensorflow as tf
 import time
 
 from pathlib import Path
+from tensorflow import keras
 from tensorflow.keras import optimizers
 
 from astronet.t2.constants import astronet_working_directory as asnwd
@@ -81,8 +82,9 @@ class Training(object):
         # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
         num_filters = embed_dim
 
-        input_shape = X_train.shape
-        # print(input_shape[1:])  # (TIMESTEPS, num_features)
+        _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        input_shape = (BATCH_SIZE, timesteps, num_features)
+        print(input_shape)
 
         model = T2Model(
             input_dim=input_shape,
@@ -99,9 +101,7 @@ class Training(object):
             loss=loss,
             optimizer=optimizers.Adam(lr=lr, clipnorm=1),
             metrics=["acc"],
-            # Allows for values to be show when debugging
-            # Also required for use with custom_log_loss
-            run_eagerly=True,
+            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
         )
 
         model.build_graph(input_shape)
