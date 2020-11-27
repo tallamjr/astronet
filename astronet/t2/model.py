@@ -21,7 +21,7 @@ class T2Model(keras.Model):
         self.num_filters    = num_filters
         self.num_classes    = num_classes
 
-        self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim[1:])
+        self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
         self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(0.1)
