@@ -23,8 +23,8 @@ class T2Model(keras.Model):
         self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
 
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
-        # self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
-        self.pos_encoding   = RelativePositionEmbedding(hidden_size=self.embed_dim)
+        self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
+        # self.pos_encoding   = RelativePositionEmbedding(hidden_size=self.embed_dim)
 
         self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
         # TODO : Branch off here, outputs_2, with perhaps Dense(input_dim[1]), OR vis this layer since
