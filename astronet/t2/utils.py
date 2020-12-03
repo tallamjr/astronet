@@ -275,7 +275,7 @@ def __transient_trim(object_list, df):
     return obs_transient
 
 
-def __generate_gp_all_objects(object_list, obs_transient):
+def __generate_gp_all_objects(object_list, obs_transient, timesteps):
     adf = pd.DataFrame(
         data=[],
         columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
@@ -292,7 +292,7 @@ def __generate_gp_all_objects(object_list, obs_transient):
 
         gp_predict = fit_2d_gp(df)
 
-        number_gp = 100
+        number_gp = timesteps
         gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
         obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
         obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
@@ -304,7 +304,7 @@ def __generate_gp_all_objects(object_list, obs_transient):
     return pd.DataFrame(data=adf, columns=obj_gps.columns)
 
 
-def __load_plasticc_dataset_from_csv():
+def __load_plasticc_dataset_from_csv(timesteps):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -328,7 +328,7 @@ def __load_plasticc_dataset_from_csv():
     object_list = list(np.unique(df['object_id']))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -358,7 +358,7 @@ def __load_plasticc_dataset_from_csv():
     )
 
     df.to_parquet(
-        f"{asnwd}/data/plasticc/transformed_df.parquet",
+        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
         engine="pyarrow",
         compression="snappy",
     )
@@ -366,15 +366,15 @@ def __load_plasticc_dataset_from_csv():
     return df
 
 
-def load_plasticc(timesteps=20, step=20):
+def load_plasticc(timesteps=100, step=100):
 
     try:
         df = pd.read_parquet(
-            f"{asnwd}/data/plasticc/transformed_df.parquet",
+            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
             engine="pyarrow",
         )
     except IOError:
-        df = __load_plasticc_dataset_from_csv()
+        df = __load_plasticc_dataset_from_csv(timesteps)
 
     cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
 
