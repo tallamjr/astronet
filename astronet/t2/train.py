@@ -13,7 +13,7 @@ from tensorflow import keras
 from tensorflow.keras import optimizers
 
 from astronet.t2.constants import astronet_working_directory as asnwd
-from astronet.t2.metrics import custom_log_loss
+from astronet.t2.metrics import custom_log_loss, WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
@@ -64,7 +64,7 @@ class Training(object):
             # One hot encode y
             y_train, y_val, y_test = tf_one_hot_encode(y_train, y_val, y_test)
 
-            loss = custom_log_loss
+            loss = WeightedLogLoss
 
         num_classes = y_train.shape[1]
 
