@@ -74,5 +74,5 @@ def test_training_pipeline_wisdm_2010():
     print(model.evaluate(X_test, y_test))
 
     result = model.evaluate(X_test, y_test)
-    expected_output = [0.44523268938064575, 0.832602322101593]
+    expected_output = [0.44523268938064575, 0.7262773513793945]
     assert result[1] == pytest.approx(expected_output[1], 0.1)
