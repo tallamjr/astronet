@@ -33,12 +33,12 @@ def test_load_wisdm_2019():
 
 def test_load_plasticc():
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc(timesteps=20, step=20)
+    X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc(timesteps=100, step=100)
 
-    assert X_train.shape == (15959, 20, 6)
-    assert X_val.shape == (2992, 20, 6)
-    assert X_test.shape == (997, 20, 6)
+    assert X_train.shape == (3191, 100, 6)
+    assert X_val.shape == (598, 100, 6)
+    assert X_test.shape == (199, 100, 6)
 
-    assert y_train.shape == (15959, 1)
-    assert y_val.shape == (2992, 1)
-    assert y_test.shape == (997, 1)
+    assert y_train.shape == (3191, 1)
+    assert y_val.shape == (598, 1)
+    assert y_test.shape == (199, 1)

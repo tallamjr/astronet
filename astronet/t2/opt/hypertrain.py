@@ -97,9 +97,9 @@ class Objective(object):
         ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-
-        input_shape = X_train.shape
-        # print(input_shape[1:])  # --> (TIMESTEPS, num_features)
+        _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        input_shape = (BATCH_SIZE, timesteps, num_features)
+        print(input_shape)
 
         model = T2Model(
             input_dim=input_shape,
