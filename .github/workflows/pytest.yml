@@ -14,6 +14,8 @@ jobs:
   tutorials:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
     strategy:
       # Prevent all build to stop if a single one fails
