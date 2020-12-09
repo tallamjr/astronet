@@ -43,8 +43,8 @@ class T2Model(keras.Model):
         x = self.embedding(inputs)
         x = self.pos_encoding(x)
 
-        for layer in range(self.num_layers):
-            x = self.encoder[layer](x, training)
+        for layer in self.encoder:
+            x = layer(x, training)
 
         x = self.pooling(x)
         if training:
