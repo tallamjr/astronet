@@ -26,11 +26,8 @@ class T2Model(keras.Model):
         self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
         # self.pos_encoding   = RelativePositionEmbedding(hidden_size=self.embed_dim)
 
-        self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
-
-        self.num_layers     = num_layers
         self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
-                                for _ in range(self.num_layers)]
+                                for _ in range(num_layers)]
         # TODO : Branch off here, outputs_2, with perhaps Dense(input_dim[1]), OR vis this layer since
         # output should be: (batch_size, input_seq_len, d_model), see:
         # https://github.com/cordeirojoao/ECG_Processing/blob/master/Ecg_keras_v9-Raphael.ipynb
