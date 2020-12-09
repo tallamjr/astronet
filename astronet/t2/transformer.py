@@ -114,9 +114,15 @@ class TransformerBlock(layers.Layer):
         self.dropout2 = layers.Dropout(rate)
 
     def call(self, inputs, training):
-        attn_output = self.att(inputs)
+
+        # Sublayer 1
+        attn_output = self.att(inputs)  # (batch_size, input_seq_len, d_model)
         attn_output = self.dropout1(attn_output, training=training)
-        out1 = self.layernorm1(inputs + attn_output)
-        ffn_output = self.ffn(out1)
+        out1 = self.layernorm1(inputs + attn_output)  # Residual connection, (batch_size, input_seq_len, d_model)
+
+        # Sublayer 2
+        ffn_output = self.ffn(out1)  # (batch_size, input_seq_len, d_model)
         ffn_output = self.dropout2(ffn_output, training=training)
-        return self.layernorm2(out1 + ffn_output)
+        out2 = self.layernorm2(out1 + ffn_output)  # Residual connection, # (batch_size, input_seq_len, d_model)
+
+        return out2  # (batch_size, input_seq_len, d_model)
