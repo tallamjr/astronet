@@ -12,7 +12,7 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers=6, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers=1, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
