@@ -12,7 +12,7 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers=1, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
@@ -26,7 +26,8 @@ class T2Model(keras.Model):
         self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
         # self.pos_encoding   = RelativePositionEmbedding(hidden_size=self.embed_dim)
 
-        self.encoder        = TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
+        self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
+                                for _ in range(num_layers)]
         # TODO : Branch off here, outputs_2, with perhaps Dense(input_dim[1]), OR vis this layer since
         # output should be: (batch_size, input_seq_len, d_model), see:
         # https://github.com/cordeirojoao/ECG_Processing/blob/master/Ecg_keras_v9-Raphael.ipynb
@@ -41,7 +42,10 @@ class T2Model(keras.Model):
 
         x = self.embedding(inputs)
         x = self.pos_encoding(x)
-        x = self.encoder(x)
+
+        for layer in self.encoder:
+            x = layer(x, training)
+
         x = self.pooling(x)
         if training:
             x = self.dropout1(x, training=training)
