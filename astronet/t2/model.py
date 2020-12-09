@@ -38,7 +38,7 @@ class T2Model(keras.Model):
         self.dropout2       = layers.Dropout(0.1)
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
-    def call(self, inputs, training):
+    def call(self, inputs, training=None):
 
         x = self.embedding(inputs)
         x = self.pos_encoding(x)
