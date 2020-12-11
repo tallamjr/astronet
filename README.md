@@ -48,8 +48,8 @@ of 20201009)
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=t2-wisdm             # Job name
-#SBATCH --time=168:00:00                # Time limit hrs:min:sec
+#SBATCH --job-name=plasticc             # Job name
+#SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
 #SBATCH --exclusive                     # Request exclusive access to a node
 # Add a -e or --error with an error file name to separate output and error
@@ -57,24 +57,20 @@ of 20201009)
 ## #SBATCH -e logs/%j.err
 ## #SBATCH -o logs/%j.out
 set -o pipefail -e
-hmsg="Help message..."
-# Show help if no arguments is given
-# if [[ $1 == "" ]]; then
-#   echo -e $hmsg
-#   exit 1
-# fi
-# cd $(cd "`dirname "$0"`"/..; pwd)
+
 source $PWD/conf/astronet.conf
 date
 which python
-# Test imports
+# Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 # Hyperparameter Optimisation
-python $ASNWD/astronet/t2/opt/hypertrain.py
+python $ASNWD/astronet/t2/opt/hypertrain.py --dataset "plasticc" --epochs 40 --batch-size 256
 # Train
-python $ASNWD/astronet/t2/train.py
+python $ASNWD/astronet/t2/train.py --dataset "plasticc" --epochs 200 --batch-size 256
 date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/t2
 ```
 
 To run this, ensure that the anaconda environment is set (a simple test for this
