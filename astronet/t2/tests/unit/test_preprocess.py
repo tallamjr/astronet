@@ -11,29 +11,27 @@ from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
 
 def test_one_hot_encode():
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+    X_train, y_train, X_test, y_test = load_wisdm_2010()
 
     assert len(np.unique(y_train)) == 6
 
     # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    enc, y_train, y_test = one_hot_encode(y_train, y_test)
 
     assert y_train.shape[1] == 6
-    assert y_val.shape[1] == 6
     assert y_test.shape[1] == 6
 
-    del enc, X_train, y_train, X_val, y_val, X_test, y_test
+    del enc, X_train, y_train, X_test, y_test
 
 
 @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large 'phone.df' file")
 def test_one_hot_encode_local():
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
+    X_train, y_train, X_test, y_test = load_wisdm_2019()
     # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+    enc, y_train, y_test = one_hot_encode(y_train, y_test)
 
     assert y_train.shape[1] == 18
-    assert y_val.shape[1] == 18
     assert y_test.shape[1] == 18
 
 

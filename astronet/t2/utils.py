@@ -2,15 +2,13 @@ import logging
 import numpy as np
 import pandas as pd
 import pickle
-import sys
 import tensorflow as tf
 
 from pathlib import Path
-from tensorflow import keras
+from sklearn import model_selection
 
 from astronet.t2.constants import (
     pb_wavelengths,
-    plasticc_weights_dict,
     astronet_working_directory as asnwd,
 )
 from astronet.t2.preprocess import robust_scale, fit_2d_gp, predict_2d_gp
@@ -125,37 +123,24 @@ def load_wisdm_2010(timesteps=200, step=200):
 
     cols = ["x_axis", "y_axis", "z_axis"]
 
-    df_train, df_val, df_test, num_features = train_val_test_split(df, cols)
-    assert num_features == 3  # Should = 3 in this case
-
     # Perfrom robust scaling
-    robust_scale(df_train, df_val, df_test, cols)
+    robust_scale(df, cols)
 
     TIME_STEPS = timesteps
     STEP = step
 
-    X_train, y_train = create_dataset(
-        df_train[cols],
-        df_train.activity,
+    Xs, ys = create_dataset(
+        df[cols],
+        df.activity,
         TIME_STEPS,
         STEP
     )
 
-    X_val, y_val = create_dataset(
-        df_val[cols],
-        df_val.activity,
-        TIME_STEPS,
-        STEP
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(
+        Xs, ys, random_state=RANDOM_SEED
     )
 
-    X_test, y_test = create_dataset(
-        df_test[cols],
-        df_test.activity,
-        TIME_STEPS,
-        STEP
-    )
-
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train, y_train, X_test, y_test
 
 
 #  TODO:
@@ -195,10 +180,10 @@ def load_wisdm_2019(timesteps=200, step=200):
     # The work presented there and published by Susana Benavidez et al 2019 is what will be used to
     # compare results with laatest attempts at applying deep learning methods to the updated WISDM
     # dataset
-    with open(f"{asnwd}/data/wisdm-dataset/phone.df", "rb") as df:
-            phone = pickle.load(df)
+    with open(f"{asnwd}/data/wisdm-dataset/phone.df", "rb") as phone_dataframe:
+            df = pickle.load(phone_dataframe)
 
-    assert phone.shape == (4780251, 9)
+    assert df.shape == (4780251, 9)
 
     cols = [
         "phone_accel_x",
@@ -206,36 +191,23 @@ def load_wisdm_2019(timesteps=200, step=200):
         "phone_accel_z",
     ]
 
-    df_train, df_val, df_test, num_features = train_val_test_split(phone, cols)
-    assert num_features == 3
-
-    robust_scale(df_train, df_val, df_test, cols)
+    robust_scale(df, cols)
 
     TIME_STEPS = timesteps
     STEP = step
 
-    X_train, y_train = create_dataset(
-        df_train[cols],
-        df_train.activity,
+    Xs, ys = create_dataset(
+        df[cols],
+        df.activity,
         TIME_STEPS,
         STEP
     )
 
-    X_val, y_val = create_dataset(
-        df_val[cols],
-        df_val.activity,
-        TIME_STEPS,
-        STEP
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(
+        Xs, ys, random_state=RANDOM_SEED
     )
 
-    X_test, y_test = create_dataset(
-        df_test[cols],
-        df_test.activity,
-        TIME_STEPS,
-        STEP
-    )
-
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train, y_train, X_test, y_test
 
 
 def __remap_filters(df):
@@ -319,7 +291,6 @@ def __load_plasticc_dataset_from_csv(timesteps):
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
 
-
     df = __filter_dataframe_only_supernova(
         f"{asnwd}/data/plasticc/train_subset.txt",
         data,
@@ -368,6 +339,10 @@ def __load_plasticc_dataset_from_csv(timesteps):
 
 def load_plasticc(timesteps=100, step=100):
 
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
     try:
         df = pd.read_parquet(
             f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
@@ -378,33 +353,20 @@ def load_plasticc(timesteps=100, step=100):
 
     cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
 
-    df_train, df_val, df_test, num_features = train_val_test_split(df, cols)
-    assert num_features == 6
-
-    robust_scale(df_train, df_val, df_test, cols)
+    robust_scale(df, cols)
 
     TIME_STEPS = timesteps
     STEP = step
 
-    X_train, y_train = create_dataset(
-        df_train[cols],
-        df_train.target,
+    Xs, ys = create_dataset(
+        df[cols],
+        df.target,
         TIME_STEPS,
         STEP
     )
 
-    X_val, y_val = create_dataset(
-        df_val[cols],
-        df_val.target,
-        TIME_STEPS,
-        STEP
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(
+        Xs, ys, random_state=RANDOM_SEED
     )
 
-    X_test, y_test = create_dataset(
-        df_test[cols],
-        df_test.target,
-        TIME_STEPS,
-        STEP
-    )
-
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train, y_train, X_test, y_test
