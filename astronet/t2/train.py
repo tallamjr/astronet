@@ -9,11 +9,15 @@ import tensorflow as tf
 import time
 
 from pathlib import Path
-from tensorflow import keras
 from tensorflow.keras import optimizers
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ReduceLROnPlateau,
+)
 
+from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.constants import astronet_working_directory as asnwd
-from astronet.t2.metrics import custom_log_loss, WeightedLogLoss
+from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
@@ -44,25 +48,25 @@ class Training(object):
 
         if dataset == "wisdm_2010":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            X_train, y_train, X_test, y_test = load_wisdm_2010()
             # One hot encode y
-            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            enc, y_train, y_test = one_hot_encode(y_train, y_test)
 
             loss = "categorical_crossentropy"
 
         elif dataset == "wisdm_2019":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
+            X_train, y_train, X_test, y_test = load_wisdm_2019()
             # One hot encode y
-            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            enc, y_train, y_test = one_hot_encode(y_train, y_test)
 
             loss = "categorical_crossentropy"
 
         elif dataset == "plasticc":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc()
+            X_train, y_train, X_test, y_test = load_plasticc()
             # One hot encode y
-            y_train, y_val, y_test = tf_one_hot_encode(y_train, y_val, y_test)
+            y_train, y_test = tf_one_hot_encode(y_train, y_test)
 
             loss = WeightedLogLoss
 
@@ -111,8 +115,28 @@ class Training(object):
             y_train,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
-            validation_data=(X_val, y_val),
+            validation_data=(X_test, y_test),
             verbose=False,
+            callbacks=[
+                DetectOverfittingCallback(threshold=1.5),
+                EarlyStopping(
+                    patience=5,
+                    min_delta=0.05,
+                    baseline=0.8,
+                    mode="min",
+                    monitor="val_loss",
+                    restore_best_weights=True,
+                    verbose=1,
+                ),
+                ReduceLROnPlateau(
+                    monitor="val_loss",
+                    factor=0.2,
+                    verbose=1,
+                    patience=2,
+                    min_lr=1e-6,
+                    mode="min",
+                ),
+            ],
         )
 
         model.summary(print_fn=logging.info)

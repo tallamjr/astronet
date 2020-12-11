@@ -132,26 +132,26 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
     return obj_gps
 
 
-def robust_scale(df_train, df_val, df_test, scale_columns):
+def robust_scale(df, scale_columns):
     # TODO: Docstrings
     from sklearn.preprocessing import RobustScaler
 
     scaler = RobustScaler()
 
-    scaler = scaler.fit(df_train[scale_columns])
+    scaler = scaler.fit(df[scale_columns])
 
-    df_train.loc[:, scale_columns] = scaler.transform(
-        df_train[scale_columns].to_numpy()
+    df.loc[:, scale_columns] = scaler.transform(
+        df[scale_columns].to_numpy()
     )
-    df_val.loc[:, scale_columns] = scaler.transform(
-        df_val[scale_columns].to_numpy()
-    )
-    df_test.loc[:, scale_columns] = scaler.transform(
-        df_test[scale_columns].to_numpy()
-    )
+    # df_val.loc[:, scale_columns] = scaler.transform(
+    #     df_val[scale_columns].to_numpy()
+    # )
+    # df_test.loc[:, scale_columns] = scaler.transform(
+    #     df_test[scale_columns].to_numpy()
+    # )
 
 
-def one_hot_encode(y_train, y_val, y_test):
+def one_hot_encode(y_train, y_test):
     # TODO: Docstrings
     from sklearn.preprocessing import OneHotEncoder
 
@@ -160,13 +160,12 @@ def one_hot_encode(y_train, y_val, y_test):
     enc = enc.fit(y_train)
 
     y_train = enc.transform(y_train)
-    y_val = enc.transform(y_val)
     y_test = enc.transform(y_test)
 
-    return enc, y_train, y_val, y_test
+    return enc, y_train, y_test
 
 
-def tf_one_hot_encode(y_train, y_val, y_test):
+def tf_one_hot_encode(y_train, y_test):
     # TODO: Docstrings
 
     dct = {42: 0, 62: 1, 90: 2}
@@ -175,12 +174,13 @@ def tf_one_hot_encode(y_train, y_val, y_test):
     flabels = list(map(dct.get, lst))
     y_train = tf.one_hot(flabels, len(np.unique(y_train)))
 
-    lst = y_val.flatten().tolist()
-    flabels = list(map(dct.get, lst))
-    y_val = tf.one_hot(flabels, len(np.unique(y_val)))
+    # lst = y_val.flatten().tolist()
+    # flabels = list(map(dct.get, lst))
+    # y_val = tf.one_hot(flabels, len(np.unique(y_val)))
 
     lst = y_test.flatten().tolist()
     flabels = list(map(dct.get, lst))
     y_test = tf.one_hot(flabels, len(np.unique(y_test)))
 
-    return y_train, y_val, y_test
+    # return y_train, y_val, y_test
+    return y_train, y_test
