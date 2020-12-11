@@ -10,7 +10,12 @@ import time
 
 from pathlib import Path
 from tensorflow.keras import optimizers
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ReduceLROnPlateau,
+)
 
+from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
@@ -112,6 +117,26 @@ class Training(object):
             epochs=EPOCHS,
             validation_data=(X_test, y_test),
             verbose=False,
+            callbacks=[
+                DetectOverfittingCallback(threshold=1.5),
+                EarlyStopping(
+                    patience=5,
+                    min_delta=0.05,
+                    baseline=0.8,
+                    mode="min",
+                    monitor="val_loss",
+                    restore_best_weights=True,
+                    verbose=1,
+                ),
+                ReduceLROnPlateau(
+                    monitor="val_loss",
+                    factor=0.2,
+                    verbose=1,
+                    patience=2,
+                    min_lr=1e-6,
+                    mode="min",
+                ),
+            ],
         )
 
         model.summary(print_fn=logging.info)

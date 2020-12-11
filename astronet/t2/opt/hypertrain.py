@@ -15,6 +15,12 @@ from pathlib import Path
 from sklearn.model_selection import StratifiedKFold
 from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
+from tensorflow.keras.callbacks import (
+    EarlyStopping,
+    ReduceLROnPlateau,
+)
+
+from astronet.t2.custom_callbacks import DetectOverfittingCallback
 
 from astronet.t2.constants import astronet_working_directory as asnwd
 from astronet.t2.metrics import WeightedLogLoss
@@ -112,7 +118,7 @@ class Objective(object):
         )
 
         # We compile our model with a sampled learning rate.
-        lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+        lr = trial.suggest_float("lr", 1e-2, 1e-1, log=True)
         model.compile(
             loss=loss,
             optimizer=optimizers.Adam(lr=lr, clipnorm=1),
@@ -137,6 +143,26 @@ class Objective(object):
                 epochs=EPOCHS,
                 validation_data=(X_val_cv, y_val_cv),
                 verbose=False,
+                callbacks=[
+                    DetectOverfittingCallback(threshold=1.5),
+                    EarlyStopping(
+                        patience=5,
+                        min_delta=0.05,
+                        baseline=0.8,
+                        mode="min",
+                        monitor="val_loss",
+                        restore_best_weights=True,
+                        verbose=1,
+                    ),
+                    ReduceLROnPlateau(
+                        monitor="val_loss",
+                        factor=0.2,
+                        verbose=1,
+                        patience=2,
+                        min_lr=1e-6,
+                        mode="min",
+                    ),
+                ],
             )
 
             # Evaluate the model accuracy on the validation set.
