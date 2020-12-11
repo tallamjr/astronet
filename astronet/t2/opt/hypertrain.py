@@ -12,11 +12,12 @@ import tensorflow as tf
 import warnings
 
 from pathlib import Path
+from sklearn.model_selection import StratifiedKFold
 from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
 
-from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
-from astronet.t2.metrics import custom_log_loss, WeightedLogLoss
+from astronet.t2.constants import astronet_working_directory as asnwd
+from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
@@ -84,9 +85,9 @@ class Objective(object):
 
         elif dataset == "plasticc":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_plasticc()
+            X_train, y_train, _, _ = load_plasticc()
             # One hot encode y
-            y_train, y_val, y_test = tf_one_hot_encode(y_train, y_val, y_test)
+            y_train, _ = tf_one_hot_encode(y_train, _)
 
             loss = WeightedLogLoss
 
@@ -123,20 +124,27 @@ class Objective(object):
 
         model.build_graph(input_shape)
 
-        _ = model.fit(
-            X_train,
-            y_train,
-            batch_size=BATCH_SIZE,
-            epochs=EPOCHS,
-            validation_data=(X_val, y_val),
-            verbose=False,
-        )
+        scores = []
+        skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+        for train_index, val_index in skf.split(X_train, y_train):
+            X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
+            y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
+
+            _ = model.fit(
+                X_train_cv,
+                y_train_cv,
+                batch_size=BATCH_SIZE,
+                epochs=EPOCHS,
+                validation_data=(X_val_cv, y_val_cv),
+                verbose=False,
+            )
+
+            # Evaluate the model accuracy on the validation set.
+            loss, _ = model.evaluate(X_val_cv, y_val_cv, verbose=0)
+            scores.append(loss)
 
         model.summary(print_fn=logging.info)
-
-        # Evaluate the model accuracy on the validation set.
-        score = model.evaluate(X_val, y_val, verbose=0)
-        return -score[0]
+        return np.mean(scores)
 
 
 if __name__ == "__main__":
@@ -179,7 +187,7 @@ if __name__ == "__main__":
     EPOCHS = int(args.epochs)
     N_TRIALS = int(args.num_trials)
 
-    study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
+    study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
         Objective(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset),
