@@ -23,7 +23,9 @@
 - ~~Time Transformer [`t2`] (WISDM: Human-Activity-Recognition)~~
 - ~~`transnova` (SPCC)~~
 - ~~Astrophysical Transient Transformer [`att`] (PLAsTiCC)~~
-    **Update 20201211**
+
+**Update 20201211**
+
 - Time-Series Transformer [`t2`] (WISDM: Human-Activity-Recognition) & PLAsTiCC and other MVTS
     --> May change overall name to `sncoder` for `Supernova-Encoder`. Will see.
 - Inception-Time for Supernova [`convSNE`] --> All of above including MVTS
@@ -34,7 +36,7 @@
 
 Within `bin` are the relevant slurm scripts for running jobs on the cluster.
 Below is an example of the `t2` script to run the T2 analysis (file snapshot as
-of 20201009)
+of 20201211)
 
 ```bash
 #!/bin/bash
