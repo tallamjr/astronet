@@ -121,7 +121,7 @@ class Training(object):
                 DetectOverfittingCallback(threshold=1.5),
                 EarlyStopping(
                     patience=5,
-                    min_delta=0.05,
+                    min_delta=0.02,
                     baseline=0.8,
                     mode="min",
                     monitor="val_loss",
