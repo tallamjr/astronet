@@ -12,6 +12,7 @@ from pathlib import Path
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
     EarlyStopping,
+    ModelCheckpoint,
     ReduceLROnPlateau,
 )
 
@@ -127,6 +128,12 @@ class Training(object):
                     monitor="val_loss",
                     restore_best_weights=True,
                     verbose=1,
+                ),
+                ModelCheckpoint(
+                    "./checkpoints/checkpoint",
+                    monitor="val_loss",
+                    save_best_only=True,
+                    mode="min",
                 ),
                 ReduceLROnPlateau(
                     monitor="val_loss",
