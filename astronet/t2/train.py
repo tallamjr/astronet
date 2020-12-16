@@ -15,8 +15,8 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.constants import astronet_working_directory as asnwd
+from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
