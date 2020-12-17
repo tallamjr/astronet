@@ -74,17 +74,17 @@ class Objective(object):
 
         if dataset == "wisdm_2010":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2010()
+            X_train, y_train, _, _ = load_wisdm_2010()
             # One hot encode y
-            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            enc, y_train, _ = one_hot_encode(y_train, _)
 
             loss = "categorical_crossentropy"
 
         elif dataset == "wisdm_2019":
             # Load data
-            X_train, y_train, X_val, y_val, X_test, y_test = load_wisdm_2019()
+            X_train, y_train, _, _ = load_wisdm_2019()
             # One hot encode y
-            enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
+            enc, y_train, _ = one_hot_encode(y_train, _)
 
             loss = "categorical_crossentropy"
 
