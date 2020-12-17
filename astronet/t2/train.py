@@ -77,7 +77,7 @@ class Training(object):
 
         with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
-            event = max(events['optuna_result'], key=lambda ev: ev['objective_score'])
+            event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
             # print(event)
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
