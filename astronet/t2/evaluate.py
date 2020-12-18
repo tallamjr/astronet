@@ -101,7 +101,7 @@ with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as f:
         # print(event)
     else:
         # Get params for best model with highest test accuracy
-        event = max(events['training_result'], key=lambda ev: ev['value'])
+        event = min(events['training_result'], key=lambda ev: ev['model_evaluate_on_test_loss'])
         print(event)
 
 model_name = event['name']
