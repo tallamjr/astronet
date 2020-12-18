@@ -345,6 +345,24 @@ def __load_plasticc_dataset_from_csv(timesteps):
     return df
 
 
+def load_mts(dataset):
+
+    X_train = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy"
+    )
+    y_train = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy"
+    )
+    X_test = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_test.npy"
+    )
+    y_test = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_test.npy"
+    )
+
+    return X_train, y_train, X_test, y_test
+
+
 def load_plasticc(timesteps=100, step=100):
 
     RANDOM_SEED = 42
@@ -393,6 +411,38 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_wisdm_2019()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        loss = "categorical_crossentropy"
+
+    elif dataset in [
+        "ArabicDigits",
+        "AUSLAN",
+        "CharacterTrajectories",
+        "CMUsubject16",
+        "ECG",
+        "JapaneseVowels",
+        "KickvsPunch",
+        "Libras",
+        "NetFlow",
+        "UWave",
+        "Wafer",
+        "WalkvsRun",
+    ]:
+        # Load data
+        X_train, y_train, X_test, y_test = load_mts(dataset)
+        # transform the labels from integers to one hot vectors
+        import sklearn
+        enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
+        enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
+        y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
+        y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
+
+        # save orignal y because later we will use binary
+        # y_true = np.argmax(y_test, axis=1)
+
+        if len(X_train.shape) == 2:  # if univariate
+            # add a dimension to make it multivariate with one dimension
+            X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+            X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
         loss = "categorical_crossentropy"
 
     elif dataset == "plasticc":
