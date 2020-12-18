@@ -4,8 +4,7 @@ import shutil
 import tensorflow as tf
 
 from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_wisdm_2010
-from astronet.t2.preprocess import one_hot_encode
+from astronet.t2.utils import t2_logger, load_dataset
 
 from pathlib import Path
 
@@ -22,9 +21,8 @@ tf.random.set_seed(RANDOM_SEED)
 def test_training_pipeline_wisdm_2010():
 
     # Load WISDM-2010
-    X_train, y_train, X_test, y_test = load_wisdm_2010()
-    # One hot encode y
-    enc, y_train, y_test = one_hot_encode(y_train, y_test)
+    X_train, y_train, X_test, y_test, loss = load_dataset("wisdm_2010")
+
     num_classes = y_train.shape[1]
 
     print(X_train.shape, y_train.shape)
@@ -56,7 +54,7 @@ def test_training_pipeline_wisdm_2010():
     )
 
     model.compile(
-        loss="categorical_crossentropy", optimizer="adam", metrics=["acc"]
+        loss=loss, optimizer="adam", metrics=["acc"]
     )
 
     _ = model.fit(
