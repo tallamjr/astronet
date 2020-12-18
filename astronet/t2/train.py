@@ -21,7 +21,7 @@ from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.t2.utils import t2_logger, load_dataset
 
 try:
     log = t2_logger(__file__)
@@ -47,29 +47,7 @@ class Training(object):
 
     def __call__(self):
 
-        if dataset == "wisdm_2010":
-            # Load data
-            X_train, y_train, X_test, y_test = load_wisdm_2010()
-            # One hot encode y
-            enc, y_train, y_test = one_hot_encode(y_train, y_test)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "wisdm_2019":
-            # Load data
-            X_train, y_train, X_test, y_test = load_wisdm_2019()
-            # One hot encode y
-            enc, y_train, y_test = one_hot_encode(y_train, y_test)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "plasticc":
-            # Load data
-            X_train, y_train, X_test, y_test = load_plasticc()
-            # One hot encode y
-            y_train, y_test = tf_one_hot_encode(y_train, y_test)
-
-            loss = WeightedLogLoss
+        X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
 
         num_classes = y_train.shape[1]
 

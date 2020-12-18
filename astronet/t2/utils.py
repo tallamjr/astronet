@@ -11,7 +11,15 @@ from astronet.t2.constants import (
     pb_wavelengths,
     astronet_working_directory as asnwd,
 )
-from astronet.t2.preprocess import robust_scale, fit_2d_gp, predict_2d_gp
+from astronet.t2.metrics import WeightedLogLoss
+from astronet.t2.preprocess import (
+    robust_scale,
+    fit_2d_gp,
+    predict_2d_gp,
+    one_hot_encode,
+    tf_one_hot_encode,
+)
+
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -370,3 +378,28 @@ def load_plasticc(timesteps=100, step=100):
     )
 
     return X_train, y_train, X_test, y_test
+
+
+def load_dataset(dataset):
+    if dataset == "wisdm_2010":
+        # Load data
+        X_train, y_train, X_test, y_test = load_wisdm_2010()
+        # One hot encode y
+        enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        loss = "categorical_crossentropy"
+
+    elif dataset == "wisdm_2019":
+        # Load data
+        X_train, y_train, X_test, y_test = load_wisdm_2019()
+        # One hot encode y
+        enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        loss = "categorical_crossentropy"
+
+    elif dataset == "plasticc":
+        # Load data
+        X_train, y_train, X_test, y_test = load_plasticc()
+        # One hot encode y
+        y_train, y_test = tf_one_hot_encode(y_train, y_test)
+        loss = WeightedLogLoss
+
+    return X_train, y_train, X_test, y_test, loss

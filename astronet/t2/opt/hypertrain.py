@@ -25,7 +25,7 @@ from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.t2.utils import t2_logger, load_dataset
 
 try:
     print(os.environ['ASNWD'])
@@ -72,29 +72,7 @@ class Objective(object):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        if dataset == "wisdm_2010":
-            # Load data
-            X_train, y_train, _, _ = load_wisdm_2010()
-            # One hot encode y
-            enc, y_train, _ = one_hot_encode(y_train, _)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "wisdm_2019":
-            # Load data
-            X_train, y_train, _, _ = load_wisdm_2019()
-            # One hot encode y
-            enc, y_train, _ = one_hot_encode(y_train, _)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "plasticc":
-            # Load data
-            X_train, y_train, _, _ = load_plasticc()
-            # One hot encode y
-            y_train, _ = tf_one_hot_encode(y_train, _)
-
-            loss = WeightedLogLoss
+        X_train, y_train, _, _, loss = load_dataset(dataset)
 
         num_classes = y_train.shape[1]
 
