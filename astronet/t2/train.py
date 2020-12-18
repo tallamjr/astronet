@@ -32,8 +32,9 @@ except:
     print("Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/t2/train.py"
 
-RANDOM_SEED = 42
+np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
+RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
@@ -101,16 +102,16 @@ class Training(object):
             validation_data=(X_test, y_test),
             verbose=False,
             callbacks=[
-                DetectOverfittingCallback(threshold=1.5),
-                EarlyStopping(
-                    patience=5,
-                    min_delta=0.02,
-                    baseline=0.8,
-                    mode="min",
-                    monitor="val_loss",
-                    restore_best_weights=True,
-                    verbose=1,
-                ),
+                # DetectOverfittingCallback(threshold=1.5),
+                # EarlyStopping(
+                #     patience=5,
+                #     min_delta=0.02,
+                #     baseline=0.8,
+                #     mode="min",
+                #     monitor="val_loss",
+                #     restore_best_weights=True,
+                #     verbose=1,
+                # ),
                 ModelCheckpoint(
                     filepath=checkpoint_path,
                     monitor="val_loss",
@@ -138,13 +139,15 @@ class Training(object):
         model_params['embed_dim'] = event['embed_dim']
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
-        model_params['lr'] = event['lr']
+        # model_params['lr'] = event['lr']
         model_params['model_evaluate_on_test_acc'] = model.evaluate(X_test, y_test)[1]
         model_params['model_evaluate_on_test_loss'] = model.evaluate(X_test, y_test)[0]
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
             model_params["{}".format(key)] = value
+
+        del model_params['lr']
 
         with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as jf:
             data = json.load(jf)
