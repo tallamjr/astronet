@@ -109,7 +109,7 @@ class Objective(object):
 
         scores = []
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
-        for train_index, val_index in skf.split(X_train, y_train):
+        for train_index, val_index in skf.split(X_train, y_train.argmax(1)):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
 
@@ -121,7 +121,7 @@ class Objective(object):
                 validation_data=(X_val_cv, y_val_cv),
                 verbose=False,
                 callbacks=[
-                    DetectOverfittingCallback(threshold=1.5),
+                    # DetectOverfittingCallback(threshold=1.5),
                     EarlyStopping(
                         patience=5,
                         min_delta=0.02,
