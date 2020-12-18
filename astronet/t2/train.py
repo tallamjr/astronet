@@ -111,6 +111,10 @@ class Training(object):
 
         model.build_graph(input_shape)
 
+        unixtimestamp = int(time.time())
+        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        checkpoint_path = f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}"
+
         history = model.fit(
             X_train,
             y_train,
@@ -130,7 +134,7 @@ class Training(object):
                     verbose=1,
                 ),
                 ModelCheckpoint(
-                    "./checkpoints/checkpoint",
+                    filepath=checkpoint_path,
                     monitor="val_loss",
                     save_best_only=True,
                     mode="min",
@@ -149,9 +153,6 @@ class Training(object):
         model.summary(print_fn=logging.info)
 
         print(model.evaluate(X_test, y_test))
-
-        unixtimestamp = int(time.time())
-        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
