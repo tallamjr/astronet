@@ -26,9 +26,21 @@
 
 **Update 20201211**
 
-- Time-Series Transformer [`t2`] (WISDM: Human-Activity-Recognition) & PLAsTiCC and other MVTS
-    --> May change overall name to `sncoder` for `Supernova-Encoder`. Will see.
-- Inception-Time for Supernova [`convSNE`] --> All of above including MVTS
+- ~~Time-Series Transformer [`t2`] (WISDM: Human-Activity-Recognition) & PLAsTiCC and other MVTS~~
+    ~~--> May change overall name to `sncoder` for `Supernova-Encoder`. Will see.~~
+- ~~Inception-Time for Supernova [`convSNE`] --> All of above including MVTS~~
+
+**Update 20201220**
+
+- Timeseries Transformer [`t2`]
+    Multi-headed attention encoder inspired by Transformers but with convolutions embedding instead
+- snXception [`snX`]
+    Adaptation of Xception networks with 1D Depthwise-Separable convolutions in place of the 2D
+    version
+- Supernova-Similarity-Search with Siamese Networks [`s3`]
+    Utilisation of either `t2` or `snX` networks depending on performance, to achieve one-shot
+    classification, by comparing similarity of hamming distance or Locality Sensitive Hashing (LSH)
+    to compare similarity.
 
 ## System Design
 
