@@ -125,7 +125,6 @@ class Objective(object):
                     EarlyStopping(
                         patience=5,
                         min_delta=0.02,
-                        baseline=0.8,
                         mode="min",
                         monitor="val_loss",
                         restore_best_weights=True,
