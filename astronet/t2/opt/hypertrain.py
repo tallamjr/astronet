@@ -29,7 +29,7 @@ from astronet.t2.utils import t2_logger, load_dataset
 
 try:
     print(os.environ['ASNWD'])
-    log_filename = str(os.environ['ASNWD']) + "astronet/t2/opt/studies.log"
+    log_filename = str(os.environ['ASNWD']) + "/astronet/t2/opt/studies.log"
 except KeyError:
     print("Please set the environment ASNWD in 'conf/astronet.conf'")
     sys.exit(1)
