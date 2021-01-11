@@ -48,13 +48,16 @@ declare -a arr=(
                 "WalkvsRun"
             )
 
-INDEX=`printf %01d $SLURM_ARRAY_TASK_ID`
+# INDEX=`printf %01d $SLURM_ARRAY_TASK_ID`
+# INDEX=`expr $SLURM_ARRAY_TASK_ID`
+# echo $INDEX
 
-echo "${arr[$INDEX]}"
+echo "${arr[SLURM_ARRAY_TASK_ID-1]}"
+dataset="${arr[SLURM_ARRAY_TASK_ID-1]}"
 # Hyperparameter Optimisation
-python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset "${arr[$INDEX]}"
+python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset
 # Train
-python $ASNWD/astronet/$ARCH/train.py --dataset "${arr[$INDEX]}"
+python $ASNWD/astronet/$ARCH/train.py --dataset $dataset
 date
 # Print the contents of this file to stdout from line 15 onwards
-awk 'NR>15' $ASNWD/bin/$ARCH
+awk 'NR>15' $ASNWD/bin/mts
