@@ -16,6 +16,7 @@
 #SBATCH --job-name=mts-arr              # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
+## #SBATCH --partition=CORES24             # Run all jobs on specific parition
 ## #SBATCH --exclusive                     # Request exclusive access to a node
 ## #SBATCH --nodelist=compute-0-5          # Specific node to run jobs on
 # Add a -e or --error with an error file name to separate output and error
