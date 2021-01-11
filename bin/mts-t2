@@ -13,9 +13,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#SBATCH --job-name=mts-arr              # Job name
+#SBATCH --time=48:00:00                 # Time limit hrs:min:sec
+#SBATCH --output=logs/%j.log            # Standard output and error log
+## #SBATCH --exclusive                     # Request exclusive access to a node
+# Add a -e or --error with an error file name to separate output and error
+# logs. Note this will ignore the --output option if used afterwards
+## #SBATCH -e logs/%j.err
+## #SBATCH -o logs/%j.out
+#SBATCH --array=1-12
 set -o pipefail -e
+source $PWD/conf/astronet.conf
 date
-cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+which python
+# Test Imports
+python -c "import astronet as asn; print(asn.__version__)"
+python -c "import tensorflow as tf; print(tf.__version__)"
+# Architecture
+ARCH="t2"
+
 declare -a arr=(
                 "ArabicDigits"
                 "AUSLAN"
@@ -31,8 +47,13 @@ declare -a arr=(
                 "WalkvsRun"
             )
 
-## now loop through the above array
-for dataset in "${arr[@]}"
-do
-    sbatch $cwd/t2 "$dataset"
-done
+INDEX=`printf %01d $SLURM_ARRAY_TASK_ID`
+
+echo "${arr[$INDEX]}"
+# Hyperparameter Optimisation
+python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset "${arr[$INDEX]}"
+# Train
+python $ASNWD/astronet/$ARCH/train.py --dataset "${arr[$INDEX]}"
+date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/$ARCH
