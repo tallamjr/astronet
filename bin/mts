@@ -56,9 +56,9 @@ declare -a arr=(
 echo "${arr[SLURM_ARRAY_TASK_ID-1]}"
 dataset="${arr[SLURM_ARRAY_TASK_ID-1]}"
 # Hyperparameter Optimisation
-python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset
+python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50
 # Train
-python $ASNWD/astronet/$ARCH/train.py --dataset $dataset
+python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
 date
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/bin/mts
