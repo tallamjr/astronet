@@ -73,6 +73,24 @@ def t2_logger(name, level="INFO"):
     return logger
 
 
+def find_optimal_batch_size(training_set_length):
+
+    batch_size_list = [16, 32, 64]
+    ratios = []
+    for batch_size in batch_size_list:
+
+        remainder = training_set_length % batch_size
+
+        if remainder == 0:
+            batch_size = remainder
+        else:
+            ratios.append(batch_size / remainder)
+
+    index, ratio = min(enumerate(ratios), key=lambda x: abs(x[1] - 1))
+
+    return batch_size_list[index]
+
+
 def train_val_test_split(df, cols):
 
     features = df[cols]
