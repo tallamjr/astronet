@@ -79,12 +79,10 @@ class Training(object):
             num_classes=num_classes,
         )
 
-        model.add_loss(loss)
-
         # We compile our model with a sampled learning rate.
         lr = event['lr']
         model.compile(
-            # loss=loss,
+            loss=loss,
             optimizer=optimizers.Adam(lr=lr, clipnorm=1),
             metrics=["acc"],
             run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
