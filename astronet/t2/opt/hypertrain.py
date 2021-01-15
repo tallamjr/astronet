@@ -110,8 +110,9 @@ class Objective(object):
         scores = []
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
 
+        print(type(y_train))
         if tf.is_tensor(y_train):
-            y_train_split = tf.math.argmax(y_train, 1)
+            y_train_split = y_train.numpy().argmax(1)
         else:
             y_train_split = y_train.argmax(1)
 
