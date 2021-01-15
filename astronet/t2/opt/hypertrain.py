@@ -94,10 +94,12 @@ class Objective(object):
             num_classes=num_classes,
         )
 
+        model.add_loss(loss)
+
         # We compile our model with a sampled learning rate.
         lr = trial.suggest_float("lr", 1e-2, 1e-1, log=True)
         model.compile(
-            loss=loss,
+            # loss=loss,
             optimizer=optimizers.Adam(lr=lr, clipnorm=1),
             metrics=["acc"],
             # Allows for values to be show when debugging
