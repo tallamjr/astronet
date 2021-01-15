@@ -11,7 +11,7 @@ from astronet.t2.constants import (
     pb_wavelengths,
     astronet_working_directory as asnwd,
 )
-from astronet.t2.metrics import WeightedLogLoss
+from astronet.t2.metrics import custom_log_loss, WeightedLogLoss
 from astronet.t2.preprocess import (
     robust_scale,
     fit_2d_gp,
@@ -404,6 +404,7 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_wisdm_2010()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
+
         loss = "categorical_crossentropy"
 
     elif dataset == "wisdm_2019":
@@ -411,6 +412,7 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_wisdm_2019()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
+
         loss = "categorical_crossentropy"
 
     elif dataset in [
@@ -443,6 +445,7 @@ def load_dataset(dataset):
             # add a dimension to make it multivariate with one dimension
             X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
             X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+
         loss = "categorical_crossentropy"
 
     elif dataset == "plasticc":
@@ -450,6 +453,8 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_plasticc()
         # One hot encode y
         y_train, y_test = tf_one_hot_encode(y_train, y_test)
+
         loss = WeightedLogLoss
+        # loss = custom_log_loss
 
     return X_train, y_train, X_test, y_test, loss
