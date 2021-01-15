@@ -7,6 +7,22 @@
             "name": "1608309753-aefde0d",
             "num_heads": 4,
             "objective_score": 0.34165319204330447
+        },
+        {
+            "embed_dim": 128,
+            "ff_dim": 128,
+            "lr": 0.06351427080950735,
+            "name": "1610386112-1d1776c",
+            "num_heads": 8,
+            "objective_score": 0.3410631835460663
+        },
+        {
+            "embed_dim": 512,
+            "ff_dim": 128,
+            "lr": 0.01170689102059714,
+            "name": "1610415728-3351af1",
+            "num_heads": 16,
+            "objective_score": 0.3411350131034851
         }
     ]
 }

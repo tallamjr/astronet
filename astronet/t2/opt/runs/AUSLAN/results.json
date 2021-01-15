@@ -1,4 +1,20 @@
 {
     "optuna_result": [
+        {
+            "embed_dim": 64,
+            "ff_dim": 32,
+            "lr": 0.010179952083355731,
+            "name": "1610386112-1d1776c",
+            "num_heads": 8,
+            "objective_score": 4.554443073272705
+        },
+        {
+            "embed_dim": 64,
+            "ff_dim": 128,
+            "lr": 0.010245990016257148,
+            "name": "1610415728-3351af1",
+            "num_heads": 8,
+            "objective_score": 4.554478645324707
+        }
     ]
 }
