@@ -137,7 +137,7 @@ class Objective(object):
                         factor=0.2,
                         verbose=1,
                         patience=2,
-                        min_lr=1e-6,
+                        # min_lr=1e-6,
                         mode="min",
                     ),
                 ],

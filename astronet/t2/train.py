@@ -105,15 +105,14 @@ class Training(object):
             verbose=False,
             callbacks=[
                 # DetectOverfittingCallback(threshold=1.5),
-                # EarlyStopping(
-                #     patience=5,
-                #     min_delta=0.02,
-                #     baseline=0.8,
-                #     mode="min",
-                #     monitor="val_loss",
-                #     restore_best_weights=True,
-                #     verbose=1,
-                # ),
+                EarlyStopping(
+                    patience=5,
+                    min_delta=0.02,
+                    mode="min",
+                    monitor="val_loss",
+                    restore_best_weights=True,
+                    verbose=1,
+                ),
                 ModelCheckpoint(
                     filepath=checkpoint_path,
                     monitor="val_loss",
@@ -125,7 +124,7 @@ class Training(object):
                     factor=0.2,
                     verbose=1,
                     patience=2,
-                    min_lr=1e-6,
+                    # min_lr=1e-6,
                     mode="min",
                 ),
             ],
