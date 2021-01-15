@@ -454,7 +454,7 @@ def load_dataset(dataset):
         # One hot encode y
         y_train, y_test = tf_one_hot_encode(y_train, y_test)
 
-        loss = WeightedLogLoss
+        loss = WeightedLogLoss()
         # loss = custom_log_loss
 
     return X_train, y_train, X_test, y_test, loss
