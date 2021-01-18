@@ -112,9 +112,13 @@ class Objective(object):
 
         print(type(y_train))
         if tf.is_tensor(y_train):
-            y_train_split = y_train.numpy().argmax(1)
+            y_train = np.array(y_train)
+            print(type(y_train))
+            y_train_split = y_train.argmax(1)
+            print(y_train_split)
         else:
             y_train_split = y_train.argmax(1)
+            print(y_train_split)
 
         for train_index, val_index in skf.split(X_train, y_train_split):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
