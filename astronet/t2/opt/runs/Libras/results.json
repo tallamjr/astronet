@@ -15,6 +15,14 @@
             "name": "1610415728-3351af1",
             "num_heads": 4,
             "objective_score": 2.708647108078003
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 512,
+            "lr": 0.021239414770136824,
+            "name": "1610742947-c295e0f",
+            "num_heads": 8,
+            "objective_score": 2.708889198303223
         }
     ]
 }
