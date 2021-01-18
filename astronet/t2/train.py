@@ -21,7 +21,7 @@ from astronet.t2.custom_callbacks import DetectOverfittingCallback
 from astronet.t2.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import t2_logger, load_dataset
+from astronet.t2.utils import t2_logger, load_dataset, find_optimal_batch_size
 
 try:
     log = t2_logger(__file__)
@@ -41,9 +41,8 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, batch_size, dataset):
+    def __init__(self, epochs, dataset):
         self.epochs = EPOCHS
-        self.batch_size = BATCH_SIZE
         self.dataset = dataset
 
     def __call__(self):
@@ -66,9 +65,11 @@ class Training(object):
         # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
         num_filters = embed_dim
 
-        _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        BATCH_SIZE = find_optimal_batch_size(num_samples)
+        print(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
-        print(input_shape)
+        print(f"input_shape:{input_shape}")
 
         model = T2Model(
             input_dim=input_shape,
@@ -172,9 +173,6 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--dataset", default="wisdm_2010",
             help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
-    parser.add_argument("-b", "--batch-size", default=32,
-            help="Number of training examples per batch")
-
     parser.add_argument("-e", "--epochs", default=20,
             help="How many epochs to run training for")
 
@@ -186,8 +184,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dataset = args.dataset
-    BATCH_SIZE = int(args.batch_size)
     EPOCHS = int(args.epochs)
 
-    training = Training(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset)
+    training = Training(epochs=EPOCHS, dataset=dataset)
     training()
