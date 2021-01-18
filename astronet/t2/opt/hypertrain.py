@@ -135,20 +135,20 @@ class Objective(object):
                 callbacks=[
                     # DetectOverfittingCallback(threshold=1.5),
                     EarlyStopping(
-                        patience=5,
-                        min_delta=0.02,
+                        min_delta=0.001,
                         mode="min",
                         monitor="val_loss",
+                        patience=10,
                         restore_best_weights=True,
                         verbose=1,
                     ),
                     ReduceLROnPlateau(
-                        monitor="val_loss",
-                        factor=0.2,
-                        verbose=1,
-                        patience=2,
-                        # min_lr=1e-6,
+                        cooldown=5,
+                        factor=0.1,
                         mode="min",
+                        monitor="val_loss",
+                        patience=5,
+                        verbose=1,
                     ),
                 ],
             )
