@@ -26,7 +26,7 @@ class SNXModel(tf.keras.Model):
         # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
         input_shape_nobatch = input_shape[1:]
         self.build(input_shape)
-        inputs = keras.Input(shape=input_shape_nobatch)
+        inputs = tf.keras.Input(shape=input_shape_nobatch)
 
         if not hasattr(self, 'call'):
             raise AttributeError("User should define 'call' method in sub-class model!")
