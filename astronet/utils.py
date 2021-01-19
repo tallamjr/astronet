@@ -137,7 +137,7 @@ def load_wisdm_2010(timesteps=200, step=200):
     ]
 
     df = pd.read_csv(
-        str(Path(__file__).absolute().parent.parent.parent) +
+        str(Path(__file__).absolute().parent.parent) +
         "/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
         header=None,
         names=column_names,
