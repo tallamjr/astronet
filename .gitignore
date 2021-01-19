@@ -1,3 +1,7 @@
+# snX Models
+astronet/snX/models/*/model*
+!astronet/snX/models/*/*.json
+
 # Data
 data/WISDM_ar_v1.1/*
 !data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt
