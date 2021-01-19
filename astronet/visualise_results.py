@@ -15,9 +15,9 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc
 from tensorflow import keras
 
-from astronet.t2.constants import astronet_working_directory as asnwd
-from astronet.t2.preprocess import one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.constants import astronet_working_directory as asnwd
+from astronet.preprocess import one_hot_encode
+from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
 def plot_acc_history(dataset, model_name, event, save=True):
@@ -177,7 +177,7 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
 if __name__ == '__main__':
 
     try:
-        log = t2_logger(__file__)
+        log = astronet_logger(__file__)
         log.info("=" * shutil.get_terminal_size((80, 20))[0])
         log.info(f"File Path: {Path(__file__).absolute()}")
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")

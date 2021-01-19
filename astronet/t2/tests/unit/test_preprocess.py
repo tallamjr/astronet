@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
-from astronet.t2.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
-from astronet.t2.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
-from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
+from astronet.constants import pb_wavelengths, astronet_working_directory as asnwd
+from astronet.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
+from astronet.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
+from astronet.utils import load_wisdm_2010, load_wisdm_2019
 
 
 def test_one_hot_encode():

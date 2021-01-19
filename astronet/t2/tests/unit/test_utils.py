@@ -1,8 +1,8 @@
 import os
 import pytest
 
-from astronet.t2.metrics import WeightedLogLoss
-from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019, load_plasticc, load_dataset
+from astronet.metrics import WeightedLogLoss
+from astronet.utils import load_wisdm_2010, load_wisdm_2019, load_plasticc, load_dataset
 
 
 def test_load_wisdm_2010():

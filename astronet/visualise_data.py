@@ -4,7 +4,7 @@ import pandas as pd
 
 from pylab import rcParams
 
-from astronet.t2.constants import pb_colors
+from astronet.constants import pb_colors
 
 rcParams['figure.figsize'] = 12, 8
 

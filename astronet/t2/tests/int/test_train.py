@@ -5,13 +5,13 @@ import tensorflow as tf
 
 from tensorflow.keras.backend import clear_session
 
-from astronet.t2.metrics import WeightedLogLoss
+from astronet.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
-from astronet.t2.utils import t2_logger, load_dataset
+from astronet.utils import astronet_logger, load_dataset
 
 from pathlib import Path
 
-log = t2_logger(__file__)
+log = astronet_logger(__file__)
 log.info("=" * shutil.get_terminal_size((80, 20))[0])
 log.info(f"File Path: {Path(__file__).absolute()}")
 log.info(f"Parent of Directory Path: {Path().absolute().parent}")

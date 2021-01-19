@@ -7,12 +7,12 @@ import tensorflow as tf
 from pathlib import Path
 from sklearn import model_selection
 
-from astronet.t2.constants import (
+from astronet.constants import (
     pb_wavelengths,
     astronet_working_directory as asnwd,
 )
-from astronet.t2.metrics import custom_log_loss, WeightedLogLoss
-from astronet.t2.preprocess import (
+from astronet.metrics import custom_log_loss, WeightedLogLoss
+from astronet.preprocess import (
     robust_scale,
     fit_2d_gp,
     predict_2d_gp,
@@ -25,7 +25,7 @@ from astronet.t2.preprocess import (
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
-def t2_logger(name, level="INFO"):
+def astronet_logger(name, level="INFO"):
     """ Initialise python logger.
 
     Parameters

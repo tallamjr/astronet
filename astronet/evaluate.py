@@ -10,21 +10,21 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from tensorflow import keras
 
-from astronet.t2.constants import (
+from astronet.constants import (
     plasticc_weights_dict,
     astronet_working_directory as asnwd,
 )
-from astronet.t2.metrics import plasticc_log_loss, custom_log_loss
-from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import (
-    t2_logger,
+from astronet.metrics import plasticc_log_loss, custom_log_loss
+from astronet.preprocess import one_hot_encode, tf_one_hot_encode
+from astronet.utils import (
+    astronet_logger,
     load_wisdm_2010,
     load_wisdm_2019,
     load_plasticc,
 )
 
 try:
-    log = t2_logger(__file__)
+    log = astronet_logger(__file__)
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")

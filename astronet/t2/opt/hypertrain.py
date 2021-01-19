@@ -20,12 +20,12 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.t2.constants import astronet_working_directory as asnwd
-from astronet.t2.custom_callbacks import DetectOverfittingCallback
-from astronet.t2.metrics import WeightedLogLoss
+from astronet.constants import astronet_working_directory as asnwd
+from astronet.custom_callbacks import DetectOverfittingCallback
+from astronet.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
-from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import t2_logger, load_dataset, find_optimal_batch_size
+from astronet.preprocess import one_hot_encode, tf_one_hot_encode
+from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
 try:
     print(os.environ['ASNWD'])
@@ -48,7 +48,7 @@ optuna.logging.enable_propagation()  # Propagate logs to the root logger.
 optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 
 try:
-    log = t2_logger(__file__)
+    log = astronet_logger(__file__)
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")

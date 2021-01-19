@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from tensorflow import keras
 
-from astronet.t2.constants import (
+from astronet.constants import (
     plasticc_weights_dict,
     astronet_working_directory as asnwd,
 )

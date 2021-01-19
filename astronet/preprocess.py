@@ -6,7 +6,7 @@ import tensorflow as tf
 from astropy.table import Table, vstack
 from functools import partial
 
-from astronet.t2.constants import pb_wavelengths
+from astronet.constants import pb_wavelengths
 
 
 def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
