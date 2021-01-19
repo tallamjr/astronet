@@ -56,14 +56,6 @@ class Training(object):
         with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
             event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
-            # print(event)
-
-        embed_dim = event['embed_dim']  # --> Embedding size for each token
-        num_heads = event['num_heads']  # --> Number of attention heads
-        ff_dim = event['ff_dim']  # --> Hidden layer size in feed forward network inside transformer
-
-        # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-        num_filters = embed_dim
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -71,12 +63,7 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
-        model = snXModel(
-            input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
-            num_filters=num_filters,
+        model = SNXModel(
             num_classes=num_classes,
         )
 
@@ -136,10 +123,6 @@ class Training(object):
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
         model_params['hypername'] = event['name']
-        model_params['embed_dim'] = event['embed_dim']
-        model_params['ff_dim'] = event['ff_dim']
-        model_params['num_heads'] = event['num_heads']
-        # model_params['lr'] = event['lr']
         model_params['model_evaluate_on_test_acc'] = model.evaluate(X_test, y_test)[1]
         model_params['model_evaluate_on_test_loss'] = model.evaluate(X_test, y_test)[0]
         print("  Params: ")

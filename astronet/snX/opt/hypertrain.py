@@ -75,23 +75,13 @@ class Objective(object):
 
         num_classes = y_train.shape[1]
 
-        embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
-        num_heads = trial.suggest_categorical("num_heads", [4, 8, 16])  # --> Number of attention heads
-        ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
-
-        num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
-        model = snXModel(
-            input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
-            num_filters=num_filters,
+        model = SNXModel(
             num_classes=num_classes,
         )
 

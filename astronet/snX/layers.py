@@ -162,8 +162,9 @@ class MiddleFlow(tf.keras.layers.Layer):
 
 
 class ExitFlow(tf.keras.layers.Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, num_classes, **kwargs):
         super(ExitFlow, self).__init__(**kwargs)
+        self.num_classes = num_classes
 
         self.relu = ReLU()
         self.sep_conv_batchnorm_exit_1 = SeparableConvBatchNormBlock(filters=728, kernel_size=3)
@@ -182,7 +183,8 @@ class ExitFlow(tf.keras.layers.Layer):
         # gap
         self.gap = GlobalAveragePooling1D()
 
-        self.dense = Dense(units=1000, activation='softmax')
+        # self.dense = Dense(units=1000, activation='softmax')
+        self.dense = Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs):
         tensor = inputs
