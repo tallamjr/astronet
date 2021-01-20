@@ -23,8 +23,8 @@ jobs:
       matrix:
         name: [
           nb-ubuntu-gcc-py37,
-          nb-osx-gcc-py37,
-          nb-osx-clang-py37,
+          # nb-osx-gcc-py37,
+          # nb-osx-clang-py37,
           ]
 
         include:
@@ -32,13 +32,13 @@ jobs:
             os: ubuntu-16.04
             compiler: gcc-7
 
-          - name: nb-osx-gcc-py37
-            os: macos-latest
-            compiler: gcc-9
+          # - name: nb-osx-gcc-py37
+          #   os: macos-latest
+          #   compiler: gcc-9
 
-          - name: nb-osx-clang-py37
-            os: macos-latest
-            compiler: clang
+          # - name: nb-osx-clang-py37
+          #   os: macos-latest
+          #   compiler: clang
 
     steps:
     - name: Checkout astronet
@@ -90,4 +90,4 @@ jobs:
 
     - name: Run pytest
       run: |
-        pytest --cov astronet/t2/tests/
+        pytest --cov .
