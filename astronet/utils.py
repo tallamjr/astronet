@@ -1,4 +1,6 @@
+import joblib
 import logging
+import os.path
 import numpy as np
 import pandas as pd
 import pickle
@@ -422,6 +424,10 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_wisdm_2010()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        if not os.path.exists(encoding_file):
+            with open(encoding_file, "wb") as f:
+                joblib.dump(enc, f)
 
         loss = "categorical_crossentropy"
 
@@ -430,6 +436,10 @@ def load_dataset(dataset):
         X_train, y_train, X_test, y_test = load_wisdm_2019()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        if not os.path.exists(encoding_file):
+            with open(encoding_file, "wb") as f:
+                joblib.dump(enc, f)
 
         loss = "categorical_crossentropy"
 
@@ -455,6 +465,10 @@ def load_dataset(dataset):
         enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
         y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
         y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
+        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        if not os.path.exists(encoding_file):
+            with open(encoding_file, "wb") as f:
+                joblib.dump(enc, f)
 
         # save orignal y because later we will use binary
         # y_true = np.argmax(y_test, axis=1)
