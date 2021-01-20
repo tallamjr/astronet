@@ -49,4 +49,4 @@ def test_load_dataset():
     assert y_train.shape == (2991, 3)
     assert y_test.shape == (998, 3)
 
-    assert isinstance(WeightedLogLoss(), loss)
+    assert type(WeightedLogLoss()) == type(loss)
