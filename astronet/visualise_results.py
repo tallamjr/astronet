@@ -20,44 +20,68 @@ from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
-def plot_acc_history(dataset, model_name, event, save=True):
+def plot_acc_history(dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
-    plt.figure(figsize=(16, 9))
-    plt.plot(event['acc'], label='train')
-    plt.plot(event['val_acc'], label='validation')
-    plt.xlabel("Epoch")
-    # plt.xticks(np.arange(len(event['acc'])))
-    plt.ylabel("Accuracy")
-    plt.legend()
-    plt.title(r'Training vs. Validation per Epoch')
+    if ax is not None:
+        ax = ax or plt.gca()
+        # plt.figure(figsize=(16, 9))
+        ax.plot(event['acc'], label='train')
+        ax.plot(event['val_acc'], label='validation')
+        # plt.xlabel("Epoch")
+        # # plt.xticks(np.arange(len(event['acc'])))
+        # plt.ylabel("Accuracy")
+        # plt.legend()
+        ax.set_title(fr'{dataset}')
+
+    else:
+        plt.figure(figsize=(16, 9))
+        plt.plot(event['acc'], label='train')
+        plt.plot(event['val_acc'], label='validation')
+        plt.xlabel("Epoch")
+        # plt.xticks(np.arange(len(event['acc'])))
+        plt.ylabel("Accuracy")
+        plt.legend()
+        plt.title(f"r'Training vs. Validation per Epoch - {dataset}'")
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
-        print(model_name)
-        plt.show()
+        pass
+        # print(model_name)
+        # plt.show()
 
 
-def plot_loss_history(dataset, model_name, event, save=True):
+def plot_loss_history(dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
-    plt.figure(figsize=(16, 9))
-    plt.plot(event['loss'], label='train')
-    plt.plot(event['val_loss'], label='validation')
-    plt.xlabel("Epoch")
-    # plt.xticks(np.arange(len(event['acc'])))
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.title(r'Training vs. Validation per Epoch')
+    if ax is not None:
+        ax = ax or plt.gca()
+        ax.plot(event['loss'], label='train')
+        ax.plot(event['val_loss'], label='validation')
+        # plt.xlabel("Epoch")
+        # # plt.xticks(np.arange(len(event['acc'])))
+        # plt.ylabel("Loss")
+        # plt.legend()
+        ax.set_title(fr'{dataset}')
+    else:
+        plt.figure(figsize=(16, 9))
+        plt.plot(event['loss'], label='train')
+        plt.plot(event['val_loss'], label='validation')
+        plt.xlabel("Epoch")
+        # plt.xticks(np.arange(len(event['acc'])))
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.title(r'Training vs. Validation per Epoch')
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
-        print(model_name)
-        plt.show()
+        pass
+        # print(model_name)
+        # plt.show()
 
 
 def plot_confusion_matrix(dataset, model_name, y_true, y_pred, class_names, cmap=None, save=True):
