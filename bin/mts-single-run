@@ -33,10 +33,10 @@ export PYTHONPATH="${PYTHONPATH}:/home/tallam/astronet/"
 python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 # Architecture
-ARCH="snX"
+ARCH=$1
 echo "Using $ARCH architecture"
 
-dataset="ArabicDigits"
+dataset=$2
 # Hyperparameter Optimisation
 python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50
 # Train
