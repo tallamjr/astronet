@@ -108,7 +108,7 @@ class Training(object):
                     min_delta=0.001,
                     mode="min",
                     monitor="loss",
-                    patience=10,
+                    patience=50,
                     restore_best_weights=True,
                     verbose=1,
                 ),
