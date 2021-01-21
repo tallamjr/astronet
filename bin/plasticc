@@ -32,6 +32,7 @@ python -c "import tensorflow as tf; print(tf.__version__)"
 # Architecture
 ## Current options: {t2, snx}
 ARCH=$1
+echo "Using $ARCH architecture"
 
 dataset="plasticc"
 # Hyperparameter Optimisation
