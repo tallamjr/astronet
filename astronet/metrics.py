@@ -43,7 +43,8 @@ class WeightedLogLoss(keras.losses.Loss):
         wtable - is a numpy 1d array with (the number of times class y_true occur in the data set)/(size of data set)
         """
 
-        wtable = np.sum(y_true.numpy(), axis=0) / y_true.numpy().shape[0]
+        wtable = np.sum(y_true, axis=0) / y_true.shape[0]
+        # wtable = np.sum(y_true.numpy(), axis=0) / y_true.numpy().shape[0]
 
         yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
 
