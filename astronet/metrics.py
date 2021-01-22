@@ -28,7 +28,7 @@ class WeightedLogLoss(keras.losses.Loss):
         """
         Parameters:
         -----------
-        `y_true`: Tensor
+        `y_true`: numpy.ndarray
 
         `y_pred`: numpy.ndarray
 
