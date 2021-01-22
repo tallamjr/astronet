@@ -25,10 +25,10 @@ set -o pipefail -e
 source $PWD/conf/astronet.conf
 date
 which python
+export PYTHONHASHSEED=0
 # Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
-
 # Architecture
 ## Current options: {t2, snx}
 ARCH=$1
