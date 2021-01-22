@@ -63,6 +63,14 @@
             "name": "1611318142-bc77ab8",
             "num_heads": 4,
             "objective_score": 0.8419231414794922
+        },
+        {
+            "embed_dim": 64,
+            "ff_dim": 64,
+            "lr": 0.010487306297233566,
+            "name": "1611330788-b6018d8",
+            "num_heads": 4,
+            "objective_score": 0.8515899062156678
         }
     ]
 }
