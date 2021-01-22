@@ -484,7 +484,14 @@ def load_dataset(dataset):
         # Load data
         X_train, y_train, X_test, y_test = load_plasticc()
         # One hot encode y
-        y_train, y_test = tf_one_hot_encode(y_train, y_test)
+        enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        if not os.path.exists(encoding_file):
+            with open(encoding_file, "wb") as f:
+                joblib.dump(enc, f)
+
+        # # One hot encode y
+        # y_train, y_test = tf_one_hot_encode(y_train, y_test)
 
         loss = WeightedLogLoss()
         # loss = custom_log_loss
