@@ -16,6 +16,7 @@ from sklearn.metrics import roc_curve, auc
 from tensorflow import keras
 
 from astronet.constants import astronet_working_directory as asnwd
+from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
@@ -41,7 +42,7 @@ def plot_acc_history(dataset, model_name, event, save=True, ax=None):
         # plt.xticks(np.arange(len(event['acc'])))
         plt.ylabel("Accuracy")
         plt.legend()
-        plt.title(f"r'Training vs. Validation per Epoch - {dataset}'")
+        plt.title(fr"Training vs. Validation per Epoch - {dataset}")
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
@@ -84,8 +85,12 @@ def plot_loss_history(dataset, model_name, event, save=True, ax=None):
         # plt.show()
 
 
-def plot_confusion_matrix(dataset, model_name, y_true, y_pred, class_names, cmap=None, save=True):
+def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_names, cmap=None, save=True):
     # TODO: Update docstrings
+
+    y_true = encoding.inverse_transform(y_test)
+    y_pred = encoding.inverse_transform(y_preds)
+
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(18, 10))
@@ -109,6 +114,11 @@ def plot_confusion_matrix(dataset, model_name, y_true, y_pred, class_names, cmap
 
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
+
+    wloss = WeightedLogLoss()
+    wloss = wloss(y_test, y_preds).numpy()
+    plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.2f}")
+
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
     plt.setp(ax.yaxis.get_majorticklabels(), ha="right")
