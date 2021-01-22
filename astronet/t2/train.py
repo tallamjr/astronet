@@ -107,7 +107,7 @@ class Training(object):
                 EarlyStopping(
                     min_delta=0.001,
                     mode="min",
-                    monitor="loss",
+                    monitor="val_loss",
                     patience=50,
                     restore_best_weights=True,
                     verbose=1,
@@ -115,7 +115,7 @@ class Training(object):
                 ModelCheckpoint(
                     filepath=checkpoint_path,
                     mode="min",
-                    monitor="loss",
+                    monitor="val_loss",
                     save_best_only=True,
                 ),
                 ReduceLROnPlateau(
