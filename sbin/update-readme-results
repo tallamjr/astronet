@@ -21,9 +21,16 @@
 # logs. Note this will ignore the --output option if used afterwards
 ## #SBATCH -e logs/%j.err
 ## #SBATCH -o logs/%j.out
-set -o pipefail -e
-
+set -e
 source $PWD/conf/astronet.conf
 date
+jupyter nbconvert --ExecutePreprocessor.kernel_name=python --ExecutePreprocessor.timeout=600 \
+    --to html --execute $ASNWD/notebooks/MTS-Benchmark-Combined-Results.ipynb
 
-sed -e '117,$d' $ASNWD/README.md
+`git diff --name-only --exit-code "${ASNWD}"/results/mts-combined-results.md > /dev/null` && returncode=$? || returncode=$?
+echo $returncode
+if [ $returncode != 0 ]; then
+    sed -i -e '117,$d' $ASNWD/README.md
+    cat $ASNWD/results/mts-combined-results.md >> $ASNWD/README.md
+fi
+date
