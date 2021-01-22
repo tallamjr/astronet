@@ -115,9 +115,12 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
 
-    wloss = WeightedLogLoss()
-    wloss = wloss(y_test, y_preds).numpy()
-    plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.2f}")
+    if dataset == "plasticc":
+        wloss = WeightedLogLoss()
+        wloss = wloss(y_test, y_preds).numpy()
+        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.2f}")
+    else:
+        plt.title(f"Test Set Confusion Matrix -- {dataset}")
 
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
