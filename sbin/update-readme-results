@@ -32,5 +32,8 @@ echo $returncode
 if [ $returncode != 0 ]; then
     sed -i -e '117,$d' $ASNWD/README.md
     cat $ASNWD/results/mts-combined-results.md >> $ASNWD/README.md
+    git add $ASNWD/README.md
+    git commit -m "Update with latest mts results"
+    git push
 fi
 date
