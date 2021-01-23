@@ -57,6 +57,8 @@ class Training(object):
             events = json.load(f)
             event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
+        kernel_size = event['kernel_size']  # --> Filter length
+
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -65,6 +67,7 @@ class Training(object):
 
         model = SNXModel(
             num_classes=num_classes,
+            kernel_size=kernel_size,
         )
 
         # We compile our model with a sampled learning rate.
