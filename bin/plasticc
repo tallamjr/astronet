@@ -16,7 +16,8 @@
 #SBATCH --job-name=plasticc             # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
-## #SBATCH --exclusive                     # Request exclusive access to a node
+#SBATCH --exclusive                     # Request exclusive access to a node
+#SBATCH --cpus-per-task=24              # Number of CPUs per node
 # Add a -e or --error with an error file name to separate output and error
 # logs. Note this will ignore the --output option if used afterwards
 ## #SBATCH -e logs/%j.err
