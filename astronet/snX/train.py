@@ -41,9 +41,10 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset):
+    def __init__(self, epochs, dataset, model):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.model = model
 
     def __call__(self):
 
@@ -55,7 +56,11 @@ class Training(object):
 
         with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
-            event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
+            if self.model is not None:
+                # Get params for model chosen with cli args
+                event = next(item for item in events['optuna_result'] if item["name"] == self.model)
+            else:
+                event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
         kernel_size = event['kernel_size']  # --> Filter length
 
@@ -162,6 +167,9 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=20,
             help="How many epochs to run training for")
 
+    parser.add_argument('-m', '--model', default=None,
+            help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -171,6 +179,7 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+    model = dataset.model
 
-    training = Training(epochs=EPOCHS, dataset=dataset)
+    training = Training(epochs=EPOCHS, dataset=dataset, model=model)
     training()
