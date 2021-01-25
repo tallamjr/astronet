@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
-    model = dataset.model
+    model = args.model
 
     training = Training(epochs=EPOCHS, dataset=dataset, model=model)
     training()
