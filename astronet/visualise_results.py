@@ -1,4 +1,5 @@
 import argparse
+import joblib
 import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -19,6 +20,36 @@ from astronet.constants import astronet_working_directory as asnwd
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+
+
+def _get_encoding(dataset):
+
+    with open(f"{asnwd}/data/{dataset}.encoding", "rb") as eb:
+        encoding = joblib.load(eb)
+    class_encoding = encoding.categories_[0]
+
+    if dataset == "plasticc":
+        class_mapping = {
+            15: "TDE",
+            42: "SNII",
+            52: "SNIax",
+            62: "SNIbc",
+            64: "KN",
+            67: "SNIa-91bg",
+            88: "AGN",
+            90: "SNIa",
+            95: "SLSN-I",
+            1: "SNIa",
+            2: "SNII",
+            3: "SNIbc",
+        }
+
+        class_encoding
+        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+    else:
+        class_names = class_encoding
+
+    return encoding, class_encoding, class_names
 
 
 def plot_acc_history(dataset, model_name, event, save=True, ax=None):
