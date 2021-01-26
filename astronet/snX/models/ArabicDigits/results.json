@@ -2,24 +2,6 @@
     "training_result": [
         {
             "acc": [
-                0.0001
-            ],
-            "hypername": "1611087236-87b2e49",
-            "loss": [
-                0.99999
-            ],
-            "model_evaluate_on_test_acc": 0.0001,
-            "model_evaluate_on_test_loss": 0.99999,
-            "name": "1611087621-87b2e49",
-            "val_acc": [
-                0.0001
-            ],
-            "val_loss": [
-                0.99999
-            ]
-        },
-        {
-            "acc": [
                 0.43378788232803345,
                 0.7193939685821533,
                 0.8915151357650757,
