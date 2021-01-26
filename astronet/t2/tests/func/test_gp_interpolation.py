@@ -9,6 +9,7 @@ from astronet.preprocess import predict_2d_gp, fit_2d_gp
 from astronet.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
 
 
+# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
 def test_plasticc_gp_interpolation():
 
     data = pd.read_csv(

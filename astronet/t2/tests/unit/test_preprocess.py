@@ -42,6 +42,7 @@ def test_plasticc_fit_2d_gp():
     pass
 
 
+# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
@@ -57,7 +58,7 @@ def test_plasticc_predict_2d_gp():
     filters = list(np.unique(filters))
 
     df = __filter_dataframe_only_supernova(
-        f"{asnwd}/data/plasticc/train_subset.txt",
+        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/train_subset.txt",
         data,
     )
 
