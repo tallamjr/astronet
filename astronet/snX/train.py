@@ -155,6 +155,7 @@ class Training(object):
             json.dump(data, rf, sort_keys=True, indent=4)
 
         model.save(f"{asnwd}/astronet/snX/models/{dataset}/model-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/snX/models/{dataset}/weights-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
