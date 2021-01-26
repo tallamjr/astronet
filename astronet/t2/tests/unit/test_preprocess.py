@@ -1,12 +1,14 @@
-import os
 import numpy as np
+import os
 import pandas as pd
 import pytest
 
-from astronet.t2.constants import pb_wavelengths, astronet_working_directory as asnwd
-from astronet.t2.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
-from astronet.t2.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
-from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019
+from pathlib import Path
+
+from astronet.constants import pb_wavelengths, astronet_working_directory as asnwd
+from astronet.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
+from astronet.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
+from astronet.utils import load_wisdm_2010, load_wisdm_2019
 
 
 def test_one_hot_encode():
@@ -40,10 +42,11 @@ def test_plasticc_fit_2d_gp():
     pass
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
-        f"{asnwd}/data/plasticc/training_set.csv",
+        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/training_set.csv",
         sep=",",
     )
     data = __remap_filters(df=data)
@@ -55,7 +58,7 @@ def test_plasticc_predict_2d_gp():
     filters = list(np.unique(filters))
 
     df = __filter_dataframe_only_supernova(
-        f"{asnwd}/data/plasticc/train_subset.txt",
+        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/train_subset.txt",
         data,
     )
 

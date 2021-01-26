@@ -1,5 +1,6 @@
 astropy>=1.1.2
 george>=0.3.0
+imageio
 joblib
 jupyter-client>=5.3.4
 jupyter-console>=6.1.0
@@ -18,5 +19,5 @@ scikit-learn>=0.22
 scipy==1.4.1
 seaborn>=0.11.0
 # tf-nightly==2.5.0-dev20201113
-tensorflow==2.4.0
+tensorflow==2.4.1
 xgboost

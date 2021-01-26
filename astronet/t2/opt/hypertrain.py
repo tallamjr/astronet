@@ -20,16 +20,16 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.t2.constants import astronet_working_directory as asnwd
-from astronet.t2.custom_callbacks import DetectOverfittingCallback
-from astronet.t2.metrics import WeightedLogLoss
+from astronet.constants import astronet_working_directory as asnwd
+from astronet.custom_callbacks import DetectOverfittingCallback
+from astronet.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
-from astronet.t2.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.t2.utils import t2_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.preprocess import one_hot_encode, tf_one_hot_encode
+from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
 try:
     print(os.environ['ASNWD'])
-    log_filename = str(os.environ['ASNWD']) + "astronet/t2/opt/studies.log"
+    log_filename = str(os.environ['ASNWD']) + "/astronet/t2/opt/studies.log"
 except KeyError:
     print("Please set the environment ASNWD in 'conf/astronet.conf'")
     sys.exit(1)
@@ -48,7 +48,7 @@ optuna.logging.enable_propagation()  # Propagate logs to the root logger.
 optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
 
 try:
-    log = t2_logger(__file__)
+    log = astronet_logger(__file__)
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
@@ -63,38 +63,15 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, batch_size, dataset):
+    def __init__(self, epochs, dataset):
         self.epochs = EPOCHS
-        self.batch_size = BATCH_SIZE
         self.dataset = dataset
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        if dataset == "wisdm_2010":
-            # Load data
-            X_train, y_train, _, _ = load_wisdm_2010()
-            # One hot encode y
-            enc, y_train, _ = one_hot_encode(y_train, _)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "wisdm_2019":
-            # Load data
-            X_train, y_train, _, _ = load_wisdm_2019()
-            # One hot encode y
-            enc, y_train, _ = one_hot_encode(y_train, _)
-
-            loss = "categorical_crossentropy"
-
-        elif dataset == "plasticc":
-            # Load data
-            X_train, y_train, _, _ = load_plasticc()
-            # One hot encode y
-            y_train, _ = tf_one_hot_encode(y_train, _)
-
-            loss = WeightedLogLoss
+        X_train, y_train, _, _, loss = load_dataset(dataset)
 
         num_classes = y_train.shape[1]
 
@@ -103,9 +80,11 @@ class Objective(object):
         ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-        _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        BATCH_SIZE = find_optimal_batch_size(num_samples)
+        print(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
-        print(input_shape)
+        print(f"input_shape:{input_shape}")
 
         model = T2Model(
             input_dim=input_shape,
@@ -131,7 +110,18 @@ class Objective(object):
 
         scores = []
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
-        for train_index, val_index in skf.split(X_train, y_train):
+
+        print(type(y_train))
+        if tf.is_tensor(y_train):
+            y_train = np.array(y_train)
+            print(type(y_train))
+            y_train_split = y_train.argmax(1)
+            print(y_train_split)
+        else:
+            y_train_split = y_train.argmax(1)
+            print(y_train_split)
+
+        for train_index, val_index in skf.split(X_train, y_train_split):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
 
@@ -143,23 +133,22 @@ class Objective(object):
                 validation_data=(X_val_cv, y_val_cv),
                 verbose=False,
                 callbacks=[
-                    DetectOverfittingCallback(threshold=1.5),
+                    # DetectOverfittingCallback(threshold=1.5),
                     EarlyStopping(
-                        patience=5,
-                        min_delta=0.02,
-                        baseline=0.8,
+                        min_delta=0.001,
                         mode="min",
                         monitor="val_loss",
+                        patience=10,
                         restore_best_weights=True,
                         verbose=1,
                     ),
                     ReduceLROnPlateau(
-                        monitor="val_loss",
-                        factor=0.2,
-                        verbose=1,
-                        patience=2,
-                        min_lr=1e-6,
+                        cooldown=5,
+                        factor=0.1,
                         mode="min",
+                        monitor="val_loss",
+                        patience=5,
+                        verbose=1,
                     ),
                 ],
             )
@@ -191,9 +180,6 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--dataset", default="wisdm_2010",
             help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
 
-    parser.add_argument("-b", "--batch-size", default=32,
-            help="Number of training examples per batch")
-
     parser.add_argument("-e", "--epochs", default=10,
             help="How many epochs to run training for")
 
@@ -208,14 +194,13 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dataset = args.dataset
-    BATCH_SIZE = int(args.batch_size)
     EPOCHS = int(args.epochs)
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, batch_size=BATCH_SIZE, dataset=dataset),
+        Objective(epochs=EPOCHS, dataset=dataset),
         n_trials=N_TRIALS,
         timeout=86400,
         n_jobs=-1,

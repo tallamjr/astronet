@@ -1,0 +1,36 @@
+{
+    "optuna_result": [
+        {
+            "embed_dim": 64,
+            "ff_dim": 32,
+            "lr": 0.010179952083355731,
+            "name": "1610386112-1d1776c",
+            "num_heads": 8,
+            "objective_score": 4.554443073272705
+        },
+        {
+            "embed_dim": 64,
+            "ff_dim": 128,
+            "lr": 0.010245990016257148,
+            "name": "1610415728-3351af1",
+            "num_heads": 8,
+            "objective_score": 4.554478645324707
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 32,
+            "lr": 0.01095795781154359,
+            "name": "1610742947-c295e0f",
+            "num_heads": 16,
+            "objective_score": 4.5543341636657715
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 32,
+            "lr": 0.011328572184619017,
+            "name": "1610999412-1405947",
+            "num_heads": 4,
+            "objective_score": 0.9363234758377075
+        }
+    ]
+}

@@ -1,7 +1,8 @@
 import os
 import pytest
 
-from astronet.t2.utils import load_wisdm_2010, load_wisdm_2019, load_plasticc
+from astronet.metrics import WeightedLogLoss
+from astronet.utils import load_wisdm_2010, load_wisdm_2019, load_plasticc, load_dataset
 
 
 def test_load_wisdm_2010():
@@ -36,3 +37,16 @@ def test_load_plasticc():
 
     assert y_train.shape == (2991, 1)
     assert y_test.shape == (998, 1)
+
+
+def test_load_dataset():
+
+    X_train, y_train, X_test, y_test, loss = load_dataset("plasticc")
+
+    assert X_train.shape == (2991, 100, 6)
+    assert X_test.shape == (998, 100, 6)
+
+    assert y_train.shape == (2991, 3)
+    assert y_test.shape == (998, 3)
+
+    assert type(WeightedLogLoss()) == type(loss)

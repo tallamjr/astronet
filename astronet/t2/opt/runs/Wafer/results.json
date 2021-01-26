@@ -1,0 +1,44 @@
+{
+    "optuna_result": [
+        {
+            "embed_dim": 32,
+            "ff_dim": 32,
+            "lr": 0.016247654082537775,
+            "name": "1608309753-aefde0d",
+            "num_heads": 4,
+            "objective_score": 0.34165319204330447
+        },
+        {
+            "embed_dim": 128,
+            "ff_dim": 128,
+            "lr": 0.06351427080950735,
+            "name": "1610386112-1d1776c",
+            "num_heads": 8,
+            "objective_score": 0.3410631835460663
+        },
+        {
+            "embed_dim": 512,
+            "ff_dim": 128,
+            "lr": 0.01170689102059714,
+            "name": "1610415728-3351af1",
+            "num_heads": 16,
+            "objective_score": 0.3411350131034851
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 512,
+            "lr": 0.08168883425668469,
+            "name": "1610742947-c295e0f",
+            "num_heads": 8,
+            "objective_score": 0.3409736633300781
+        },
+        {
+            "embed_dim": 64,
+            "ff_dim": 128,
+            "lr": 0.010508797694862258,
+            "name": "1610999412-1405947",
+            "num_heads": 16,
+            "objective_score": 0.3399625062942505
+        }
+    ]
+}
