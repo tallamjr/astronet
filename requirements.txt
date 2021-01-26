@@ -8,7 +8,7 @@ jupyter-core>=4.6.1
 jupyter>=1.0.0
 matplotlib>=3.2.1
 mkdocs
-numpy<1.19.0
+numpy==1.19.2
 optuna
 pandas>=1.0
 plotly>=4.7.1
@@ -19,5 +19,5 @@ scikit-learn>=0.22
 scipy==1.4.1
 seaborn>=0.11.0
 # tf-nightly==2.5.0-dev20201113
-tensorflow==2.3.1
+tensorflow==2.4.1
 xgboost
