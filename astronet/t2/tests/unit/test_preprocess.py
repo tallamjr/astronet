@@ -42,7 +42,7 @@ def test_plasticc_fit_2d_gp():
     pass
 
 
-# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
