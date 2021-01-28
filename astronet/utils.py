@@ -347,15 +347,13 @@ def __load_plasticc_dataset_from_csv(timesteps):
             "gal_b",
             "ddf",
             "hostgal_specz",
-            "hostgal_photoz",
-            "hostgal_photoz_err",
             "distmod",
             "mwebv",
         ]
     )
 
     df.to_parquet(
-        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
+        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
         engine="pyarrow",
         compression="snappy",
     )
@@ -381,26 +379,26 @@ def load_mts(dataset):
     return X_train, y_train, X_test, y_test
 
 
-def load_plasticc(timesteps=100, step=100):
+def load_plasticc(timesteps=100, step=100, redshift=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
+    TIME_STEPS = timesteps
+    STEP = step
+
     try:
         df = pd.read_parquet(
-            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
+            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
             engine="pyarrow",
         )
+
     except IOError:
         df = __load_plasticc_dataset_from_csv(timesteps)
 
     cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
-
     robust_scale(df, cols)
-
-    TIME_STEPS = timesteps
-    STEP = step
 
     Xs, ys = create_dataset(
         df[cols],
@@ -413,10 +411,31 @@ def load_plasticc(timesteps=100, step=100):
         Xs, ys, random_state=RANDOM_SEED
     )
 
-    return X_train, y_train, X_test, y_test
+    if redshift is None:
+        return X_train, y_train, X_test, y_test
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+            np.array(ZX), zys, random_state=RANDOM_SEED
+        )
+
+        return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset):
+def load_dataset(dataset, redshift=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -480,7 +499,11 @@ def load_dataset(dataset):
 
     elif dataset == "plasticc":
         # Load data
-        X_train, y_train, X_test, y_test = load_plasticc()
+        if redshift is None:
+            X_train, y_train, X_test, y_test = load_plasticc()
+        else:
+            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(redshift=redshift)
+
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
         encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
