@@ -63,6 +63,7 @@ class Training(object):
                 event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
         kernel_size = event['kernel_size']  # --> Filter length
+        pool_size = event['pool_size']      # --> Pooling width
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -73,6 +74,7 @@ class Training(object):
         model = SNXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
+            pool_size=pool_size,
         )
 
         # We compile our model with a sampled learning rate.

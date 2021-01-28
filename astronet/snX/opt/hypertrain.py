@@ -75,7 +75,8 @@ class Objective(object):
 
         num_classes = y_train.shape[1]
 
-        kernel_size = trial.suggest_categorical("kernel_size", [3, 6, 12, 24, 48, 96])  # --> Filter length
+        kernel_size = trial.suggest_categorical("kernel_size", [3, 16, 32, 64, 96])     # --> Filter length
+        pool_size = trial.suggest_categorical("pool_size", [3, 16, 32, 64, 96])         # --> Pooling width
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -86,6 +87,7 @@ class Objective(object):
         model = SNXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
+            pool_size=pool_size,
         )
 
         # We compile our model with a sampled learning rate.
