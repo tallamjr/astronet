@@ -1,9 +1,11 @@
 {
     "optuna_result": [
         {
+            "kernel_size": 3,
             "lr": 0.015528542452391608,
             "name": "1611096989-049ac37",
-            "objective_score": 0.04863549768924713
+            "objective_score": 0.04863549768924713,
+            "pool_size": 3
         }
     ]
 }

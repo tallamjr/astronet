@@ -4,19 +4,22 @@
             "kernel_size": 3,
             "lr": 0.05713554883124561,
             "name": "1611243664-2334091",
-            "objective_score": 0.938190472126007
+            "objective_score": 0.938190472126007,
+            "pool_size": 3
         },
         {
             "kernel_size": 48,
             "lr": 0.020351760130345845,
             "name": "1611406085-84ab4bf",
-            "objective_score": 0.9401508450508118
+            "objective_score": 0.9401508450508118,
+            "pool_size": 48
         },
         {
             "kernel_size": 3,
             "lr": 0.017799108948531754,
             "name": "1611492211-84ab4bf",
-            "objective_score": 0.9293684720993042
+            "objective_score": 0.9293684720993042,
+            "pool_size": 3
         }
     ]
 }

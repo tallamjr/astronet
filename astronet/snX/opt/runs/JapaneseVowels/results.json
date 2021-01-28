@@ -1,15 +1,18 @@
 {
     "optuna_result": [
         {
+            "kernel_size": 3,
             "lr": 0.023399218748090814,
             "name": "1611096752-41e3934",
-            "objective_score": 0.2992836803197861
+            "objective_score": 0.2992836803197861,
+            "pool_size": 3
         },
         {
             "kernel_size": 6,
             "lr": 0.014497614141911717,
             "name": "1611406988-84ab4bf",
-            "objective_score": 0.24743885695934295
+            "objective_score": 0.24743885695934295,
+            "pool_size": 6
         }
     ]
 }

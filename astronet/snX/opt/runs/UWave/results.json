@@ -4,13 +4,15 @@
             "kernel_size": 3,
             "lr": 0.029073899548960287,
             "name": "1611096758-41e3934",
-            "objective_score": 2.035965180397034
+            "objective_score": 2.035965180397034,
+            "pool_size": 3
         },
         {
             "kernel_size": 3,
             "lr": 0.013766024388737527,
             "name": "1611406994-84ab4bf",
-            "objective_score": 3.0851195476949216
+            "objective_score": 3.0851195476949216,
+            "pool_size": 3
         }
     ]
 }
