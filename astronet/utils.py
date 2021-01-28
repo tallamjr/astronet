@@ -14,13 +14,12 @@ from astronet.constants import (
     pb_wavelengths,
     astronet_working_directory as asnwd,
 )
-from astronet.metrics import custom_log_loss, WeightedLogLoss
+from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
     robust_scale,
     fit_2d_gp,
     predict_2d_gp,
     one_hot_encode,
-    tf_one_hot_encode,
 )
 
 
@@ -489,10 +488,9 @@ def load_dataset(dataset):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
 
-        # # One hot encode y
-        # y_train, y_test = tf_one_hot_encode(y_train, y_test)
-
         loss = WeightedLogLoss()
-        # loss = custom_log_loss
 
-    return X_train, y_train, X_test, y_test, loss
+    if redshift is None:
+        return X_train, y_train, X_test, y_test, loss
+    else:
+        return X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test
