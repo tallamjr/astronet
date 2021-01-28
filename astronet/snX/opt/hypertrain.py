@@ -178,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=10,
             help="How many epochs to run training for")
 
-    parser.add_argument("-n", "--num-trials", default=15,
+    parser.add_argument("-n", "--num-trials", default=10,
             help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
 
     try:
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     study.optimize(
         Objective(epochs=EPOCHS, dataset=dataset),
         n_trials=N_TRIALS,
-        timeout=86400,
+        timeout=170000,     # Break out of optimisation after ~ 47 hrs
         n_jobs=-1,
         show_progress_bar=False,
     )
