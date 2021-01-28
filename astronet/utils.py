@@ -7,6 +7,7 @@ import pickle
 import tensorflow as tf
 
 from pathlib import Path
+from scipy import stats
 from sklearn import model_selection
 
 from astronet.constants import (
@@ -109,8 +110,6 @@ def train_val_test_split(df, cols):
 
 
 def create_dataset(X, y, time_steps=1, step=1):
-    from scipy import stats
-    import numpy as np
 
     Xs, ys = [], []
     for i in range(0, len(X) - time_steps, step):
