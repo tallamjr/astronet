@@ -20,6 +20,13 @@
             "name": "1611492211-84ab4bf",
             "objective_score": 0.9293684720993042,
             "pool_size": 3
+        },
+        {
+            "kernel_size": 16,
+            "lr": 0.016320951905728586,
+            "name": "1611831593-3cdc4dc",
+            "objective_score": 0.9715866208076477,
+            "pool_size": 3
         }
     ]
 }
