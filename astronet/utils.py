@@ -515,12 +515,19 @@ def load_dataset(dataset, redshift=None, balance=None):
 
     if balance is not None:
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        num_z_samples, num_z_features = ZX_train.shape
 
         from imblearn.over_sampling import SMOTE
         X_resampled, y_resampled = SMOTE().fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
+        # Re-shape 2D data back to 3D original shape, i.e (BATCH_SIZE, timesteps, num_features)
         X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
 
+        Z_resampled, _ = SMOTE().fit_resample(ZX_train, y_train)
+        # Z_resampled = np.reshape(Z_resampled, (Z_resampled.shape[0], num_z_features)) -- seems
+        # reshaping not required
+
         X_train = X_resampled
+        ZX_train = Z_resampled
         y_train = y_resampled
 
     if redshift is None:
