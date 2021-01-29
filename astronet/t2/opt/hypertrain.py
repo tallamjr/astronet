@@ -208,6 +208,9 @@ if __name__ == "__main__":
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
 
+    parser.add_argument("-b", "--balance", default=None,
+            help="Whether to balance classes or not")
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)

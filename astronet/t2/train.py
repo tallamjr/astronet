@@ -208,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', default=None,
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
-    parser.add_argument('-b', '--balance_classes', default=None,
+    parser.add_argument('-b', '--balance', default=None,
             help='Use SMOTE or other variant to balance classes')
 
     parser.add_argument("-z", "--redshift", default=None,
