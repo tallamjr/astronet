@@ -435,7 +435,7 @@ def load_plasticc(timesteps=100, step=100, redshift=None):
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset, redshift=None):
+def load_dataset(dataset, redshift=None, balance=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -512,6 +512,16 @@ def load_dataset(dataset, redshift=None):
                 joblib.dump(enc, f)
 
         loss = WeightedLogLoss()
+
+    if balance is not None:
+        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+
+        from imblearn.over_sampling import SMOTE
+        X_resampled, y_resampled = SMOTE().fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
+        X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
+
+        X_train = X_resampled
+        y_train = y_resampled
 
     if redshift is None:
         return X_train, y_train, X_test, y_test, loss

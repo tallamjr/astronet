@@ -1,6 +1,7 @@
 astropy>=1.1.2
 george>=0.3.0
 imageio
+imbalanced-learn==0.7.0
 joblib
 jupyter-client>=5.3.4
 jupyter-console>=6.1.0
