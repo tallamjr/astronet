@@ -50,3 +50,23 @@ def test_load_dataset():
     assert y_test.shape == (998, 3)
 
     assert type(WeightedLogLoss()) == type(loss)
+
+
+def test_load_dataset_with_z():
+
+    dataset = "plasticc"
+    X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=True)
+
+    assert X_train.shape == (2991, 100, 6)
+    assert X_test.shape == (998, 100, 6)
+
+    assert y_train.shape == (2991, 3)
+    assert y_test.shape == (998, 3)
+
+    assert ZX_train.shape == (2991, 2)
+    assert ZX_test.shape == (998, 2)
+
+    Z_input_shape_nobatch = (2,)
+    assert Z_input_shape_nobatch == ZX_train.shape[1:]
+
+    assert type(WeightedLogLoss()) == type(loss)
