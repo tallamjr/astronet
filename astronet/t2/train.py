@@ -153,6 +153,7 @@ class Training(object):
         model_params['embed_dim'] = event['embed_dim']
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
+        model_params['z-redshift'] = self.redshift
         # model_params['lr'] = event['lr']
         model_params['model_evaluate_on_test_acc'] = model.evaluate(test_input, y_test)[1]
         model_params['model_evaluate_on_test_loss'] = model.evaluate(test_input, y_test)[0]
@@ -204,6 +205,8 @@ if __name__ == "__main__":
     dataset = args.dataset
     EPOCHS = int(args.epochs)
     redshift = args.redshift
+    if redshift is not None:
+        redshift = True
 
     training = Training(epochs=EPOCHS, dataset=dataset, redshift=redshift)
     training()
