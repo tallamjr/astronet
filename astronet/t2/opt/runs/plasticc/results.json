@@ -40,6 +40,16 @@
             "num_heads": 16,
             "objective_score": 1.0857359647750855,
             "z-redshift": null
+        },
+        {
+            "balanced_classes": true,
+            "embed_dim": 32,
+            "ff_dim": 512,
+            "lr": 0.03428206546635244,
+            "name": "1611945647-6679f77",
+            "num_heads": 8,
+            "objective_score": 0.48634018301963805,
+            "z-redshift": null
         }
     ]
 }
