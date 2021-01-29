@@ -50,14 +50,16 @@ class Training(object):
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=self.redshift)
+            hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
+            hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
 
         num_classes = y_train.shape[1]
 
         log.info(print(X_train.shape, y_train.shape))
 
-        with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
+        with open(hyper_results_file) as f:
             events = json.load(f)
             if self.model is not None:
                 # Get params for model chosen with cli args
@@ -167,7 +169,12 @@ class Training(object):
 
         del model_params['lr']
 
-        with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as jf:
+        if self.redshift is not None:
+            train_results_file = f"{asnwd}/astronet/t2/models/{dataset}/results_with_z.json"
+        else:
+            train_results_file = f"{asnwd}/astronet/t2/models/{dataset}/results.json"
+
+        with open(train_results_file) as jf:
             data = json.load(jf)
             # print(data)
 
@@ -178,7 +185,7 @@ class Training(object):
             # print(previous_results)
             # print(data)
 
-        with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json", "w") as rf:
+        with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
         model.save(f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}")

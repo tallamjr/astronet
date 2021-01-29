@@ -259,7 +259,12 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as jf:
+    if redshift:
+        hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
+    else:
+        hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
+
+    with open(hyper_results_file) as jf:
         data = json.load(jf)
         print(data)
 
@@ -270,7 +275,7 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json", "w") as rf:
+    with open(hyper_results_file, "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
     with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
