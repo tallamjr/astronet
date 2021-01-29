@@ -74,7 +74,9 @@ class Objective(object):
         clear_session()
 
         if self.redshift is not None:
-            X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(dataset, redshift=self.redshift)
+            X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
+                dataset, redshift=self.redshift, balance=self.balance
+            )
         else:
             X_train, y_train, _, _, loss = load_dataset(dataset, balance=self.balance)
 

@@ -51,7 +51,9 @@ class Training(object):
     def __call__(self):
 
         if self.redshift is not None:
-            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=self.redshift)
+            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
+                dataset, redshift=self.redshift, balance=self.balance
+            )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=self.balance)
