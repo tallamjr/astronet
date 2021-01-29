@@ -40,7 +40,7 @@ class T2Model(keras.Model):
 
     def call(self, inputs, training=None):
 
-        if len(inputs) == 1:
+        if tf.is_tensor(inputs):
             x = self.embedding(inputs)
             x = self.pos_encoding(x)
             for layer in self.encoder:
@@ -51,7 +51,7 @@ class T2Model(keras.Model):
             x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
-        else:
+        else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
             x = self.embedding(inputs[0])
             x = self.pos_encoding(x)
             for layer in self.encoder:
@@ -69,11 +69,11 @@ class T2Model(keras.Model):
         return classifier
 
     def build_graph(self, input_shapes):
-        if len(input_shapes) == 1:
+        if isinstance(input_shapes, tuple):  # A list would imply there is multiple inputs
             # Code lifted from example:
             # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
             input_shape_nobatch = input_shapes[1:]
-            self.build(input_shapes)
+            # self.build(input_shapes)
             inputs = keras.Input(shape=input_shape_nobatch)
         else:
             input_shape_nobatch = input_shapes[0][1:]
