@@ -193,7 +193,7 @@ if __name__ == "__main__":
             help="How many epochs to run training for")
 
     parser.add_argument("-z", "--redshift", default=None,
-            help="Whether to incldue redshift features or not")
+            help="Whether to include redshift features or not")
 
     try:
         args = parser.parse_args()
