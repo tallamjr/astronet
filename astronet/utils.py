@@ -526,10 +526,10 @@ def load_dataset(dataset, redshift=None, balance=None):
             Z_resampled, _ = SMOTE().fit_resample(ZX_train, y_train)
             Z_resampled = np.reshape(Z_resampled, (Z_resampled.shape[0], num_z_features))
 
+            ZX_train = Z_resampled
+
         X_train = X_resampled
         y_train = y_resampled
-
-        ZX_train = Z_resampled
 
     if redshift is None:
         return X_train, y_train, X_test, y_test, loss
