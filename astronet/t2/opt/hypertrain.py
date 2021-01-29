@@ -63,10 +63,11 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift):
+    def __init__(self, epochs, dataset, redshift, balance):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
+        self.balance = balance
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -75,7 +76,7 @@ class Objective(object):
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(dataset, redshift=self.redshift)
         else:
-            X_train, y_train, _, _, loss = load_dataset(dataset)
+            X_train, y_train, _, _, loss = load_dataset(dataset, balance=self.balance)
 
         num_classes = y_train.shape[1]
 
@@ -216,15 +217,21 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+
     redshift = args.redshift
     if redshift is not None:
         redshift = True
+
+    balance = args.balance
+    if balance is not None:
+        balance = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, balance=balance),
         n_trials=N_TRIALS,
         timeout=86400,
         n_jobs=-1,
@@ -250,6 +257,7 @@ if __name__ == "__main__":
     best_result['objective_score'] = trial.value
 
     best_result['z-redshift'] = redshift
+    best_result['balanced_classes'] = balance
 
     print("  Params: ")
     for key, value in trial.params.items():

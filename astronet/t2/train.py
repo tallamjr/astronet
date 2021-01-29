@@ -54,7 +54,7 @@ class Training(object):
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=self.redshift)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=balance)
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=self.balance)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
 
         num_classes = y_train.shape[1]
