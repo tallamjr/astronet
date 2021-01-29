@@ -41,9 +41,10 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, redshift):
+    def __init__(self, epochs, dataset, model, redshift):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.model = model
         self.redshift = redshift
 
     def __call__(self):
