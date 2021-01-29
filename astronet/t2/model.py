@@ -40,29 +40,48 @@ class T2Model(keras.Model):
 
     def call(self, inputs, training=None):
 
-        x = self.embedding(inputs)
-        x = self.pos_encoding(x)
-
-        for layer in self.encoder:
-            x = layer(x, training)
-
-        x = self.pooling(x)
-        if training:
-            x = self.dropout1(x, training=training)
-        x = self.fc(x)
-        if training:
-            x = self.dropout2(x, training=training)
+        if len(inputs) == 1:
+            x = self.embedding(inputs)
+            x = self.pos_encoding(x)
+            for layer in self.encoder:
+                x = layer(x, training)
+            x = self.pooling(x)
+            if training:
+                x = self.dropout1(x, training=training)
+            x = self.fc(x)
+            if training:
+                x = self.dropout2(x, training=training)
+        else:
+            x = self.embedding(inputs[0])
+            x = self.pos_encoding(x)
+            for layer in self.encoder:
+                x = layer(x, training)
+            x = self.pooling(x)
+            if training:
+                x = self.dropout1(x, training=training)
+            x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
+            x = self.fc(x)
+            if training:
+                x = self.dropout2(x, training=training)
 
         classifier = self.classifier(x)
 
         return classifier
 
-    def build_graph(self, input_shape):
-        # Code lifted from example:
-        # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
-        input_shape_nobatch = input_shape[1:]
-        self.build(input_shape)
-        inputs = keras.Input(shape=input_shape_nobatch)
+    def build_graph(self, input_shapes):
+        if len(input_shapes) == 1:
+            # Code lifted from example:
+            # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
+            input_shape_nobatch = input_shapes[1:]
+            self.build(input_shapes)
+            inputs = keras.Input(shape=input_shape_nobatch)
+        else:
+            input_shape_nobatch = input_shapes[0][1:]
+            Z_input_shape_nobatch = input_shapes[1][1:]
+            inputs = [
+                tf.keras.Input(shape=input_shape_nobatch),
+                tf.keras.Input(shape=Z_input_shape_nobatch),
+            ]
 
         if not hasattr(self, 'call'):
             raise AttributeError("User should define 'call' method in sub-class model!")
