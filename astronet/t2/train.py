@@ -224,7 +224,11 @@ if __name__ == "__main__":
     dataset = args.dataset
     EPOCHS = int(args.epochs)
     model = args.model
+
     balance = args.balance
+    if balance is not None:
+        balance = True
+
     redshift = args.redshift
     if redshift is not None:
         redshift = True
