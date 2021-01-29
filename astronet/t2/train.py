@@ -59,8 +59,11 @@ class Training(object):
 
         with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
-            event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
-            # print(event)
+            if self.model is not None:
+                # Get params for model chosen with cli args
+                event = next(item for item in events['optuna_result'] if item["name"] == self.model)
+            else:
+                event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
         num_heads = event['num_heads']  # --> Number of attention heads
@@ -192,6 +195,9 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=20,
             help="How many epochs to run training for")
 
+    parser.add_argument('-m', '--model', default=None,
+            help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
 
@@ -204,9 +210,10 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+    model = args.model
     redshift = args.redshift
     if redshift is not None:
         redshift = True
 
-    training = Training(epochs=EPOCHS, dataset=dataset, redshift=redshift)
+    training = Training(epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift)
     training()
