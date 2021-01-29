@@ -63,15 +63,19 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset):
+    def __init__(self, epochs, dataset, redshift):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.redshift = redshift
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        X_train, y_train, _, _, loss = load_dataset(dataset)
+        if self.redshift is not None:
+            X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(dataset, redshift=self.redshift)
+        else:
+            X_train, y_train, _, _, loss = load_dataset(dataset)
 
         num_classes = y_train.shape[1]
 
@@ -106,10 +110,14 @@ class Objective(object):
             run_eagerly=True,
         )
 
-        model.build_graph(input_shape)
-
         scores = []
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+
+        if self.redshift is not None:
+            input_shapes = [input_shape, ZX_train.shape]
+            model.build_graph(input_shapes)
+        else:
+            model.build_graph(input_shape)
 
         print(type(y_train))
         if tf.is_tensor(y_train):
@@ -125,12 +133,20 @@ class Objective(object):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
 
+            inputs_train_cv = X_train_cv
+            inputs_val_cv = X_val_cv
+
+            if self.redshift is not None:
+                Z_train_cv, Z_val_cv = ZX_train[train_index], ZX_train[val_index]
+                inputs_train_cv = [X_train_cv, Z_train_cv]
+                inputs_val_cv = [X_train_cv, Z_train_cv]
+
             _ = model.fit(
-                X_train_cv,
+                inputs_train_cv,
                 y_train_cv,
                 batch_size=BATCH_SIZE,
                 epochs=EPOCHS,
-                validation_data=(X_val_cv, y_val_cv),
+                validation_data=(inputs_val_cv, y_val_cv),
                 verbose=False,
                 callbacks=[
                     # DetectOverfittingCallback(threshold=1.5),
@@ -186,6 +202,9 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--num-trials", default=15,
             help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
 
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to include redshift features or not")
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -195,12 +214,15 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+    redshift = args.redshift
+    if redshift is not None:
+        redshift = True
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift),
         n_trials=N_TRIALS,
         timeout=86400,
         n_jobs=-1,
@@ -224,6 +246,8 @@ if __name__ == "__main__":
 
     print("  Value: {}".format(trial.value))
     best_result['objective_score'] = trial.value
+
+    best_result['z-redshift'] = redshift
 
     print("  Params: ")
     for key, value in trial.params.items():
