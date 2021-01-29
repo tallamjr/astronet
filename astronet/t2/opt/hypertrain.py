@@ -114,7 +114,9 @@ class Objective(object):
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
 
         if self.redshift is not None:
-            input_shapes = [input_shape, ZX_train.shape]
+            num_z_samples, num_z_features = ZX_train.shape
+            z_input_shape = (BATCH_SIZE, num_z_features)
+            input_shapes = [input_shape, z_input_shape]
             model.build_graph(input_shapes)
         else:
             model.build_graph(input_shape)
@@ -139,7 +141,7 @@ class Objective(object):
             if self.redshift is not None:
                 Z_train_cv, Z_val_cv = ZX_train[train_index], ZX_train[val_index]
                 inputs_train_cv = [X_train_cv, Z_train_cv]
-                inputs_val_cv = [X_train_cv, Z_train_cv]
+                inputs_val_cv = [X_val_cv, Z_val_cv]
 
             _ = model.fit(
                 inputs_train_cv,
@@ -170,7 +172,7 @@ class Objective(object):
             )
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(X_val_cv, y_val_cv, verbose=0)
+            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0)
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
