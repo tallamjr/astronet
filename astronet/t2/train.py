@@ -41,13 +41,17 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset):
+    def __init__(self, epochs, dataset, redshift):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.redshift = redshift
 
     def __call__(self):
 
-        X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
+        if self.redshift is not None:
+            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=self.redshift)
+        else:
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
 
         num_classes = y_train.shape[1]
 
@@ -89,18 +93,28 @@ class Training(object):
             run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
         )
 
-        model.build_graph(input_shape)
+        if self.redshift is not None:
+            input_shapes = [input_shape, ZX_train.shape]
+            model.build_graph(input_shapes)
+
+            train_input = [X_train, ZX_train]
+            test_input = [X_test, ZX_test]
+        else:
+            model.build_graph(input_shape)
+
+            train_input = X_train
+            test_input = X_test
 
         unixtimestamp = int(time.time())
         label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
         checkpoint_path = f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}"
 
         history = model.fit(
-            X_train,
+            train_input,
             y_train,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
-            validation_data=(X_test, y_test),
+            validation_data=(test_input, y_test),
             verbose=False,
             callbacks=[
                 # DetectOverfittingCallback(threshold=1.5),
@@ -131,7 +145,7 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        print(model.evaluate(X_test, y_test))
+        print(model.evaluate(test_input, y_test))
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
@@ -140,8 +154,8 @@ class Training(object):
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
         # model_params['lr'] = event['lr']
-        model_params['model_evaluate_on_test_acc'] = model.evaluate(X_test, y_test)[1]
-        model_params['model_evaluate_on_test_loss'] = model.evaluate(X_test, y_test)[0]
+        model_params['model_evaluate_on_test_acc'] = model.evaluate(test_input, y_test)[1]
+        model_params['model_evaluate_on_test_loss'] = model.evaluate(test_input, y_test)[0]
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
@@ -177,6 +191,9 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=20,
             help="How many epochs to run training for")
 
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to incldue redshift features or not")
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -186,6 +203,7 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+    redshift = args.redshift
 
-    training = Training(epochs=EPOCHS, dataset=dataset)
+    training = Training(epochs=EPOCHS, dataset=dataset, redshift=redshift)
     training()
