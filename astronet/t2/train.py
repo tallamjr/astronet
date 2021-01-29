@@ -41,11 +41,12 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model, redshift):
+    def __init__(self, epochs, dataset, model, redshift, balance):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
+        self.balance = balance
 
     def __call__(self):
 
@@ -53,7 +54,7 @@ class Training(object):
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=self.redshift)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=balance)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
 
         num_classes = y_train.shape[1]
@@ -160,6 +161,7 @@ class Training(object):
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
         model_params['z-redshift'] = self.redshift
+        model_params['balanced_classes'] = self.balance
         # model_params['lr'] = event['lr']
         model_params['model_evaluate_on_test_acc'] = model.evaluate(test_input, y_test)[1]
         model_params['model_evaluate_on_test_loss'] = model.evaluate(test_input, y_test)[0]
@@ -206,6 +208,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', default=None,
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
+    parser.add_argument('-b', '--balance_classes', default=None,
+            help='Use SMOTE or other variant to balance classes')
+
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
 
@@ -219,9 +224,12 @@ if __name__ == "__main__":
     dataset = args.dataset
     EPOCHS = int(args.epochs)
     model = args.model
+    balance = args.balance
     redshift = args.redshift
     if redshift is not None:
         redshift = True
 
-    training = Training(epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift)
+    training = Training(
+        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift, balance=balance
+    )
     training()
