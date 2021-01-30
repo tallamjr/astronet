@@ -18,6 +18,25 @@
             "num_heads": 4,
             "objective_score": 0.48910586833953856,
             "z-redshift": true
+        },
+        {
+            "balanced_classes": true,
+            "embed_dim": 32,
+            "ff_dim": 64,
+            "lr": 0.018418964166791764,
+            "name": "1611949575-79a63f7",
+            "num_heads": 4,
+            "objective_score": 0.22009319365024566,
+            "z-redshift": true
+        },
+        {
+            "embed_dim": 32,
+            "ff_dim": 128,
+            "lr": 0.012311134454764745,
+            "name": "1611939225-ed2b9b2",
+            "num_heads": 8,
+            "objective_score": 0.5663928270339966,
+            "z-redshift": true
         }
     ]
 }
