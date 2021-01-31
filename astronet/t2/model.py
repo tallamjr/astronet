@@ -24,18 +24,18 @@ class T2Model(keras.Model):
 
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
         self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
-        # self.pos_encoding   = RelativePositionEmbedding(hidden_size=self.embed_dim)
 
         self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
                                 for _ in range(num_layers)]
-        # TODO : Branch off here, outputs_2, with perhaps Dense(input_dim[1]), OR vis this layer since
-        # output should be: (batch_size, input_seq_len, d_model), see:
-        # https://github.com/cordeirojoao/ECG_Processing/blob/master/Ecg_keras_v9-Raphael.ipynb
 
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(0.1)
+
+        # Additional layers when adding Z features here
+
         self.fc             = layers.Dense(32, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         self.dropout2       = layers.Dropout(0.1)
+
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs, training=None):
@@ -54,13 +54,18 @@ class T2Model(keras.Model):
         else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
             x = self.embedding(inputs[0])
             x = self.pos_encoding(x)
+
             for layer in self.encoder:
                 x = layer(x, training)
+
             x = self.pooling(x)
             if training:
                 x = self.dropout1(x, training=training)
+
+            # Additional layers when adding Z features
             x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
             x = tf.keras.layers.BatchNormalization()(x)
+
             x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
