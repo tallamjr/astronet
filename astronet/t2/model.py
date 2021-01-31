@@ -34,7 +34,7 @@ class T2Model(keras.Model):
 
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(0.1)
-        self.fc             = layers.Dense(20, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        self.fc             = layers.Dense(32, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         self.dropout2       = layers.Dropout(0.1)
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
@@ -60,6 +60,7 @@ class T2Model(keras.Model):
             if training:
                 x = self.dropout1(x, training=training)
             x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
+            x = tf.keras.layers.BatchNormalization()(x)
             x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
