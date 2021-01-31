@@ -64,7 +64,6 @@ class T2Model(keras.Model):
 
             # Additional layers when adding Z features
             x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
-            x = tf.keras.layers.BatchNormalization()(x)
 
             x = self.fc(x)
             if training:
