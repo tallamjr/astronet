@@ -1,6 +1,7 @@
 {
     "optuna_result": [
         {
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "lr": 0.07794017578060658,
@@ -30,6 +31,7 @@
             "z-redshift": true
         },
         {
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "lr": 0.012311134454764745,

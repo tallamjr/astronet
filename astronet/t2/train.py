@@ -68,8 +68,17 @@ class Training(object):
             if self.model is not None:
                 # Get params for model chosen with cli args
                 event = next(item for item in events['optuna_result'] if item["name"] == self.model)
+            elif self.balance is not None:
+                event = min(
+                    (item for item in events["optuna_result"] if item["balanced_classes"] is not None),
+                    key=lambda ev: ev["objective_score"],
+                )
             else:
-                event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
+                event = min(
+                    (item for item in events["optuna_result"] if item["balanced_classes"] is None),
+                    key=lambda ev: ev["objective_score"],
+                )
+                # event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
         num_heads = event['num_heads']  # --> Number of attention heads
