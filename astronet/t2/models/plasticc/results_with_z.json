@@ -4,6 +4,7 @@
             "acc": [
                 0.37846875190734863
             ],
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611938187-5cb121c",
