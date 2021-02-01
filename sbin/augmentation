@@ -27,9 +27,12 @@ source $PWD/conf/astronet.conf
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/sbin/augmentation
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
+# conda install -c conda-forge sncosmo
+# pip install -r requirements.txt
 which python
 # Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
+python -c "import sncosmo; print(sncosmo.__version__)"
 python -c "from astronet.utils import *; _, _, _, _ = load_dataset('plasticc', augmented=True)"
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
