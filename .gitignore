@@ -12,6 +12,7 @@ data/wisdm-dataset
 data/WISDM_ar_latest.tar.gz
 data/mtsdata
 data/transformed-mtsdata
+data/plasticc/*.pckl
 logs/
 *.log
 *.pdf
