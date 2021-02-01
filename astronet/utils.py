@@ -426,7 +426,8 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     try:
         data = pd.read_csv(
-            f"{asnwd}/data/plasticc/augmented_training_set.csv"
+            f"{asnwd}/data/plasticc/augmented_training_set.csv",
+            index_col=[0]
         )
     except IOError:
         data = __generate_augmented_plasticc_dataset_from_pickle(
@@ -438,6 +439,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     #     {"flux_err": "flux_error"}, axis="columns", inplace=True
     # )  # snmachine and PLAsTiCC uses a different denomination
 
+    # import pdb;pdb.set_trace()
     df = __filter_dataframe_only_supernova(
         f"{asnwd}/data/plasticc/aug_object_list.txt",
         data,
@@ -445,8 +447,8 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     object_list = list(np.unique(df['object_id']))
 
-    obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    # obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, df, timesteps)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -473,11 +475,14 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
         ]
     )
 
-    df.to_parquet(
-        f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
-        engine="pyarrow",
-        compression="snappy",
-    )
+    try:
+        df.to_parquet(
+            f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+            engine="pyarrow",
+            compression="snappy",
+        )
+    except IOError:
+        df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv")
 
     return df
 
