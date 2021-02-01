@@ -13,17 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=plasticc             # Job name
+#SBATCH --job-name=Zplasticc             # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
-## #SBATCH --exclusive                     # Request exclusive access to a node
+#SBATCH --exclusive                     # Request exclusive access to a node
 #SBATCH --cpus-per-task=40              # Number of CPUs per node
 # Add a -e or --error with an error file name to separate output and error
 # logs. Note this will ignore the --output option if used afterwards
 ## #SBATCH -e logs/%j.err
 ## #SBATCH -o logs/%j.out
 set -o pipefail -e
+SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source $PWD/conf/astronet.conf
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/plasticc
 date
 which python
 export PYTHONHASHSEED=0
@@ -41,5 +44,5 @@ python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50 -z
 # Train
 python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -z ""
 date
-# Print the contents of this file to stdout from line 15 onwards
-awk 'NR>15' $ASNWD/bin/plasticc
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
