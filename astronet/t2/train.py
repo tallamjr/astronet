@@ -163,7 +163,11 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
+        print(model.evaluate(test_input, y_test, batch_size=X_train.shape[0]))
         print(model.evaluate(test_input, y_test))
+        wloss = WeightedLogLoss()
+        y_preds = model.predict(test_input)
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.8f}")
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
@@ -173,9 +177,12 @@ class Training(object):
         model_params['num_heads'] = event['num_heads']
         model_params['z-redshift'] = self.redshift
         model_params['balanced_classes'] = self.balance
-        # model_params['lr'] = event['lr']
-        model_params['model_evaluate_on_test_acc'] = model.evaluate(test_input, y_test)[1]
-        model_params['model_evaluate_on_test_loss'] = model.evaluate(test_input, y_test)[0]
+        model_params["model_evaluate_on_test_acc"] = model.evaluate(
+            test_input, y_test, batch_size=num_samples  # num_samples = X_train.shape[0]
+        )[1]
+        model_params["model_evaluate_on_test_loss"] = model.evaluate(
+            test_input, y_test, batch_size=num_samples
+        )[0]
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
