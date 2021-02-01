@@ -1,6 +1,7 @@
 {
     "optuna_result": [
         {
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 32,
             "lr": 0.010005359559635583,
@@ -9,6 +10,7 @@
             "objective_score": 0.6188817381858825
         },
         {
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "lr": 0.01046300138268081,
@@ -17,6 +19,7 @@
             "objective_score": 0.8419231414794922
         },
         {
+            "balanced_classes": null,
             "embed_dim": 64,
             "ff_dim": 64,
             "lr": 0.010487306297233566,
@@ -25,6 +28,7 @@
             "objective_score": 0.8515899062156678
         },
         {
+            "balanced_classes": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "lr": 0.010339936981589045,
@@ -33,6 +37,7 @@
             "objective_score": 0.5814014673233032
         },
         {
+            "balanced_classes": null,
             "embed_dim": 128,
             "ff_dim": 32,
             "lr": 0.015518446289466104,
@@ -59,6 +64,16 @@
             "name": "1611950375-e5c6a86",
             "num_heads": 8,
             "objective_score": 0.29214292466640474,
+            "z-redshift": null
+        },
+        {
+            "balanced_classes": true,
+            "embed_dim": 32,
+            "ff_dim": 512,
+            "lr": 0.012938835367857482,
+            "name": "1612101990-406427a",
+            "num_heads": 16,
+            "objective_score": 0.255125892162323,
             "z-redshift": null
         }
     ]
