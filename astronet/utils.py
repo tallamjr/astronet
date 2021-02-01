@@ -403,11 +403,16 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
     for i in range(len(object_list)):
         adf = pd.concat([adf, aug.data[object_list[i]].to_pandas()])
 
-    adf.to_parquet(
-        f"{asnwd}/data/plasticc/augmented_training_set.parquet",
-        engine="pyarrow",
-        compression="snappy",
-    )
+    adf = adf.set_index('object_id')
+
+    try:
+        adf.to_parquet(
+            f"{asnwd}/data/plasticc/augmented_training_set.parquet",
+            engine="pyarrow",
+            compression="snappy",
+        )
+    except IOError:
+        adf.to_csv(f"{asnwd}/data/plasticc/augmented_training_set.csv")
 
     return adf
 
