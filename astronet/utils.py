@@ -418,16 +418,15 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
     return adf
 
 
-def __load_augmented_plasticc_dataset_from_parquet(timesteps):
+def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
     try:
-        data = pd.read_parquet(
-            f"{asnwd}/data/plasticc/augmented_training_set.parquet",
-            engine="pyarrow",
+        data = pd.read_csv(
+            f"{asnwd}/data/plasticc/augmented_training_set.csv"
         )
     except IOError:
         data = __generate_augmented_plasticc_dataset_from_pickle(
@@ -500,7 +499,7 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
             )
 
         except IOError:
-            df = __load_augmented_plasticc_dataset_from_parquet(timesteps)
+            df = __load_augmented_plasticc_dataset_from_csv(timesteps)
     else:
         try:
             df = pd.read_parquet(
