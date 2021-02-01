@@ -87,6 +87,11 @@ class Objective(object):
         ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+
+        num_layers = trial.suggest_categorical("num_layers", [1, 2, 4, 8])  # --> N x repeated transformer blocks
+        droprate = trial.suggest_categorical("droprate", [0.1, 0.2, 0.4])  # --> Rate of neurons to drop
+        fc_neurons = trial.suggest_categorical("fc_neurons", [16, 20, 32, 64])  # --> N neurons in final Feed forward network.
+
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -100,6 +105,9 @@ class Objective(object):
             ff_dim=ff_dim,
             num_filters=num_filters,
             num_classes=num_classes,
+            num_layers=num_layers,
+            droprate=droprate,
+            fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.
