@@ -163,7 +163,7 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        print(model.evaluate(test_input, y_test, batch_size=X_train.shape[0]))
+        print(model.evaluate(test_input, y_test, batch_size=X_test.shape[0]))
         print(model.evaluate(test_input, y_test))
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
@@ -178,10 +178,10 @@ class Training(object):
         model_params['z-redshift'] = self.redshift
         model_params['balanced_classes'] = self.balance
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_input, y_test, batch_size=num_samples  # num_samples = X_train.shape[0]
+            test_input, y_test, batch_size=X_test.shape[0]
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_input, y_test, batch_size=num_samples
+            test_input, y_test, batch_size=X_test.shape[0]
         )[0]
         print("  Params: ")
         for key, value in history.history.items():
