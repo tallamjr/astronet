@@ -13,6 +13,7 @@ data/WISDM_ar_latest.tar.gz
 data/mtsdata
 data/transformed-mtsdata
 data/plasticc/*.pckl
+data/plasticc/augmented_training_set.csv
 logs/
 *.log
 *.pdf
