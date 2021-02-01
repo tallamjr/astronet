@@ -404,6 +404,7 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
         adf = pd.concat([adf, aug.data[object_list[i]].to_pandas()])
 
     adf = adf.set_index('object_id')
+    adf = adf.convert_dtypes()
 
     try:
         adf.to_parquet(
