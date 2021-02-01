@@ -236,6 +236,24 @@ def load_wisdm_2019(timesteps=200, step=200):
     return X_train, y_train, X_test, y_test
 
 
+def load_mts(dataset):
+
+    X_train = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy"
+    )
+    y_train = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy"
+    )
+    X_test = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_test.npy"
+    )
+    y_test = np.load(
+        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_test.npy"
+    )
+
+    return X_train, y_train, X_test, y_test
+
+
 def __remap_filters(df):
     """Function to remap integer filters to the corresponding lsst filters and
     also to set filter name syntax to what snmachine already recognizes
@@ -361,25 +379,105 @@ def __load_plasticc_dataset_from_csv(timesteps):
     return df
 
 
-def load_mts(dataset):
+def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
+    # import snmachine
+    import pickle
 
-    X_train = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy"
-    )
-    y_train = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy"
-    )
-    X_test = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_test.npy"
-    )
-    y_test = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_test.npy"
+    # augmented_binary = f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
+
+    with open(augmented_binary, "rb") as f:
+        aug = pickle.load(f)
+
+    aug.metadata.to_csv(
+        f"{asnwd}/data/plasticc/augmented_training_set_metadata.csv",
     )
 
-    return X_train, y_train, X_test, y_test
+    object_list = list(aug.object_names)
+    cols = list(aug.data[object_list[0]].to_pandas().columns)
+
+    adf = pd.DataFrame(
+        data=[],
+        columns=cols,
+    )
+
+    for i in range(len(object_list)):
+        adf = pd.concat([adf, aug.data[object_list[i]].to_pandas()])
+
+    adf.to_parquet(
+        f"{asnwd}/data/plasticc/augmented_training_set.parquet",
+        engine="pyarrow",
+        compression="snappy",
+    )
+
+    return adf
 
 
-def load_plasticc(timesteps=100, step=100, redshift=None):
+def __load_augmented_plasticc_dataset_from_parquet(timesteps):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    try:
+        data = pd.read_parquet(
+            f"{asnwd}/data/plasticc/augmented_training_set.parquet",
+            engine="pyarrow",
+        )
+    except IOError:
+        data = __generate_augmented_plasticc_dataset_from_pickle(
+            f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
+        )
+
+    # data = __remap_filters(df=data)
+    # data.rename(
+    #     {"flux_err": "flux_error"}, axis="columns", inplace=True
+    # )  # snmachine and PLAsTiCC uses a different denomination
+
+    df = __filter_dataframe_only_supernova(
+        f"{asnwd}/data/plasticc/aug_object_list.txt",
+        data,
+    )
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{asnwd}/data/plasticc/augmented_training_set_metadata.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df = df_with_labels.drop(
+        columns=[
+            "ra",
+            "decl",
+            "gal_l",
+            "gal_b",
+            "ddf",
+            "hostgal_specz",
+            "distmod",
+            "mwebv",
+        ]
+    )
+
+    df.to_parquet(
+        f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+        engine="pyarrow",
+        compression="snappy",
+    )
+
+    return df
+
+
+def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -388,14 +486,24 @@ def load_plasticc(timesteps=100, step=100, redshift=None):
     TIME_STEPS = timesteps
     STEP = step
 
-    try:
-        df = pd.read_parquet(
-            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
-            engine="pyarrow",
-        )
+    if augmented is not None:
+        try:
+            df = pd.read_parquet(
+                f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+                engine="pyarrow",
+            )
 
-    except IOError:
-        df = __load_plasticc_dataset_from_csv(timesteps)
+        except IOError:
+            df = __load_augmented_plasticc_dataset_from_parquet(timesteps)
+    else:
+        try:
+            df = pd.read_parquet(
+                f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
+                engine="pyarrow",
+            )
+
+        except IOError:
+            df = __load_plasticc_dataset_from_csv(timesteps)
 
     cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
     robust_scale(df, cols)
@@ -435,7 +543,7 @@ def load_plasticc(timesteps=100, step=100, redshift=None):
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset, redshift=None, balance=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -500,9 +608,11 @@ def load_dataset(dataset, redshift=None, balance=None):
     elif dataset == "plasticc":
         # Load data
         if redshift is None:
-            X_train, y_train, X_test, y_test = load_plasticc()
+            X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented)
         else:
-            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(redshift=redshift)
+            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
+                redshift=redshift, augmented=augmented
+            )
 
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
