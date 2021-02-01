@@ -22,12 +22,12 @@
 ## #SBATCH -e logs/%j.err
 ## #SBATCH -o logs/%j.out
 set -o pipefail -e
-
 source $PWD/conf/astronet.conf
-date
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/sbin/tests_t2
+SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 which python
 cat /proc/cpuinfo
-pip install .
 pip install -r requirements.txt
 # Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
@@ -35,6 +35,5 @@ python -c "import tensorflow as tf; print(tf.__version__)"
 # Run test suite
 pytest $ASNWD/astronet/t2/tests/int/test_numpy_api.py
 pytest --cov $ASNWD/astronet
-date
-# Print the contents of this file to stdout from line 15 onwards
-awk 'NR>15' $ASNWD/sbin/tests_t2
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."

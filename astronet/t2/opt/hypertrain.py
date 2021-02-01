@@ -63,15 +63,22 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset):
+    def __init__(self, epochs, dataset, redshift, balance):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.redshift = redshift
+        self.balance = balance
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        X_train, y_train, _, _, loss = load_dataset(dataset)
+        if self.redshift is not None:
+            X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
+                dataset, redshift=self.redshift, balance=self.balance
+            )
+        else:
+            X_train, y_train, _, _, loss = load_dataset(dataset, balance=self.balance)
 
         num_classes = y_train.shape[1]
 
@@ -106,10 +113,16 @@ class Objective(object):
             run_eagerly=True,
         )
 
-        model.build_graph(input_shape)
-
         scores = []
         skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+
+        if self.redshift is not None:
+            num_z_samples, num_z_features = ZX_train.shape
+            z_input_shape = (BATCH_SIZE, num_z_features)
+            input_shapes = [input_shape, z_input_shape]
+            model.build_graph(input_shapes)
+        else:
+            model.build_graph(input_shape)
 
         print(type(y_train))
         if tf.is_tensor(y_train):
@@ -125,12 +138,20 @@ class Objective(object):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
 
+            inputs_train_cv = X_train_cv
+            inputs_val_cv = X_val_cv
+
+            if self.redshift is not None:
+                Z_train_cv, Z_val_cv = ZX_train[train_index], ZX_train[val_index]
+                inputs_train_cv = [X_train_cv, Z_train_cv]
+                inputs_val_cv = [X_val_cv, Z_val_cv]
+
             _ = model.fit(
-                X_train_cv,
+                inputs_train_cv,
                 y_train_cv,
                 batch_size=BATCH_SIZE,
                 epochs=EPOCHS,
-                validation_data=(X_val_cv, y_val_cv),
+                validation_data=(inputs_val_cv, y_val_cv),
                 verbose=False,
                 callbacks=[
                     # DetectOverfittingCallback(threshold=1.5),
@@ -154,7 +175,7 @@ class Objective(object):
             )
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(X_val_cv, y_val_cv, verbose=0)
+            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0)
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
@@ -186,6 +207,12 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--num-trials", default=15,
             help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
 
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to include redshift features or not")
+
+    parser.add_argument("-b", "--balance", default=None,
+            help="Whether to balance classes or not")
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -195,12 +222,21 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+
+    redshift = args.redshift
+    if redshift is not None:
+        redshift = True
+
+    balance = args.balance
+    if balance is not None:
+        balance = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, balance=balance),
         n_trials=N_TRIALS,
         timeout=86400,
         n_jobs=-1,
@@ -225,6 +261,9 @@ if __name__ == "__main__":
     print("  Value: {}".format(trial.value))
     best_result['objective_score'] = trial.value
 
+    best_result['z-redshift'] = redshift
+    best_result['balanced_classes'] = balance
+
     print("  Params: ")
     for key, value in trial.params.items():
         print("    {}: {}".format(key, value))
@@ -233,7 +272,12 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json") as jf:
+    if redshift:
+        hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
+    else:
+        hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
+
+    with open(hyper_results_file) as jf:
         data = json.load(jf)
         print(data)
 
@@ -244,7 +288,7 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json", "w") as rf:
+    with open(hyper_results_file, "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
     with open(f"{asnwd}/astronet/t2/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:

@@ -75,7 +75,8 @@ class Objective(object):
 
         num_classes = y_train.shape[1]
 
-        kernel_size = trial.suggest_categorical("kernel_size", [3, 6, 12, 24, 48, 96])  # --> Filter length
+        kernel_size = trial.suggest_categorical("kernel_size", [3, 16, 32, 64, 96])     # --> Filter length
+        pool_size = trial.suggest_categorical("pool_size", [3, 16, 32, 64, 96])         # --> Pooling width
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -86,6 +87,7 @@ class Objective(object):
         model = SNXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
+            pool_size=pool_size,
         )
 
         # We compile our model with a sampled learning rate.
@@ -176,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=10,
             help="How many epochs to run training for")
 
-    parser.add_argument("-n", "--num-trials", default=15,
+    parser.add_argument("-n", "--num-trials", default=10,
             help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
 
     try:
@@ -195,7 +197,7 @@ if __name__ == "__main__":
     study.optimize(
         Objective(epochs=EPOCHS, dataset=dataset),
         n_trials=N_TRIALS,
-        timeout=86400,
+        timeout=170000,     # Break out of optimisation after ~ 47 hrs
         n_jobs=-1,
         show_progress_bar=False,
     )

@@ -69,7 +69,7 @@ jobs:
     - name: Check Environment
       run: |
         echo $PWD
-        ls -la ${{ github.workspace }}/astronet/t2/tests/
+        ls -la ${{ github.workspace }}/astronet/tests/
         echo $HOME
         which python
         which pip

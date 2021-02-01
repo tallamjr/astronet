@@ -7,19 +7,19 @@ import pickle
 import tensorflow as tf
 
 from pathlib import Path
+from scipy import stats
 from sklearn import model_selection
 
 from astronet.constants import (
     pb_wavelengths,
     astronet_working_directory as asnwd,
 )
-from astronet.metrics import custom_log_loss, WeightedLogLoss
+from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
     robust_scale,
     fit_2d_gp,
     predict_2d_gp,
     one_hot_encode,
-    tf_one_hot_encode,
 )
 
 
@@ -109,8 +109,6 @@ def train_val_test_split(df, cols):
 
 
 def create_dataset(X, y, time_steps=1, step=1):
-    from scipy import stats
-    import numpy as np
 
     Xs, ys = [], []
     for i in range(0, len(X) - time_steps, step):
@@ -349,15 +347,13 @@ def __load_plasticc_dataset_from_csv(timesteps):
             "gal_b",
             "ddf",
             "hostgal_specz",
-            "hostgal_photoz",
-            "hostgal_photoz_err",
             "distmod",
             "mwebv",
         ]
     )
 
     df.to_parquet(
-        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
+        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
         engine="pyarrow",
         compression="snappy",
     )
@@ -383,26 +379,26 @@ def load_mts(dataset):
     return X_train, y_train, X_test, y_test
 
 
-def load_plasticc(timesteps=100, step=100):
+def load_plasticc(timesteps=100, step=100, redshift=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
+    TIME_STEPS = timesteps
+    STEP = step
+
     try:
         df = pd.read_parquet(
-            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}.parquet",
+            f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
             engine="pyarrow",
         )
+
     except IOError:
         df = __load_plasticc_dataset_from_csv(timesteps)
 
     cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
-
     robust_scale(df, cols)
-
-    TIME_STEPS = timesteps
-    STEP = step
 
     Xs, ys = create_dataset(
         df[cols],
@@ -415,10 +411,31 @@ def load_plasticc(timesteps=100, step=100):
         Xs, ys, random_state=RANDOM_SEED
     )
 
-    return X_train, y_train, X_test, y_test
+    if redshift is None:
+        return X_train, y_train, X_test, y_test
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+            np.array(ZX), zys, random_state=RANDOM_SEED
+        )
+
+        return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset):
+def load_dataset(dataset, redshift=None, balance=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -482,7 +499,11 @@ def load_dataset(dataset):
 
     elif dataset == "plasticc":
         # Load data
-        X_train, y_train, X_test, y_test = load_plasticc()
+        if redshift is None:
+            X_train, y_train, X_test, y_test = load_plasticc()
+        else:
+            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(redshift=redshift)
+
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
         encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
@@ -490,10 +511,35 @@ def load_dataset(dataset):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
 
-        # # One hot encode y
-        # y_train, y_test = tf_one_hot_encode(y_train, y_test)
-
         loss = WeightedLogLoss()
-        # loss = custom_log_loss
 
-    return X_train, y_train, X_test, y_test, loss
+    if balance is not None:
+        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+
+        RANDOM_SEED = 42
+        np.random.seed(RANDOM_SEED)
+        # random_state: if None, the random number generator is the RandomState instance used by np.random.
+
+        from imblearn.under_sampling import RandomUnderSampler
+        X_resampled, y_resampled = RandomUnderSampler(sampling_strategy="not minority").fit_resample(
+            X_train.reshape(X_train.shape[0], -1), y_train
+        )
+        # Re-shape 2D data back to 3D original shape, i.e (BATCH_SIZE, timesteps, num_features)
+        X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
+
+        if redshift is not None:
+            num_z_samples, num_z_features = ZX_train.shape
+            Z_resampled, _ = RandomUnderSampler(sampling_strategy="not minority").fit_resample(
+                ZX_train, y_train
+            )
+            Z_resampled = np.reshape(Z_resampled, (Z_resampled.shape[0], num_z_features))
+
+            ZX_train = Z_resampled
+
+        X_train = X_resampled
+        y_train = y_resampled
+
+    if redshift is None:
+        return X_train, y_train, X_test, y_test, loss
+    else:
+        return X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test

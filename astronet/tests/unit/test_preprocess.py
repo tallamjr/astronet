@@ -46,7 +46,7 @@ def test_plasticc_fit_2d_gp():
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
-        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/training_set.csv",
+        f"{Path(__file__).absolute().parent.parent.parent.parent}/data/plasticc/training_set.csv",
         sep=",",
     )
     data = __remap_filters(df=data)
@@ -58,7 +58,7 @@ def test_plasticc_predict_2d_gp():
     filters = list(np.unique(filters))
 
     df = __filter_dataframe_only_supernova(
-        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/train_subset.txt",
+        f"{Path(__file__).absolute().parent.parent.parent.parent}/data/plasticc/train_subset.txt",
         data,
     )
 
