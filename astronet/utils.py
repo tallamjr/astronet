@@ -462,6 +462,8 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     )
 
     metadata_pd = metadata_pd.reset_index()
+    metadata_pd = metadata_pd.replace({'_aug': '000'}, regex=True)
+    metadata_pd = metadata_pd.convert_dtypes()
     metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
 
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
