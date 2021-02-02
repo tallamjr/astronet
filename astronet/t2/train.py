@@ -87,6 +87,10 @@ class Training(object):
         # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
         num_filters = embed_dim
 
+        num_layers = event['num_layers']    # --> N x repeated transformer blocks
+        droprate = event['droprate']        # --> Rate of neurons to drop
+        fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -100,6 +104,9 @@ class Training(object):
             ff_dim=ff_dim,
             num_filters=num_filters,
             num_classes=num_classes,
+            num_layers=num_layers,
+            droprate=droprate,
+            fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.
