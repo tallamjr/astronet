@@ -454,7 +454,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     print(df.head())
 
     object_list = list(np.unique(df['object_id']))
-    print(len(object_list)
+    print(len(object_list))
 
     # obs_transient = __transient_trim(object_list, df)
     generated_gp_dataset = __generate_gp_all_objects(object_list, df, timesteps)
