@@ -443,13 +443,18 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     #     {"flux_err": "flux_error"}, axis="columns", inplace=True
     # )  # snmachine and PLAsTiCC uses a different denomination
 
+    print(data.head())
+
     # import pdb;pdb.set_trace()
     df = __filter_dataframe_only_supernova(
         f"{asnwd}/data/plasticc/aug_object_list.txt",
         data,
     )
 
+    print(df.head())
+
     object_list = list(np.unique(df['object_id']))
+    print(len(object_list)
 
     # obs_transient = __transient_trim(object_list, df)
     generated_gp_dataset = __generate_gp_all_objects(object_list, df, timesteps)
