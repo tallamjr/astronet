@@ -297,6 +297,7 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
         columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
     )
 
+    # import pdb;pdb.set_trace()
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
     gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
@@ -403,7 +404,7 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
     for i in range(len(object_list)):
         adf = pd.concat([adf, aug.data[object_list[i]].to_pandas()])
 
-    adf = adf.set_index('object_id')
+    # adf = adf.set_index('object_id')
     adf = adf.convert_dtypes()
 
     try:
