@@ -79,6 +79,19 @@
             "num_heads": 8,
             "objective_score": 0.5982831597328186,
             "z-redshift": true
+        },
+        {
+            "balanced_classes": null,
+            "droprate": 0.1,
+            "embed_dim": 32,
+            "fc_neurons": 20,
+            "ff_dim": 512,
+            "lr": 0.01383513670154106,
+            "name": "1612196385-25f3e6b",
+            "num_heads": 4,
+            "num_layers": 1,
+            "objective_score": 0.5711506724357605,
+            "z-redshift": true
         }
     ]
 }
