@@ -14,6 +14,7 @@ data/mtsdata
 data/transformed-mtsdata
 data/plasticc/*.pckl
 data/plasticc/augmented_training_set.csv
+data/plasticc/__*
 logs/
 *.log
 *.pdf
