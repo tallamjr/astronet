@@ -429,12 +429,14 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     try:
         data = pd.read_csv(
             f"{asnwd}/data/plasticc/augmented_training_set.csv",
-            index_col=[0]
         )
     except IOError:
         data = __generate_augmented_plasticc_dataset_from_pickle(
             f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
         )
+
+    data = data.replace({'_aug': '000'}, regex=True)
+    data = data.convert_dtypes()
 
     # data = __remap_filters(df=data)
     # data.rename(
