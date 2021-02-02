@@ -472,6 +472,8 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
 
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+    print(df_with_labels.columns)
+    print(df_with_labels.head())
 
     df = df_with_labels.filter(
         items=[
