@@ -468,16 +468,19 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
 
-    df = df_with_labels.drop(
-        columns=[
-            "ra",
-            "decl",
-            "gal_l",
-            "gal_b",
-            "ddf",
-            "hostgal_specz",
-            "distmod",
-            "mwebv",
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "target",
         ]
     )
 
