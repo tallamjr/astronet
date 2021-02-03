@@ -452,6 +452,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     )
 
     print(df.head())
+    print(df.dtypes)
 
     object_list = list(np.unique(df['object_id']))
     print(len(object_list))
@@ -474,6 +475,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
     print(df_with_labels.columns)
     print(df_with_labels.head())
+    print(df_with_labels.dtypes)
 
     df = df_with_labels.filter(
         items=[
@@ -491,14 +493,27 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
         ]
     )
 
-    try:
-        df.to_parquet(
-            f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
-            engine="pyarrow",
-            compression="snappy",
-        )
-    except IOError:
-        df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv")
+    print(df.dtypes)
+    df.convert_dtypes()
+    df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    # df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z_backup.csv")
+    df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv")
+
+    # try:
+    #     df.to_parquet(
+    #         f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+    #         engine="pyarrow",
+    #         compression="snappy",
+    #     )
+
+    # except IOError:
+    #     df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv")
 
     return df
 
@@ -513,15 +528,21 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
     STEP = step
 
     if augmented is not None:
+        dataform = "augmented"
         try:
-            df = pd.read_parquet(
-                f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
-                engine="pyarrow",
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv",
+                sep=",",
             )
+            # df = pd.read_parquet(
+            #     f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+            #     engine="pyarrow",
+            # )
 
         except IOError:
             df = __load_augmented_plasticc_dataset_from_csv(timesteps)
     else:
+        dataform = "original"
         try:
             df = pd.read_parquet(
                 f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
@@ -545,6 +566,23 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
         Xs, ys, random_state=RANDOM_SEED
     )
 
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_train.npy",
+            X_train,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_test.npy",
+            X_test,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_train.npy",
+            y_train,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_test.npy",
+            y_test,
+    )
+
     if redshift is None:
         return X_train, y_train, X_test, y_test
     else:
@@ -564,6 +602,15 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
 
         ZX_train, ZX_test, _, _ = model_selection.train_test_split(
             np.array(ZX), zys, random_state=RANDOM_SEED
+        )
+
+        np.save(
+                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_train.npy",
+                ZX_train,
+        )
+        np.save(
+                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+                ZX_test,
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
@@ -640,9 +687,13 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None):
                 redshift=redshift, augmented=augmented
             )
 
+        if augmented is not None:
+            dataform = "augmented"
+        else:
+            dataform = "original"
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
-        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataform}-{dataset}.encoding"
         if not os.path.exists(encoding_file):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
