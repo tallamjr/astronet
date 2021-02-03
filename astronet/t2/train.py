@@ -250,7 +250,7 @@ if __name__ == "__main__":
     EPOCHS = int(args.epochs)
     model = args.model
 
-    augmented = args.augmented
+    augmented = args.augment
     if augmented is not None:
         augmented = True
 
