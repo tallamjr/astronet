@@ -3511,7 +3511,9 @@
                 0.7515296936035156
             ],
             "augmented": true,
+            "droprate": 0.1,
             "embed_dim": 32,
+            "fc_neurons": 20,
             "ff_dim": 512,
             "hypername": "1612196385-25f3e6b",
             "loss": [
@@ -3659,6 +3661,7 @@
             "model_evaluate_on_test_loss": 0.6074766516685486,
             "name": "1612366652-64d2e26",
             "num_heads": 4,
+            "num_layers": 1,
             "val_acc": [
                 0.64436936378479,
                 0.6625000238418579,

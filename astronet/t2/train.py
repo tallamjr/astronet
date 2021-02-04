@@ -182,6 +182,9 @@ class Training(object):
         model_params['embed_dim'] = event['embed_dim']
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
+        model_params['num_layers'] = event['num_layers']
+        model_params['droprate'] = event['droprate']
+        model_params['fc_neurons'] = event['fc_neurons']
         model_params['z-redshift'] = self.redshift
         model_params['augmented'] = self.augmented
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
