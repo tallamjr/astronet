@@ -5,6 +5,7 @@
                 0.37846875190734863
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611938187-5cb121c",
@@ -116,6 +117,7 @@
                 0.7622868418693542
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611949575-79a63f7",
@@ -478,6 +480,7 @@
                 0.8921568393707275
             ],
             "balanced_classes": true,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611949575-79a63f7",
@@ -798,6 +801,7 @@
                 0.7572362422943115
             ],
             "balanced_classes": true,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611949575-79a63f7",
@@ -1099,6 +1103,7 @@
                 0.791039764881134
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "hypername": "1611939225-ed2b9b2",
@@ -1376,6 +1381,7 @@
                 0.7404295206069946
             ],
             "balanced_classes": true,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 64,
             "hypername": "1611949575-79a63f7",
@@ -1685,6 +1691,7 @@
                 0.8104313015937805
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "hypername": "1611939225-ed2b9b2",
@@ -2034,6 +2041,7 @@
                 0.7907054424285889
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "hypername": "1611939225-ed2b9b2",
@@ -2377,6 +2385,7 @@
                 0.7907054424285889
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "hypername": "1611939225-ed2b9b2",
@@ -2728,6 +2737,7 @@
                 0.8348378539085388
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 128,
             "hypername": "1611939225-ed2b9b2",
@@ -3096,6 +3106,7 @@
                 0.814777672290802
             ],
             "balanced_classes": null,
+            "augmented": null,
             "embed_dim": 32,
             "ff_dim": 512,
             "hypername": "1612196385-25f3e6b",
