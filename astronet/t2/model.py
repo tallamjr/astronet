@@ -37,7 +37,7 @@ class T2Model(keras.Model):
 
         # Additional layers when adding Z features here
 
-        self.fc             = layers.Dense(self.fc_neurons, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        # self.fc             = layers.Dense(self.fc_neurons, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         self.dropout2       = layers.Dropout(self.droprate)
 
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
@@ -73,7 +73,7 @@ class T2Model(keras.Model):
             # Additional layers when adding Z features
             x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
 
-            x = self.fc(x)
+            # x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
 
