@@ -381,8 +381,6 @@ def __load_plasticc_dataset_from_csv(timesteps):
 
 
 def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
-    # import snmachine
-    import pickle
 
     # augmented_binary = f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
 
@@ -407,15 +405,16 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
     # adf = adf.set_index('object_id')
     adf = adf.replace({'_aug': '000'}, regex=True)
     adf = adf.convert_dtypes()
+    np.savetxt(f"{asnwd}/data/plasticc/aug_object_list.txt", adf['object_id'].values, fmt='%d')
 
-    try:
-        adf.to_parquet(
-            f"{asnwd}/data/plasticc/augmented_training_set.parquet",
-            engine="pyarrow",
-            compression="snappy",
-        )
-    except IOError:
-        adf.to_csv(f"{asnwd}/data/plasticc/augmented_training_set.csv")
+    # try:
+    #     adf.to_parquet(
+    #         f"{asnwd}/data/plasticc/augmented_training_set.parquet",
+    #         engine="pyarrow",
+    #         compression="snappy",
+    #     )
+    # except IOError:
+    adf.to_csv(f"{asnwd}/data/plasticc/augmented_training_set.csv")
 
     return adf
 
@@ -432,7 +431,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
         )
     except IOError:
         data = __generate_augmented_plasticc_dataset_from_pickle(
-            f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
+            f"{asnwd}/data/plasticc/aug_z_new_long_46k.pckl"
         )
 
     data = data.replace({'_aug': '000'}, regex=True)
