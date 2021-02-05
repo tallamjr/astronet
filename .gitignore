@@ -14,8 +14,7 @@ data/mtsdata
 data/transformed-mtsdata
 data/plasticc/*.pckl
 data/plasticc/*.npy
-data/plasticc/augmented_training_set.csv
-data/plasticc/augmented_transformed_df_timesteps_100_with_z.csv
+data/plasticc/augmented*
 data/plasticc/__*
 logs/
 *.log
