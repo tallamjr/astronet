@@ -90,7 +90,7 @@ class Objective(object):
 
         num_layers = trial.suggest_categorical("num_layers", [1, 2, 4, 8])  # --> N x repeated transformer blocks
         droprate = trial.suggest_categorical("droprate", [0.1, 0.2, 0.4])  # --> Rate of neurons to drop
-        fc_neurons = trial.suggest_categorical("fc_neurons", [16, 20, 32, 64])  # --> N neurons in final Feed forward network.
+        # fc_neurons = trial.suggest_categorical("fc_neurons", [16, 20, 32, 64])  # --> N neurons in final Feed forward network.
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -107,7 +107,7 @@ class Objective(object):
             num_classes=num_classes,
             num_layers=num_layers,
             droprate=droprate,
-            fc_neurons=fc_neurons,
+            # fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.

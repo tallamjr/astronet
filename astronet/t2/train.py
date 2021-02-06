@@ -89,7 +89,7 @@ class Training(object):
 
         num_layers = event['num_layers']    # --> N x repeated transformer blocks
         droprate = event['droprate']        # --> Rate of neurons to drop
-        fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+        # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -106,7 +106,7 @@ class Training(object):
             num_classes=num_classes,
             num_layers=num_layers,
             droprate=droprate,
-            fc_neurons=fc_neurons,
+            # fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.
@@ -184,7 +184,7 @@ class Training(object):
         model_params['num_heads'] = event['num_heads']
         model_params['num_layers'] = event['num_layers']
         model_params['droprate'] = event['droprate']
-        model_params['fc_neurons'] = event['fc_neurons']
+        # model_params['fc_neurons'] = event['fc_neurons']
         model_params['z-redshift'] = self.redshift
         model_params['augmented'] = self.augmented
         model_params["model_evaluate_on_test_acc"] = model.evaluate(

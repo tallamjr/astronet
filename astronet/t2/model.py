@@ -12,7 +12,7 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers, droprate, fc_neurons, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers, droprate, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
@@ -21,7 +21,7 @@ class T2Model(keras.Model):
         self.num_filters    = num_filters
         self.num_layers     = num_layers
         self.droprate       = droprate
-        self.fc_neurons     = fc_neurons
+        # self.fc_neurons     = fc_neurons
 
         self.num_classes    = num_classes
         self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
@@ -37,7 +37,7 @@ class T2Model(keras.Model):
 
         # Additional layers when adding Z features here
 
-        # self.fc             = layers.Dense(self.fc_neurons, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         self.dropout2       = layers.Dropout(self.droprate)
 
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
@@ -73,7 +73,7 @@ class T2Model(keras.Model):
             # Additional layers when adding Z features
             x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
 
-            # x = self.fc(x)
+            x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
 
