@@ -405,7 +405,10 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
     # adf = adf.set_index('object_id')
     adf = adf.replace({'_aug': '000'}, regex=True)
     adf = adf.convert_dtypes()
-    np.savetxt(f"{asnwd}/data/plasticc/aug_object_list.txt", adf['object_id'].values, fmt='%d')
+    print(adf.dtypes)
+    print(adf.head())
+    print(adf['object_id'].values)
+    np.savetxt(f"{asnwd}/data/plasticc/aug_object_list.txt", adf['object_id'].values, fmt='%s')
 
     # try:
     #     adf.to_parquet(
