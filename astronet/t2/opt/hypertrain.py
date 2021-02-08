@@ -246,7 +246,7 @@ if __name__ == "__main__":
     study.optimize(
         Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented),
         n_trials=N_TRIALS,
-        timeout=170000,     # Break out of optimisation after ~ 47 hrs
+        timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
         show_progress_bar=False,
     )
