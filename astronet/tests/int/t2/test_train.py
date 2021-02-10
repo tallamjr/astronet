@@ -44,6 +44,9 @@ def test_training_pipeline_wisdm_2010():
     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
     num_filters = embed_dim
 
+    num_layers = 1  # --> N x repeated transformer blocks
+    droprate = 0.1  # --> Rate of neurons to drop
+
     _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
     input_shape = (BATCH_SIZE, timesteps, num_features)
     print(input_shape)
@@ -55,6 +58,8 @@ def test_training_pipeline_wisdm_2010():
         ff_dim=ff_dim,
         num_filters=num_filters,
         num_classes=num_classes,
+        num_layers=num_layers,
+        droprate=droprate,
     )
 
     model.compile(
@@ -103,6 +108,9 @@ def test_training_pipeline_plasticc():
     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
     num_filters = embed_dim
 
+    num_layers = 1  # --> N x repeated transformer blocks
+    droprate = 0.1  # --> Rate of neurons to drop
+
     _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
     input_shape = (BATCH_SIZE, timesteps, num_features)
     print(input_shape)
@@ -114,6 +122,8 @@ def test_training_pipeline_plasticc():
         ff_dim=ff_dim,
         num_filters=num_filters,
         num_classes=num_classes,
+        num_layers=num_layers,
+        droprate=droprate,
     )
 
     # wloss = WeightedLogLoss()
