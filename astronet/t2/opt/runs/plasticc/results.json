@@ -28,12 +28,16 @@
             "objective_score": 0.8515899062156678
         },
         {
+            "augmented": null,
             "balanced_classes": null,
+            "droprate": 0.1,
             "embed_dim": 32,
+            "fc_neurons": 20,
             "ff_dim": 128,
             "lr": 0.010339936981589045,
             "name": "1611335023-35d4a02",
             "num_heads": 16,
+            "num_layers": 1,
             "objective_score": 0.5814014673233032
         },
         {

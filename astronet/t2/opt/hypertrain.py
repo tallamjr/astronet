@@ -63,11 +63,11 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, balance):
+    def __init__(self, epochs, dataset, redshift, augmented):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
-        self.balance = balance
+        self.augmented = augmented
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -75,10 +75,10 @@ class Objective(object):
 
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
-                dataset, redshift=self.redshift, balance=self.balance
+                dataset, redshift=self.redshift, augmented=self.augmented
             )
         else:
-            X_train, y_train, _, _, loss = load_dataset(dataset, balance=self.balance)
+            X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
 
         num_classes = y_train.shape[1]
 
@@ -87,6 +87,11 @@ class Objective(object):
         ff_dim = trial.suggest_categorical("ff_dim", [32, 64, 128, 512])  # --> Hidden layer size in feed forward network inside transformer
 
         num_filters = embed_dim  # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+
+        num_layers = trial.suggest_categorical("num_layers", [1, 2, 4, 8])  # --> N x repeated transformer blocks
+        droprate = trial.suggest_categorical("droprate", [0.1, 0.2, 0.4])  # --> Rate of neurons to drop
+        # fc_neurons = trial.suggest_categorical("fc_neurons", [16, 20, 32, 64])  # --> N neurons in final Feed forward network.
+
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -100,6 +105,9 @@ class Objective(object):
             ff_dim=ff_dim,
             num_filters=num_filters,
             num_classes=num_classes,
+            num_layers=num_layers,
+            droprate=droprate,
+            # fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.
@@ -210,8 +218,8 @@ if __name__ == "__main__":
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
 
-    parser.add_argument("-b", "--balance", default=None,
-            help="Whether to balance classes or not")
+    parser.add_argument('-a', '--augment', default=None,
+            help='Train using augmented plasticc data')
 
     try:
         args = parser.parse_args()
@@ -227,18 +235,18 @@ if __name__ == "__main__":
     if redshift is not None:
         redshift = True
 
-    balance = args.balance
-    if balance is not None:
-        balance = True
+    augmented = args.augment
+    if augmented is not None:
+        augmented = True
 
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, balance=balance),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented),
         n_trials=N_TRIALS,
-        timeout=86400,
+        timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
         show_progress_bar=False,
     )
@@ -262,7 +270,7 @@ if __name__ == "__main__":
     best_result['objective_score'] = trial.value
 
     best_result['z-redshift'] = redshift
-    best_result['balanced_classes'] = balance
+    best_result['augmented'] = augmented
 
     print("  Params: ")
     for key, value in trial.params.items():

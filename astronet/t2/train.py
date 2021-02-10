@@ -41,22 +41,22 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model, redshift, balance):
+    def __init__(self, epochs, dataset, model, redshift, augmented):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
-        self.balance = balance
+        self.augmented = augmented
 
     def __call__(self):
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset, redshift=self.redshift, balance=self.balance
+                dataset, redshift=self.redshift, augmented=self.augmented
             )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=self.balance)
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
 
         num_classes = y_train.shape[1]
@@ -87,6 +87,10 @@ class Training(object):
         # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
         num_filters = embed_dim
 
+        num_layers = event['num_layers']    # --> N x repeated transformer blocks
+        droprate = event['droprate']        # --> Rate of neurons to drop
+        # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -100,6 +104,9 @@ class Training(object):
             ff_dim=ff_dim,
             num_filters=num_filters,
             num_classes=num_classes,
+            num_layers=num_layers,
+            droprate=droprate,
+            # fc_neurons=fc_neurons,
         )
 
         # We compile our model with a sampled learning rate.
@@ -175,8 +182,11 @@ class Training(object):
         model_params['embed_dim'] = event['embed_dim']
         model_params['ff_dim'] = event['ff_dim']
         model_params['num_heads'] = event['num_heads']
+        model_params['num_layers'] = event['num_layers']
+        model_params['droprate'] = event['droprate']
+        # model_params['fc_neurons'] = event['fc_neurons']
         model_params['z-redshift'] = self.redshift
-        model_params['balanced_classes'] = self.balance
+        model_params['augmented'] = self.augmented
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
             test_input, y_test, batch_size=X_test.shape[0]
         )[1]
@@ -226,8 +236,8 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', default=None,
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
-    parser.add_argument('-b', '--balance', default=None,
-            help='Use SMOTE or other variant to balance classes')
+    parser.add_argument('-a', '--augment', default=None,
+            help='Train using augmented plasticc data')
 
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
@@ -243,15 +253,15 @@ if __name__ == "__main__":
     EPOCHS = int(args.epochs)
     model = args.model
 
-    balance = args.balance
-    if balance is not None:
-        balance = True
+    augmented = args.augment
+    if augmented is not None:
+        augmented = True
 
     redshift = args.redshift
     if redshift is not None:
         redshift = True
 
     training = Training(
-        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift, balance=balance
+        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift, augmented=augmented
     )
     training()

@@ -12,13 +12,17 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers=1, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers, droprate, **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
         self.ff_dim         = ff_dim
         self.num_filters    = num_filters
+        self.num_layers     = num_layers
+        self.droprate       = droprate
+        # self.fc_neurons     = fc_neurons
+
         self.num_classes    = num_classes
         self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
 
@@ -29,12 +33,12 @@ class T2Model(keras.Model):
                                 for _ in range(num_layers)]
 
         self.pooling        = layers.GlobalAveragePooling1D()
-        self.dropout1       = layers.Dropout(0.1)
+        self.dropout1       = layers.Dropout(self.droprate)
 
         # Additional layers when adding Z features here
 
-        self.fc             = layers.Dense(20, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
-        self.dropout2       = layers.Dropout(0.1)
+        self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        self.dropout2       = layers.Dropout(self.droprate)
 
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
