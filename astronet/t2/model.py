@@ -55,7 +55,7 @@ class T2Model(keras.Model):
             if training:
                 x = self.dropout1(x, training=training)
 
-            # x = self.fc(x)
+            x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
 
