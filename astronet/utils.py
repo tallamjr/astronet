@@ -575,9 +575,8 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
     else:
         dataform = "full"
         try:
-            df = pd.read_parquet(
-                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
-                engine="pyarrow",
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
             )
 
         except IOError:
