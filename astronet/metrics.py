@@ -61,6 +61,50 @@ class WeightedLogLoss(keras.losses.Loss):
         return loss
 
 
+class FlatWeightedLogLoss(keras.losses.Loss):
+
+    # initialize instance attributes
+    def __init__(self, name="weighted_log_loss"):
+        super().__init__(name=name)
+
+    # compute loss
+    def call(self, y_true, y_pred):
+        """
+        Parameters:
+        -----------
+        `y_true`: numpy.ndarray
+
+        `y_pred`: numpy.ndarray
+
+        References:
+        -----------
+        - https://www.kaggle.com/c/PLAsTiCC-2018/discussion/69795
+        def mywloss(y_true, y_pred):
+            yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
+            loss = -(tf.reduce_mean(tf.reduce_mean(y_true * tf.log(yc), axis=0) / wtable))
+            return loss
+        Where:
+        wtable - is a numpy 1d array with (the number of times class y_true occur in the data set)/(size of data set)
+        See Equation 2 K. Boone et al. T is the number of such classes.
+        """
+
+        wtable = len(np.unique(y_true))
+
+        yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
+
+        yc = tf.cast(yc, tf.float64)
+        y_true = tf.cast(y_true, tf.float64)
+        wtable = tf.cast(wtable, tf.float64)
+
+        loss = -(
+            tf.reduce_mean(
+                tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+            )
+        )
+
+        return loss
+
+
 def custom_log_loss(y_true, y_pred):
     """
     Parameters:
