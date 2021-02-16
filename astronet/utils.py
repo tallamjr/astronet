@@ -337,11 +337,13 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     )  # snmachine and PLAsTiCC uses a different denomination
 
     if snonly is not None:
+        dataform = "snonly"
         df = __filter_dataframe_only_supernova(
             f"{asnwd}/data/plasticc/train_subset.txt",
             data,
         )
     else:
+        dataform = "full"
         df = data
 
     object_list = list(np.unique(df['object_id']))
@@ -361,21 +363,35 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
 
-    df = df_with_labels.drop(
-        columns=[
-            "ra",
-            "decl",
-            "gal_l",
-            "gal_b",
-            "ddf",
-            "hostgal_specz",
-            "distmod",
-            "mwebv",
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "target",
         ]
     )
 
+    print(df.dtypes)
+    df.convert_dtypes()
+    df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv")
+
     df.to_parquet(
-        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
         engine="pyarrow",
         compression="snappy",
     )
