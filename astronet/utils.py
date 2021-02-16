@@ -321,7 +321,7 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
     return pd.DataFrame(data=adf, columns=obj_gps.columns)
 
 
-def __load_plasticc_dataset_from_csv(timesteps):
+def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -336,10 +336,13 @@ def __load_plasticc_dataset_from_csv(timesteps):
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
 
-    df = __filter_dataframe_only_supernova(
-        f"{asnwd}/data/plasticc/train_subset.txt",
-        data,
-    )
+    if snonly is not None:
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        df = data
 
     object_list = list(np.unique(df['object_id']))
 
@@ -520,7 +523,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
-def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
+def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -533,7 +536,7 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
         dataform = "augmented"
         try:
             df = pd.read_csv(
-                f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
                 sep=",",
             )
             # df = pd.read_parquet(
@@ -543,11 +546,21 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
 
         except IOError:
             df = __load_augmented_plasticc_dataset_from_csv(timesteps)
-    else:
-        dataform = "original"
+    elif snonly is not None:
+        dataform = "snonly"
         try:
             df = pd.read_parquet(
-                f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
+                engine="pyarrow",
+            )
+
+        except IOError:
+            df = __load_plasticc_dataset_from_csv(timesteps, snonly=True)
+    else:
+        dataform = "full"
+        try:
+            df = pd.read_parquet(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
                 engine="pyarrow",
             )
 
@@ -607,18 +620,18 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
         )
 
         np.save(
-                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_train.npy",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_train.npy",
                 ZX_train,
         )
         np.save(
-                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
                 ZX_test,
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -683,10 +696,10 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None):
     elif dataset == "plasticc":
         # Load data
         if redshift is None:
-            X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented)
+            X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly)
         else:
             X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-                redshift=redshift, augmented=augmented
+                redshift=redshift, augmented=augmented, snonly=snonly
             )
 
         if augmented is not None:
