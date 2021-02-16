@@ -390,11 +390,11 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     df.to_csv(f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv")
 
-    df.to_parquet(
-        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
-        engine="pyarrow",
-        compression="snappy",
-    )
+    # df.to_parquet(
+    #     f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
+    #     engine="pyarrow",
+    #     compression="snappy",
+    # )
 
     return df
 
