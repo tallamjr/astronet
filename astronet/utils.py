@@ -704,8 +704,10 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
 
         if augmented is not None:
             dataform = "augmented"
+        elif snonly is not None:
+            dataform = "snonly"
         else:
-            dataform = "original"
+            dataform = "full"
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
         encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataform}-{dataset}.encoding"
