@@ -30,18 +30,20 @@ def _get_encoding(dataset):
 
     if dataset == "plasticc":
         class_mapping = {
-            15: "TDE",
-            42: "SNII",
-            52: "SNIax",
-            62: "SNIbc",
-            64: "KN",
-            67: "SNIa-91bg",
-            88: "AGN",
             90: "SNIa",
+            67: "SNIa-91bg",
+            52: "SNIax",
+            42: "SNII",
+            62: "SNIbc",
             95: "SLSN-I",
-            1: "SNIa",
-            2: "SNII",
-            3: "SNIbc",
+            15: "TDE",
+            64: "KN",
+            88: "AGN",
+            92: "RRL",
+            65: "M-dwarf",
+            16: "EB",
+            53: "Mira",
+            6: "mu-Lens-Single",
         }
 
         class_encoding
@@ -288,18 +290,20 @@ if __name__ == '__main__':
     elif args.dataset == "plasticc":
         load_dataset = load_plasticc
         class_mapping = {
-            15: "TDE",
-            42: "SNII",
-            52: "SNIax",
-            62: "SNIbc",
-            64: "KN",
-            67: "SNIa-91bg",
-            88: "AGN",
             90: "SNIa",
+            67: "SNIa-91bg",
+            52: "SNIax",
+            42: "SNII",
+            62: "SNIbc",
             95: "SLSN-I",
-            1: "SNIa",
-            2: "SNII",
-            3: "SNIbc",
+            15: "TDE",
+            64: "KN",
+            88: "AGN",
+            92: "RRL",
+            65: "M-dwarf",
+            16: "EB",
+            53: "Mira",
+            6: "mu-Lens-Single",
         }
 
     # Load data
