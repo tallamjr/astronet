@@ -233,7 +233,7 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     #              label='ROC: {0} (area = {1:0.2f})'
     #              ''.format(class_names[i], roc_auc[i]))
 
-    plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+    # plt.plot([0, 1], [0, 1], 'k--', lw=lw)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
