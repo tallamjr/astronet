@@ -88,7 +88,9 @@ class FlatWeightedLogLoss(keras.losses.Loss):
         See Equation 2 K. Boone et al. T is the number of such classes.
         """
 
-        wtable = len(np.unique(y_true))
+        num_classes = y_true.shape[1]
+        # Each class has the same weight
+        wtable = np.ones(num_classes) / num_classes
 
         yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
 
