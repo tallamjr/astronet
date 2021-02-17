@@ -222,11 +222,16 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
                    ''.format(roc_auc["macro"]),
              color='navy', linestyle=':', linewidth=3)
 
-    colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
-    for i, color in zip(range(n_classes), colors):
-        plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+    plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.Accent.colors)
+    for i in range(n_classes):
+        plt.plot(fpr[i], tpr[i], lw=lw,
                  label='ROC: {0} (area = {1:0.2f})'
                  ''.format(class_names[i], roc_auc[i]))
+    # colors = plt.cycle(['aqua', 'darkorange', 'cornflowerblue'])
+    # for i, color in zip(range(n_classes), colors):
+    #     plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+    #              label='ROC: {0} (area = {1:0.2f})'
+    #              ''.format(class_names[i], roc_auc[i]))
 
     plt.plot([0, 1], [0, 1], 'k--', lw=lw)
     plt.xlim([0.0, 1.0])
