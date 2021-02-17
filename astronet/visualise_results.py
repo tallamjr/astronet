@@ -157,10 +157,11 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
 
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
-    plt.setp(ax.yaxis.get_majorticklabels(), ha="right")
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=-45, ha="left", rotation_mode="anchor")
+    plt.setp(ax.yaxis.get_majorticklabels(), rotation="horizontal", ha="right", rotation_mode="anchor")
     # apply offset transform to all x ticklabels.
-    for label in ax.yaxis.get_majorticklabels():
-        label.set_transform(label.get_transform() + offset)
+    # for label in ax.yaxis.get_majorticklabels():
+    #     label.set_transform(label.get_transform() + offset)
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
