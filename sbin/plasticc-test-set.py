@@ -1,9 +1,6 @@
 import argparse
-import json
-import logging
 import numpy as np
 import shutil
-import subprocess
 import sys
 import tensorflow as tf
 
@@ -18,7 +15,7 @@ try:
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
     print("Seems you are running from a notebook...")
-    __file__ = f"{Path().resolve().parent}/astronet/t2/train.py"
+    __file__ = f"{Path().resolve().parent}/sbin/plasticc-test-set.py"
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
