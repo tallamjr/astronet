@@ -399,6 +399,91 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     return df
 
 
+def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    # batch_filename = "plasticc_test_lightcurves_01"
+
+    data = pd.read_csv(
+        f"{asnwd}/data/plasticc/test_set/{batch_filename}.csv",
+        sep=",",
+    )
+    data = __remap_filters(df=data)
+    data.rename(
+        {"flux_err": "flux_error"}, axis="columns", inplace=True
+    )  # snmachine and PLAsTiCC uses a different denomination
+    data.rename(
+        {"detected_bool": "detected"}, axis="columns", inplace=True
+    )  # snmachine and PLAsTiCC uses a different denomination
+
+    if snonly is not None:
+        dataform = "snonly"
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        dataform = "full_test"
+        df = data
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{asnwd}/data/plasticc/test_set/plasticc_test_metadata.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "true_target",
+        ]
+    )
+
+    print(df.dtypes)
+    df.convert_dtypes()
+    df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv"
+    )
+
+    # df.to_parquet(
+    #     f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
+    #     engine="pyarrow",
+    #     compression="snappy",
+    # )
+
+    return df
+
+
 def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
 
     # augmented_binary = f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
@@ -644,6 +729,105 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
+
+
+def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=None, snonly=None,
+        batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    if augmented is not None:
+        dataform = "augmented"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+                sep=",",
+            )
+            # df = pd.read_parquet(
+            #     f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+            #     engine="pyarrow",
+            # )
+
+        except IOError:
+            df = __load_augmented_plasticc_dataset_from_csv(timesteps)
+    elif snonly is not None:
+        dataform = "snonly"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_plasticc_dataset_from_csv(timesteps, snonly=True)
+    else:
+        dataform = "full_test"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_plasticc_test_set_dataset_from_csv(timesteps, batch_filename=batch_filename)
+
+    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    robust_scale(df, cols)
+
+    Xs, ys = create_dataset(
+        df[cols],
+        df.true_target,
+        TIME_STEPS,
+        STEP
+    )
+
+    # X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    #     Xs, ys, random_state=RANDOM_SEED
+    # )
+
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
+            Xs,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
+            ys,
+    )
+
+    if redshift is None:
+        return Xs, ys
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.true_target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        # ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+        #     np.array(ZX), zys, random_state=RANDOM_SEED
+        # )
+
+        np.save(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test_{batch_filename}.npy",
+                np.array(ZX),
+        )
+        # np.save(
+        #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+        #         ZX_test,
+        # )
+
+        return Xs, ys, np.array(ZX)
 
 
 def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None):
