@@ -472,7 +472,7 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     print(df.dtypes)
 
     df.to_csv(
-        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv"
+        f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv"
     )
 
     # df.to_parquet(
@@ -767,7 +767,7 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         dataform = "full_test"
         try:
             df = pd.read_csv(
-                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+                f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
             )
 
         except IOError:
