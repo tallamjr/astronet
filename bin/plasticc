@@ -42,7 +42,7 @@ dataset="plasticc"
 # Hyperparameter Optimisation
 # python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50 -z ""
 # Train
-python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
+python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 --model "1611335023-35d4a02"
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
