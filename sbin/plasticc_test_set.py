@@ -31,7 +31,7 @@ class ProcessTestSet(object):
 
     def __call__(self):
 
-        save_plasticc_test_set(batch_filename=self.filename)
+        save_plasticc_test_set(batch_filename=self.filename, redshift=True)
         print(f"{self.filename} COMPLETED")
 
 
