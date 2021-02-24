@@ -19,6 +19,7 @@ data/plasticc/__*
 data/plasticc/full_transformed_df_timesteps_100_with_z.csv
 data/plasticc/snonly_transformed_df_timesteps_100_with_z.csv
 data/plasticc/test_set
+data/plasticc-backup
 
 logs/
 *.log
