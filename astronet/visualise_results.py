@@ -9,7 +9,6 @@ import sys
 import seaborn as sns
 import tensorflow as tf
 
-from itertools import cycle
 from numpy import interp
 from pathlib import Path
 from sklearn.metrics import confusion_matrix
@@ -22,9 +21,14 @@ from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
-def _get_encoding(dataset):
+def _get_encoding(dataset, dataform=None):
 
-    with open(f"{asnwd}/data/{dataset}.encoding", "rb") as eb:
+    if dataform is not None:
+        encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
+    else:
+        encoding_filename = f"{asnwd}/data/{dataset}.encoding"
+
+    with open(encoding_filename, "rb") as eb:
         encoding = joblib.load(eb)
     class_encoding = encoding.categories_[0]
 
@@ -356,3 +360,8 @@ if __name__ == '__main__':
     )
 
     plot_multiROC(dataset, model_name, model, X_test, y_test, class_names)
+
+
+# Class Activation Maps
+
+
