@@ -788,11 +788,11 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
     # )
 
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
+            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
             Xs,
     )
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
+            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
             ys,
     )
 
