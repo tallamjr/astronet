@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=ptest                # Job name
+#SBATCH --job-name=chunkpt              # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
 # #SBATCH --exclusive                     # Request exclusive access to a node
@@ -26,7 +26,7 @@
 set -o pipefail -e
 source $PWD/conf/astronet.conf
 # Print the contents of this file to stdout from line 15 onwards
-awk 'NR>15' $ASNWD/sbin/plasticc-test-set
+awk 'NR>15' $ASNWD/sbin/chunk-plasticc-test
 date
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 which python
@@ -35,23 +35,22 @@ python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 
 declare -a arr=(
-                "plasticc_test_lightcurves_01"
-                "plasticc_test_lightcurves_02"
-                "plasticc_test_lightcurves_03"
-                "plasticc_test_lightcurves_04"
-                "plasticc_test_lightcurves_05"
-                "plasticc_test_lightcurves_06"
-                "plasticc_test_lightcurves_07"
-                "plasticc_test_lightcurves_08"
-                "plasticc_test_lightcurves_09"
-                "plasticc_test_lightcurves_10"
-                "plasticc_test_lightcurves_11"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_02.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_03.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_04.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_05.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_06.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_07.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_08.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_09.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_10.csv"
+                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_11.csv"
             )
 
 echo "${arr[SLURM_ARRAY_TASK_ID-1]}"
 dataset="${arr[SLURM_ARRAY_TASK_ID-1]}"
-# Hyperparameter Optimisation
-python $ASNWD/sbin/plasticc_test_set.py --file $dataset
+# Chunk each file in array list
+python $ASNWD/sbin/chunk_plasticc_test.py --file $dataset
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
