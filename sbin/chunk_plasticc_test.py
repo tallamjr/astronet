@@ -23,7 +23,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process PLAsTiCC Test Set in Chunks')
 
     parser.add_argument(
-        "-n", "--num_objects", default=10000, help="Choose which dataset to process"
+        "-n",
+        "--num_objects",
+        default=10000,
+        type=int,
+        help="Choose which dataset to process",
     )
 
     parser.add_argument(
