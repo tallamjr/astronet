@@ -484,6 +484,91 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     return df
 
 
+def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    data = pd.read_csv(
+        f"{asnwd}/data/plasticc/avocado/{batch_filename}.csv",
+        sep=",",
+    )
+
+    data.rename(
+        {"band": "filter"}, axis="columns", inplace=True
+    )
+    data.rename(
+        {"time": "mjd"}, axis="columns", inplace=True
+    )
+
+    if snonly is not None:
+        dataform = "snonly"
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        dataform = "avocado"
+        df = data
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{asnwd}/data/plasticc/avocado/avo_aug_0.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    # metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df_with_labels.rename(
+        {"class": "target"}, axis="columns", inplace=True
+    )
+    df_with_labels.rename(
+        {"host_photoz": "hostgal_photoz"}, axis="columns", inplace=True
+    )
+    df_with_labels.rename(
+        {"host_photoz_error": "hostgal_photoz_err"}, axis="columns", inplace=True
+    )
+
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "target",
+        ]
+    )
+
+    print(df.dtypes)
+    df.convert_dtypes()
+    # df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv")
+
+    return df
+
+
 def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
 
     # augmented_binary = f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
@@ -624,7 +709,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
-def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None):
+def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -656,6 +741,15 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
 
         except IOError:
             df = __load_plasticc_dataset_from_csv(timesteps, snonly=True)
+    elif avocado is not None:
+        dataform = "avocado"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_avocado_plasticc_dataset_from_csv(timesteps)
     else:
         dataform = "full"
         try:
@@ -728,6 +822,113 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
+
+
+def load_full_avocado_plasticc_from_numpy(timesteps=100, redshift=None, batch_filename=None):
+
+    dataform = "avocado"
+    try:
+        X_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
+        )
+
+        y_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
+        )
+
+        Z_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
+        )
+
+    except IOError:
+        X_train, y_train, Z_train = save_avocado_training_set(batch_filename=batch_filename)
+
+    if redshift is not None:
+        return X_train, y_train, Z_train
+    else:
+        return X_train, y_train
+
+
+def save_avocado_training_set(
+    timesteps=100,
+    step=100,
+    redshift=None,
+    augmented=None,
+    snonly=None,
+    batch_filename=None,
+):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    dataform = "avocado"
+    try:
+        df = pd.read_csv(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+        )
+
+    except IOError:
+        df = __load_avocado_plasticc_dataset_from_csv(timesteps, batch_filename=batch_filename)
+
+
+    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    robust_scale(df, cols)
+
+    Xs, ys = create_dataset(
+        df[cols],
+        df.true_target,
+        TIME_STEPS,
+        STEP
+    )
+
+    # X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    #     Xs, ys, random_state=RANDOM_SEED
+    # )
+
+    np.save(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
+            Xs,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
+            ys,
+    )
+
+    if redshift is None:
+        return Xs, ys
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.true_target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        # ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+        #     np.array(ZX), zys, random_state=RANDOM_SEED
+        # )
+
+        np.save(
+                f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
+                np.array(ZX),
+        )
+        # np.save(
+        #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+        #         ZX_test,
+        # )
+
+        return Xs, ys, np.array(ZX)
 
 
 def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=None, snonly=None,
@@ -829,7 +1030,7 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         return Xs, ys, np.array(ZX)
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -894,16 +1095,25 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
     elif dataset == "plasticc":
         # Load data
         if redshift is None:
-            X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly)
+            if avocado is not None:
+                X_train, y_train, X_test, y_test = load_avocado_plasticc_from_numpy(redshift=redshift)
+            else:
+                X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly,
+                        avocado=avocado)
         else:
-            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-                redshift=redshift, augmented=augmented, snonly=snonly
-            )
+            if avocado is not None:
+                X_train, y_train, X_test, y_test, Z_train, Z_test = load_avocado_plasticc_from_numpy(redshift=redshift)
+            else:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
+                    redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
+                )
 
         if augmented is not None:
             dataform = "augmented"
         elif snonly is not None:
             dataform = "snonly"
+        elif avocado is not None:
+            dataform = "avocado"
         else:
             dataform = "full"
         # One hot encode y
