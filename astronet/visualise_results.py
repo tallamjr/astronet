@@ -175,7 +175,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         plt.show()
 
 
-def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True):
+def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.Accent.colors):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -226,7 +226,7 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
                    ''.format(roc_auc["macro"]),
              color='navy', linestyle=':', linewidth=3)
 
-    plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.Accent.colors)
+    plt.rcParams["axes.prop_cycle"] = plt.cycler("color", colors)
     for i in range(n_classes):
         plt.plot(fpr[i], tpr[i], lw=lw,
                  label='ROC: {0} (area = {1:0.2f})'
