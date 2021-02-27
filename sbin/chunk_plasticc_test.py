@@ -37,6 +37,13 @@ if __name__ == "__main__":
         help="Choose which dataset to process",
     )
 
+    parser.add_argument(
+        "-o",
+        "--output_dir",
+        default=f"{asnwd}/data/plasticc/test_set/",
+        help="Choose which dataset to process",
+    )
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -47,6 +54,7 @@ if __name__ == "__main__":
 
     filename = args.file
     num_objects_per_chunk = args.num_objects
+    output_dir = args.output_dir
 
     df = read_large_file(filename)
 
@@ -55,4 +63,4 @@ if __name__ == "__main__":
     for idx, objects in enumerate(chunker(object_list, num_objects_per_chunk)):
         dfs = df[df['object_id'].isin(objects)]
         print(idx, dfs.shape)
-        dfs.to_csv(f"{asnwd}/data/plasticc/test_set/{Path(filename).stem}_chunk_{idx}.csv")
+        dfs.to_csv(f"{output_dir}{Path(filename).stem}_chunk_{idx}.csv")

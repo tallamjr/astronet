@@ -22,7 +22,7 @@
 # logs. Note this will ignore the --output option if used afterwards
 ## #SBATCH -e logs/%j.err
 ## #SBATCH -o logs/%j.out
-#SBATCH --array=1-10
+#SBATCH --array=1
 set -o pipefail -e
 source $PWD/conf/astronet.conf
 # Print the contents of this file to stdout from line 15 onwards
@@ -35,22 +35,13 @@ python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__)"
 
 declare -a arr=(
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_02.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_03.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_04.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_05.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_06.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_07.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_08.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_09.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_10.csv"
-                "${ASNWD}/data/plasticc/test_data/plasticc_test_lightcurves_11.csv"
+                "${ASNWD}/data/plasticc/avocado/avo_aug_1.csv"
             )
 
 echo "${arr[SLURM_ARRAY_TASK_ID-1]}"
 dataset="${arr[SLURM_ARRAY_TASK_ID-1]}"
 # Chunk each file in array list
-python $ASNWD/sbin/chunk_plasticc_test.py --file $dataset
+python $ASNWD/sbin/chunk_plasticc_test.py --file $dataset -o "${ASNWD}/data/plasticc/avocado/"
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
