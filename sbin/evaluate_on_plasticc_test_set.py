@@ -85,7 +85,7 @@ if dataset == "plasticc":
         65: "M-dwarf",
         16: "EB",
         53: "Mira",
-        6: "$\mu$-Lens-Single",
+        6: "mu-Lens-Single",
     }
     class_encoding
     class_names = list(np.vectorize(class_mapping.get)(class_encoding))
@@ -127,40 +127,70 @@ cmap = sns.light_palette("Navy", as_cmap=True)
 
 # plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 
-X_full_test = np.load(
-    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test.npy",
-    mmap_mode='r'
-)
+try:
+    X_full_test_no_99 = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+        # mmap_mode='r'
+    )
 
-y_full_test = np.load(
-    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test.npy",
-)
+    y_full_test_no_99 = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+    )
 
-Z_full_test = np.load(
-    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test.npy",
-)
+    Z_full_test_no_99 = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+    )
 
-print(X_full_test.shape, y_full_test.shape, Z_full_test.shape)
+except IOError:
+    X_full_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test.npy",
+        # mmap_mode='r'
+    )
 
-# Get index of class 99, append index of those NOT 99 to 'keep' list
-class_99_index = []
-for i in range(len(y_full_test.flatten())):
-    if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
-        pass
-    else:
-        class_99_index.append(i)
+    y_full_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test.npy",
+    )
 
-print(len(class_99_index))
+    Z_full_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test.npy",
+    )
 
-filter_indices = class_99_index
-axis = 0
-array = X_full_test
-arrayY = y_full_test
-arrayZ = Z_full_test
+    print(X_full_test.shape, y_full_test.shape, Z_full_test.shape)
 
-X_full_test_no_99 = np.take(array, filter_indices, axis)
-y_full_test_no_99 = np.take(arrayY, filter_indices, axis)
-Z_full_test_no_99 = np.take(arrayZ, filter_indices, axis)
+    # Get index of class 99, append index of those NOT 99 to 'keep' list
+    class_99_index = []
+    for i in range(len(y_full_test.flatten())):
+        if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
+            pass
+        else:
+            class_99_index.append(i)
+
+    print(len(class_99_index))
+
+    filter_indices = class_99_index
+    axis = 0
+    array = X_full_test
+    arrayY = y_full_test
+    arrayZ = Z_full_test
+
+    X_full_test_no_99 = np.take(array, filter_indices, axis)
+    y_full_test_no_99 = np.take(arrayY, filter_indices, axis)
+    Z_full_test_no_99 = np.take(arrayZ, filter_indices, axis)
+
+    np.save(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+        X_full_test_no_99,
+    )
+
+    np.save(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+        y_full_test_no_99,
+    )
+
+    np.save(
+        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+        Z_full_test_no_99,
+    )
 
 print(X_full_test_no_99.shape, y_full_test_no_99.shape, Z_full_test_no_99.shape)
 
