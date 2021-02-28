@@ -283,6 +283,9 @@ def __transient_trim(object_list, df):
         obs_detected_time = obs_time[obs['detected'] == 1]
         is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
         obs_transient = obs[is_obs_transient]
+        if len(obs_transient['mjd']) == 0:
+            is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (obs_time < obs_detected_time.iat[-1] + 1000)
+            obs_transient = obs[is_obs_transient]
         obs_transient['mjd'] -= min(obs_transient['mjd'])  # so all transients start at time 0
         adf = np.vstack((adf, obs_transient))
 
