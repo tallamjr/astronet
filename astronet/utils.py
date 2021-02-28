@@ -883,7 +883,7 @@ def save_avocado_training_set(
 
     Xs, ys = create_dataset(
         df[cols],
-        df.true_target,
+        df.target,
         TIME_STEPS,
         STEP
     )
@@ -909,7 +909,7 @@ def save_avocado_training_set(
 
         ZXs, zys = create_dataset(
             df[zcols],
-            df.true_target,
+            df.target,
             TIME_STEPS,
             STEP
         )
