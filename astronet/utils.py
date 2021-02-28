@@ -277,10 +277,16 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
 
 def __transient_trim(object_list, df):
     adf = pd.DataFrame(data=[], columns=df.columns)
+    bad_object_list = []
     for obj in object_list:
         obs = df[df['object_id'] == obj]
         obs_time = obs['mjd']
         obs_detected_time = obs_time[obs['detected'] == 1]
+        if len(obs_detected_time) == 0:
+            print(f"Zero detected points for object:{object_list.index(obj)}")
+            bad_object_list.append(object_list.index(obj))
+            continue
+
         is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
         obs_transient = obs[is_obs_transient]
         if len(obs_transient['mjd']) == 0:
@@ -291,7 +297,13 @@ def __transient_trim(object_list, df):
 
     obs_transient = pd.DataFrame(data=adf, columns=obs_transient.columns)
 
-    return obs_transient
+    filter_indices = bad_object_list
+    axis = 0
+    array = np.array(object_list)
+
+    new_filtered_object_list = np.take(array, filter_indices, axis)
+
+    return obs_transient, list(new_filtered_object_list)
 
 
 def __generate_gp_all_objects(object_list, obs_transient, timesteps):
@@ -517,7 +529,7 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
 
     object_list = list(np.unique(df['object_id']))
 
-    obs_transient = __transient_trim(object_list, df)
+    obs_transient, object_list = __transient_trim(object_list, df)
     generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
     # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
