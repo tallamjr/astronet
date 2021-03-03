@@ -30,6 +30,8 @@ SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 # conda install -c conda-forge sncosmo
 # pip install -r requirements.txt
 which python
+# pip install latex
+export PATH="/home/tallam/texlive/2020/bin/x86_64-linux:$PATH"
 # Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
 python $ASNWD/sbin/evaluate_on_plasticc_test_set.py

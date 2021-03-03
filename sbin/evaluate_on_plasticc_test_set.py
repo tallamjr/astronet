@@ -85,7 +85,7 @@ if dataset == "plasticc":
         65: "M-dwarf",
         16: "EB",
         53: "Mira",
-        6: "mu-Lens-Single",
+        6: "$\mu$-Lens-Single",
     }
     class_encoding
     class_names = list(np.vectorize(class_mapping.get)(class_encoding))
@@ -218,7 +218,7 @@ if dataset == "plasticc":
         65: "M-dwarf",
         16: "EB",
         53: "Mira",
-        6: "mu-Lens-Single",
+        6: "$\mu$-Lens-Single",
     }
     class_encoding
     class_names = list(np.vectorize(class_mapping.get)(class_encoding))
