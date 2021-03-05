@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import numpy as np
+import os
 import shutil
 import subprocess
 import sys
@@ -11,6 +12,7 @@ import time
 from pathlib import Path
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
+    CSVLogger,
     EarlyStopping,
     ModelCheckpoint,
     ReduceLROnPlateau,
@@ -41,18 +43,21 @@ tf.random.set_seed(RANDOM_SEED)
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model, redshift, augmented):
+    def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
         self.augmented = augmented
+        self.avocado = avocado
+        self.testset = testset
 
     def __call__(self):
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset, redshift=self.redshift, augmented=self.augmented
+                dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
             )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
         else:
@@ -124,6 +129,12 @@ class Training(object):
 
             train_input = [X_train, ZX_train]
             test_input = [X_test, ZX_test]
+            # if avocado is not None:
+                # Generate random boolean mask the length of data
+                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                # test_input = [X_test[mask], ZX_test[mask]]
+                # y_test = y_test[mask]
         else:
             model.build_graph(input_shape)
 
@@ -133,6 +144,7 @@ class Training(object):
         unixtimestamp = int(time.time())
         label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
         checkpoint_path = f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}"
+        csv_logger_file = f"{asnwd}/logs/training-{os.environ.get('SLURM_JOB_ID')}-{unixtimestamp}-{label}.log"
 
         history = model.fit(
             train_input,
@@ -142,7 +154,14 @@ class Training(object):
             validation_data=(test_input, y_test),
             verbose=False,
             callbacks=[
-                # DetectOverfittingCallback(threshold=1.5),
+                DetectOverfittingCallback(
+                    threshold=2
+                ),
+                CSVLogger(
+                    csv_logger_file,
+                    separator=',',
+                    append=False,
+                ),
                 EarlyStopping(
                     min_delta=0.001,
                     mode="min",
@@ -170,11 +189,17 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        print(model.evaluate(test_input, y_test, batch_size=X_test.shape[0]))
+        # print(model.evaluate(test_input, y_test, batch_size=X_test.shape[0]))
         print(model.evaluate(test_input, y_test))
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
         print(f"LL-Test: {wloss(y_test, y_preds).numpy():.8f}")
+
+        if (X_test.shape[0] < 10000):
+            batch_size=X_test.shape[0]
+        else:
+            # Otherwise potential OOM Error may occur
+            batch_size=BATCH_SIZE
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
@@ -187,11 +212,14 @@ class Training(object):
         # model_params['fc_neurons'] = event['fc_neurons']
         model_params['z-redshift'] = self.redshift
         model_params['augmented'] = self.augmented
+        model_params['avocado'] = self.avocado
+        model_params['testset'] = self.testset
+        model_params['num_classes'] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_input, y_test, batch_size=X_test.shape[0]
+            test_input, y_test, batch_size=batch_size
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_input, y_test, batch_size=X_test.shape[0]
+            test_input, y_test, batch_size=batch_size
         )[0]
         print("  Params: ")
         for key, value in history.history.items():
@@ -236,11 +264,17 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', default=None,
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to include redshift features or not")
+
     parser.add_argument('-a', '--augment', default=None,
             help='Train using augmented plasticc data')
 
-    parser.add_argument("-z", "--redshift", default=None,
-            help="Whether to include redshift features or not")
+    parser.add_argument('-A', '--avocado', default=None,
+            help='Train using avocado augmented plasticc data')
+
+    parser.add_argument('-t', '--testset', default=None,
+            help='Train using PLAsTiCC test data for representative test')
 
     try:
         args = parser.parse_args()
@@ -257,11 +291,20 @@ if __name__ == "__main__":
     if augmented is not None:
         augmented = True
 
+    avocado = args.avocado
+    if avocado is not None:
+        avocado = True
+
+    testset = args.testset
+    if testset is not None:
+        testset = True
+
     redshift = args.redshift
     if redshift is not None:
         redshift = True
 
     training = Training(
-        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift, augmented=augmented
+        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
+        augmented=augmented, avocado=avocado, testset=testset
     )
     training()
