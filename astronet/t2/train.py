@@ -44,7 +44,7 @@ tf.random.set_seed(RANDOM_SEED)
 class Training(object):
     # TODO: Update docstrings
     def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset):
-        self.epochs = EPOCHS
+        self.epochs = epochs
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
@@ -54,12 +54,13 @@ class Training(object):
 
     def __call__(self):
 
+        import pdb;pdb.set_trace()
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset, redshift=self.redshift, augmented=self.augmented,
+                dataset=self.dataset, redshift=self.redshift, augmented=self.augmented,
                 avocado=self.avocado, testset=self.testset
             )
-            hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results_with_z.json"
+            hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{self.dataset}/results_with_z.json"
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
@@ -143,14 +144,14 @@ class Training(object):
 
         unixtimestamp = int(time.time())
         label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
-        checkpoint_path = f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}"
+        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}"
         csv_logger_file = f"{asnwd}/logs/training-{os.environ.get('SLURM_JOB_ID')}-{unixtimestamp}-{label}.log"
 
         history = model.fit(
             train_input,
             y_train,
             batch_size=BATCH_SIZE,
-            epochs=EPOCHS,
+            epochs=self.epochs,
             validation_data=(test_input, y_test),
             verbose=False,
             callbacks=[
@@ -229,9 +230,9 @@ class Training(object):
         del model_params['lr']
 
         if self.redshift is not None:
-            train_results_file = f"{asnwd}/astronet/t2/models/{dataset}/results_with_z.json"
+            train_results_file = f"{asnwd}/astronet/t2/models/{self.dataset}/results_with_z.json"
         else:
-            train_results_file = f"{asnwd}/astronet/t2/models/{dataset}/results.json"
+            train_results_file = f"{asnwd}/astronet/t2/models/{self.dataset}/results.json"
 
         with open(train_results_file) as jf:
             data = json.load(jf)
@@ -247,8 +248,8 @@ class Training(object):
         with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
-        model.save(f"{asnwd}/astronet/t2/models/{dataset}/model-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/t2/models/{dataset}/weights-{unixtimestamp}-{label}")
+        model.save(f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/t2/models/{self.dataset}/weights-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
