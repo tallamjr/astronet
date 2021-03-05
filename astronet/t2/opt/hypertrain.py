@@ -63,11 +63,12 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, augmented):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
         self.augmented = augmented
+        self.avocado = avocado
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -75,7 +76,8 @@ class Objective(object):
 
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
-                dataset, redshift=self.redshift, augmented=self.augmented
+                dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado
             )
         else:
             X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
@@ -221,6 +223,9 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--augment', default=None,
             help='Train using augmented plasticc data')
 
+    parser.add_argument('-A', '--avocado', default=None,
+            help='Train using avocado augmented plasticc data')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -239,12 +244,16 @@ if __name__ == "__main__":
     if augmented is not None:
         augmented = True
 
+    avocado = args.avocado
+    if avocado is not None:
+        avocado = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado),
         n_trials=N_TRIALS,
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
@@ -271,6 +280,7 @@ if __name__ == "__main__":
 
     best_result['z-redshift'] = redshift
     best_result['augmented'] = augmented
+    best_result['avocado'] = avocado
 
     print("  Params: ")
     for key, value in trial.params.items():
