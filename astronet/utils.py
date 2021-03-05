@@ -77,7 +77,10 @@ def astronet_logger(name, level="INFO"):
 
 def find_optimal_batch_size(training_set_length):
 
-    batch_size_list = [16, 32, 64]
+    if (training_set_length < 10000):
+        batch_size_list = [16, 32, 64]
+    else:
+        batch_size_list = [512, 1024, 2028, 4096, 8192, 16384]
     ratios = []
     for batch_size in batch_size_list:
 
