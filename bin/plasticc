@@ -13,11 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#SBATCH --job-name=Zplasticc             # Job name
+#SBATCH --job-name=avZptest             # Job name
 #SBATCH --time=48:00:00                 # Time limit hrs:min:sec
 #SBATCH --output=logs/%j.log            # Standard output and error log
-#SBATCH --exclusive                     # Request exclusive access to a node
-#SBATCH --cpus-per-task=40              # Number of CPUs per node
+# #SBATCH --exclusive                     # Request exclusive access to a node
+#SBATCH --cpus-per-task=24              # Number of CPUs per node
 # Add a -e or --error with an error file name to separate output and error
 # logs. Note this will ignore the --output option if used afterwards
 ## #SBATCH -e logs/%j.err
@@ -40,9 +40,9 @@ echo "Using $ARCH architecture"
 
 dataset="plasticc"
 # Hyperparameter Optimisation
-# python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50 -z ""
+# python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50 -z "" -A ""
 # Train
-python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 --model "1611335023-35d4a02"
+python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -z "" -t "" --model "1613517996-0a72904"
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
