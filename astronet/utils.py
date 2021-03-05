@@ -846,24 +846,109 @@ def load_full_avocado_plasticc_from_numpy(timesteps=100, redshift=None, batch_fi
     dataform = "avocado"
     try:
         X_train = np.load(
-            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_X_full_avo_train.npy",
         )
 
         y_train = np.load(
-            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_y_full_avo_train.npy",
         )
 
         Z_train = np.load(
-            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_Z_full_avo_train.npy",
         )
+
+        X_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+            # mmap_mode='r'
+        )
+
+        y_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+        )
+
+        Z_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+        )
+
 
     except IOError:
         X_train, y_train, Z_train = save_avocado_training_set(batch_filename=batch_filename)
 
     if redshift is not None:
-        return X_train, y_train, Z_train
+        return X_train, y_train, X_full_test_no_99, y_full_test_no_99, Z_train, Z_full_test_no_99
     else:
         return X_train, y_train
+
+
+def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    try:
+        X_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+            mmap_mode='r'
+        )
+
+        y_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+        )
+
+        Z_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+        )
+
+    except IOError:
+        X_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test.npy",
+            # mmap_mode='r'
+        )
+
+        y_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test.npy",
+        )
+
+        Z_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test.npy",
+        )
+
+        print(X_full_test.shape, y_full_test.shape, Z_full_test.shape)
+
+        # Get index of class 99, append index of those NOT 99 to 'keep' list
+        class_99_index = []
+        for i in range(len(y_full_test.flatten())):
+            if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
+                pass
+            else:
+                class_99_index.append(i)
+
+        print(len(class_99_index))
+
+        filter_indices = class_99_index
+        axis = 0
+        array = X_full_test
+        arrayY = y_full_test
+        arrayZ = Z_full_test
+
+        X_full_test_no_99 = np.take(array, filter_indices, axis)
+        y_full_test_no_99 = np.take(arrayY, filter_indices, axis)
+        Z_full_test_no_99 = np.take(arrayZ, filter_indices, axis)
+
+
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(
+        X_full_test_no_99, y_full_test_no_99, train_size=0.20, random_state=RANDOM_SEED
+    )
+
+    Z_train, Z_test, _, _ = model_selection.train_test_split(
+        Z_full_test_no_99, y_full_test_no_99, train_size=0.20, random_state=RANDOM_SEED
+    )
+
+    if redshift is not None:
+        return X_train, y_train, X_test, y_test, Z_train, Z_test
+    else:
+        return X_train, y_train, X_test, y_test
 
 
 def save_avocado_training_set(
@@ -1047,7 +1132,7 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         return Xs, ys, np.array(ZX)
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -1113,17 +1198,19 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         # Load data
         if redshift is None:
             if avocado is not None:
-                X_train, y_train, X_test, y_test = load_avocado_plasticc_from_numpy(redshift=redshift)
+                X_train, y_train, X_test, y_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
             else:
                 X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly,
                         avocado=avocado)
         else:
-            if avocado is not None:
-                X_train, y_train, X_test, y_test, Z_train, Z_test = load_avocado_plasticc_from_numpy(redshift=redshift)
-            else:
-                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-                    redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
-                )
+            if testset is not None:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_plasticc_test_from_numpy(redshift=redshift)
+            # if avocado is not None:
+            #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+            # else:
+            #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
+            #         redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
+            #     )
 
         if augmented is not None:
             dataform = "augmented"
@@ -1131,6 +1218,8 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
             dataform = "snonly"
         elif avocado is not None:
             dataform = "avocado"
+        elif testset is not None:
+            dataform = "testset"
         else:
             dataform = "full"
         # One hot encode y
