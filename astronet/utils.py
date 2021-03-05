@@ -280,27 +280,26 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
 
 def __transient_trim(object_list, df):
     adf = pd.DataFrame(data=[], columns=df.columns)
-    bad_object_list = []
+    good_object_list = []
     for obj in object_list:
         obs = df[df['object_id'] == obj]
         obs_time = obs['mjd']
         obs_detected_time = obs_time[obs['detected'] == 1]
         if len(obs_detected_time) == 0:
             print(f"Zero detected points for object:{object_list.index(obj)}")
-            bad_object_list.append(object_list.index(obj))
             continue
-
         is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
         obs_transient = obs[is_obs_transient]
         if len(obs_transient['mjd']) == 0:
             is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (obs_time < obs_detected_time.iat[-1] + 1000)
             obs_transient = obs[is_obs_transient]
         obs_transient['mjd'] -= min(obs_transient['mjd'])  # so all transients start at time 0
+        good_object_list.append(object_list.index(obj))
         adf = np.vstack((adf, obs_transient))
 
     obs_transient = pd.DataFrame(data=adf, columns=obs_transient.columns)
 
-    filter_indices = bad_object_list
+    filter_indices = good_object_list
     axis = 0
     array = np.array(object_list)
 
@@ -322,7 +321,7 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
     inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
 
     for object_id in object_list:
-
+        print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
         df = obs_transient[obs_transient["object_id"] == object_id]
 
         gp_predict = fit_2d_gp(df)
