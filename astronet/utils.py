@@ -889,7 +889,7 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
     try:
         X_full_test_no_99 = np.load(
             f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
-            mmap_mode='r'
+            # mmap_mode='r'
         )
 
         y_full_test_no_99 = np.load(
