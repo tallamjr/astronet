@@ -331,7 +331,7 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
         obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
         obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
 
-        obj_gps = obj_gps.pivot(index="mjd", columns="filter", values="flux")
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
         obj_gps["object_id"] = object_id
         adf = np.vstack((adf, obj_gps))
