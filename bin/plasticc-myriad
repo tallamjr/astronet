@@ -24,7 +24,7 @@
 #$ -l h_rt=47:10:0
 
 # Request 1 gigabyte of RAM (must be an integer followed by M, G, or T)
-#$ -l mem=80G
+## #$ -l mem=80G
 
 # Request 15 gigabyte of TMPDIR space (default is 10 GB - remove if cluster is diskless)
 #$ -l tmpfs=15G
@@ -48,14 +48,18 @@ cd $TMPDIR
 # load the cuda module (in case you are running a CUDA program)
 module unload compilers mpi
 module load compilers/gnu/4.9.2
-module load python3/recommended
+module load python/3.7.4
 module load cuda/8.0.61-patch2/gnu-4.9.2
 module load cudnn/6.0/cuda-8.0
 module load tensorflow/2.0.0/gpu-py37
 
+conda activate astronet
 # Run the application
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source /scratch/scratch/zcicg57/astronet/conf/astronet.conf
+
+export PATH="/miniconda3/envs/astronet/bin:$PATH"
+
 
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/bin/plasticc-myriad
@@ -64,7 +68,8 @@ which python
 export PYTHONHASHSEED=0
 # Test Imports
 # python -c "import astronet as asn; print(asn.__version__)"
-python -c "import tensorflow as tf; print(tf.__version__)"
+python -c "import tensorflow as tf; print(tf.__version__);"
+python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 # Architecture
 ## Current options: {t2, snx}
 ARCH=$1
