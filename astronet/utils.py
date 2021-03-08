@@ -938,11 +938,11 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
 
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
-        X_full_test_no_99, y_full_test_no_99, train_size=0.20, random_state=RANDOM_SEED
+        X_full_test_no_99, y_full_test_no_99, train_size=0.75, random_state=RANDOM_SEED
     )
 
     Z_train, Z_test, _, _ = model_selection.train_test_split(
-        Z_full_test_no_99, y_full_test_no_99, train_size=0.20, random_state=RANDOM_SEED
+        Z_full_test_no_99, y_full_test_no_99, train_size=0.75, random_state=RANDOM_SEED
     )
 
     if redshift is not None:
