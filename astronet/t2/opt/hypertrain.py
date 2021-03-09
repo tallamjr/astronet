@@ -165,7 +165,9 @@ class Objective(object):
                 validation_data=(inputs_val_cv, y_val_cv),
                 verbose=False,
                 callbacks=[
-                    # DetectOverfittingCallback(threshold=1.5),
+                    DetectOverfittingCallback(
+                        threshold=2
+                    ),
                     EarlyStopping(
                         min_delta=0.001,
                         mode="min",

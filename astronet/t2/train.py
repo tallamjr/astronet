@@ -54,7 +54,6 @@ class Training(object):
 
     def __call__(self):
 
-        import pdb;pdb.set_trace()
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
                 dataset=self.dataset, redshift=self.redshift, augmented=self.augmented,
