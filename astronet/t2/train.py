@@ -143,7 +143,11 @@ class Training(object):
             test_input = X_test
 
         unixtimestamp = int(time.time())
-        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        try:
+            label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        except IOError:
+            from astronet import __version__ as current_version
+            label = current_version
         checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}"
         csv_logger_file = f"{asnwd}/logs/training-{os.environ.get('SLURM_JOB_ID')}-{unixtimestamp}-{label}.log"
 

@@ -205,7 +205,11 @@ if __name__ == "__main__":
 
     import time
     unixtimestamp = int(time.time())
-    label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    try:
+        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    except IOError:
+        from astronet import __version__ as current_version
+        label = current_version
 
     parser = argparse.ArgumentParser(description='Optimising hyperparameters')
 
