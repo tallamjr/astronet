@@ -63,12 +63,13 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, augmented, avocado):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
         self.augmented = augmented
         self.avocado = avocado
+        self.testset = testset
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -77,7 +78,7 @@ class Objective(object):
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
                 dataset, redshift=self.redshift, augmented=self.augmented,
-                avocado=self.avocado
+                avocado=self.avocado, testset=self.testset
             )
         else:
             X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
@@ -226,6 +227,9 @@ if __name__ == "__main__":
     parser.add_argument('-A', '--avocado', default=None,
             help='Train using avocado augmented plasticc data')
 
+    parser.add_argument('-t', '--testset', default=None,
+            help='Train using PLAsTiCC test data for representative test')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -248,12 +252,16 @@ if __name__ == "__main__":
     if avocado is not None:
         avocado = True
 
+    testset = args.testset
+    if testset is not None:
+        testset = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
         n_trials=N_TRIALS,
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
@@ -281,6 +289,7 @@ if __name__ == "__main__":
     best_result['z-redshift'] = redshift
     best_result['augmented'] = augmented
     best_result['avocado'] = avocado
+    best_result['testset'] = testset
 
     print("  Params: ")
     for key, value in trial.params.items():
