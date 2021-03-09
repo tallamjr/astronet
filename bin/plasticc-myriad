@@ -56,7 +56,7 @@ module load tensorflow/2.0.0/gpu-py37
 
 # Run the application
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
-source /scratch/scratch/zcicg57/astronet/conf/astronet.conf
+source /home/zcicg57/Scratch/astronet/conf/astronet.conf
 
 export PATH="/miniconda3/envs/astronet/bin:$PATH"
 
