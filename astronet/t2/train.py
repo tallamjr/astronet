@@ -145,7 +145,7 @@ class Training(object):
         unixtimestamp = int(time.time())
         try:
             label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
-        except IOError:
+        except Exception:
             from astronet import __version__ as current_version
             label = current_version
         checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}"

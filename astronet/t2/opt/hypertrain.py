@@ -207,7 +207,7 @@ if __name__ == "__main__":
     unixtimestamp = int(time.time())
     try:
         label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
-    except IOError:
+    except Exception:
         from astronet import __version__ as current_version
         label = current_version
 
