@@ -102,6 +102,9 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
+        VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
+        print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+
         model = T2Model(
             input_dim=input_shape,
             embed_dim=embed_dim,
@@ -156,6 +159,7 @@ class Training(object):
             batch_size=BATCH_SIZE,
             epochs=self.epochs,
             validation_data=(test_input, y_test),
+            validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
                 DetectOverfittingCallback(
@@ -193,17 +197,18 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        # print(model.evaluate(test_input, y_test, batch_size=X_test.shape[0]))
-        print(model.evaluate(test_input, y_test))
+        print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, batch_size=X_test.shape[0])[0]}")
+        print(f"LL-BATCHED Model Evaluate: {model.evaluate(test_input, y_test)[0]}")
+
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.8f}")
+        print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
 
         if (X_test.shape[0] < 10000):
-            batch_size=X_test.shape[0]
+            batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
         else:
-            # Otherwise potential OOM Error may occur
-            batch_size=BATCH_SIZE
+            # Otherwise potential OOM Error may occur loading too many into memory at once
+            batch_size = VALIDATION_BATCH_SIZE
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
