@@ -25,7 +25,7 @@
 set -o pipefail -e
 source $PWD/conf/astronet.conf
 # Print the contents of this file to stdout from line 15 onwards
-awk 'NR>15' $ASNWD/sbin/evaluate-on-plasticc-test-set
+# awk 'NR>15' $ASNWD/sbin/evaluate-on-plasticc-test-set
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 # conda install -c conda-forge sncosmo
 # pip install -r requirements.txt

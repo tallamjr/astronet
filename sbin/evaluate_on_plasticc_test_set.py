@@ -78,59 +78,37 @@ model = keras.models.load_model(f"{asnwd}/astronet/{architecture}/models/{datase
                                 custom_objects={'WeightedLogLoss': WeightedLogLoss()},
                                compile=False)
 
-dataform = "avocado"
-with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
-    encoding = joblib.load(eb)
-class_encoding = encoding.categories_[0]
+# dataform = "testset"
+# with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
+#     encoding = joblib.load(eb)
+# class_encoding = encoding.categories_[0]
 
-if dataset == "plasticc":
-    class_mapping = {
-        90: "SNIa",
-        67: "SNIa-91bg",
-        52: "SNIax",
-        42: "SNII",
-        62: "SNIbc",
-        95: "SLSN-I",
-        15: "TDE",
-        64: "KN",
-        88: "AGN",
-        92: "RRL",
-        65: "M-dwarf",
-        16: "EB",
-        53: "Mira",
-        6: "$\mu$-Lens-Single",
-    }
-    class_encoding
-    class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-else:
+# if dataset == "plasticc":
+#     class_mapping = {
+#         90: "SNIa",
+#         67: "SNIa-91bg",
+#         52: "SNIax",
+#         42: "SNII",
+#         62: "SNIbc",
+#         95: "SLSN-I",
+#         15: "TDE",
+#         64: "KN",
+#         88: "AGN",
+#         92: "RRL",
+#         65: "M-dwarf",
+#         16: "EB",
+#         53: "Mira",
+#         6: "$\mu$-Lens-Single",
+#     }
+#     class_encoding
+#     class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+# else:
 
-    class_names = class_encoding
-
-from collections import Counter
-from pandas.core.common import flatten
-
-y_true = encoding.inverse_transform(y_train)
-print(Counter(list(flatten(y_true))))
-
-# logloss = event["model_evaluate_on_test_loss"]
-# acc = event["model_evaluate_on_test_acc"]
-# print(f"LogLoss on Test Set: {logloss}, Accuracy on Test Set: {acc}")
-
-wloss = WeightedLogLoss()
-
-y_preds = model.predict([X_test, Z_test])
-print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-
-y_preds_train = model.predict([X_train, Z_train])
-print(f"LL-Train: {wloss(y_train, y_preds_train).numpy():.2f}")
-
+#     class_names = class_encoding
 from sklearn.preprocessing import OneHotEncoder
-
 enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
 enc = enc.fit(y_test)
-
 # y_full_test_true_no_99 = enc.transform(y_full_test_no_99)
-
 class_encoding = enc.categories_[0]
 if dataset == "plasticc":
     class_mapping = {
@@ -154,6 +132,26 @@ if dataset == "plasticc":
 else:
     class_names = class_encoding
 
+from collections import Counter
+from pandas.core.common import flatten
+
+# y_true = encoding.inverse_transform(y_train)
+y_true = enc.inverse_transform(y_train)
+print(Counter(list(flatten(y_true))))
+
+# logloss = event["model_evaluate_on_test_loss"]
+# acc = event["model_evaluate_on_test_acc"]
+# print(f"LogLoss on Test Set: {logloss}, Accuracy on Test Set: {acc}")
+
+wloss = WeightedLogLoss()
+
+y_preds = model.predict([X_test, Z_test])
+print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+y_preds_train = model.predict([X_train, Z_train])
+print(f"LL-Train: {wloss(y_train, y_preds_train).numpy():.2f}")
+
+
 cmap = sns.light_palette("Navy", as_cmap=True)
 plot_confusion_matrix(
     dataset,
@@ -166,8 +164,10 @@ plot_confusion_matrix(
     cmap=cmap
 )
 
-plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
+plot_acc_history(dataset, model_name, event, save=True)
+plot_loss_history(dataset, model_name, event, save=True)
 
+plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 plot_multiPR(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 
 # from pathlib import Path
@@ -175,9 +175,6 @@ plot_multiPR(dataset, model_name, model, [X_test, Z_test], y_test, class_names, 
 #     logfile = filename
 # event = pd.read_csv(logfile)
 
-plot_acc_history(dataset, model_name, event, save=True)
-
-plot_loss_history(dataset, model_name, event, save=True)
 
 # cmap = sns.light_palette("Navy", as_cmap=True)
 # plot_confusion_matrix(
