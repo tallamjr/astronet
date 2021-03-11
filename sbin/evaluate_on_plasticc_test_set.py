@@ -49,15 +49,16 @@ X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
                                                         )
 num_classes = y_train.shape[1]
 
-model_name = "1614711597-1ba461b"
+# model_name = "1614711597-1ba461b"
+model_name = "1615402794-0.1.dev686+g8ce4a41"
 # model_name = "1613551066-32f3933"
 # model_name = None
 
-# with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json") as f:
-#     events = json.load(f)
-#     if model_name is not None:
-#     # Get params for model chosen with cli args
-#         event = next(item for item in events['training_result'] if item["name"] == model_name)
+with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json") as f:
+    events = json.load(f)
+    if model_name is not None:
+    # Get params for model chosen with cli args
+        event = next(item for item in events['training_result'] if item["name"] == model_name)
 #     else:
 #         # Get params for best model with lowest loss
 #         event = min(
@@ -161,12 +162,11 @@ plot_confusion_matrix(
 
 plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 
-from pathlib import Path
-for filename in Path(f"{asnwd}/logs").rglob(f"training-*-{model_name}.log"):
-    logfile = filename
+# from pathlib import Path
+# for filename in Path(f"{asnwd}/logs").rglob(f"training-*-{model_name}.log"):
+#     logfile = filename
+# event = pd.read_csv(logfile)
 
-event = pd.read_csv(logfile)
-# plt.plot(df.filter(["epoch", "loss", "val_loss"]))
 plot_acc_history(dataset, model_name, event, save=True)
 
 plot_loss_history(dataset, model_name, event, save=True)
