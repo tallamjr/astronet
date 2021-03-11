@@ -160,7 +160,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     if dataset == "plasticc":
         wloss = WeightedLogLoss()
         wloss = wloss(y_test, y_preds).numpy()
-        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.2f}")
+        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.3f}")
     else:
         plt.title(f"Test Set Confusion Matrix -- {dataset}")
 
@@ -293,7 +293,8 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
 
     # lines.append(l)
     # labels.append('iso-f1 curves')
-    l, = plt.plot(recall["micro"], precision["micro"], color='deeppink', lw=lw)
+    l, = plt.plot(recall["micro"], precision["micro"], color='deeppink',
+            linestyle=':', lw=lw)
     lines.append(l)
     labels.append('micro-Average Precision-Recall (area = {0:0.2f})'
                   ''.format(average_precision["micro"]))
@@ -310,13 +311,13 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
     plt.ylim([0.0, 1.05])
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.title('Multi-Class Precision-Recall Curve')
+    plt.title('Multi-Class Precision vs. Recall')
     plt.legend(
         lines,
         labels,
         ncol=3,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.40),
+        bbox_to_anchor=(0.5, -0.45),
         fancybox=False,
         shadow=False,
         prop=dict(size=14),
