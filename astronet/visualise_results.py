@@ -171,6 +171,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     # apply offset transform to all x ticklabels.
     # for label in ax.yaxis.get_majorticklabels():
     #     label.set_transform(label.get_transform() + offset)
+    plt.tight_layout()
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
@@ -304,7 +305,7 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
                       ''.format(class_names[i], average_precision[i]))
 
     fig = plt.gcf()
-    fig.subplots_adjust(bottom=0.75)
+    fig.subplots_adjust(bottom=0.25)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('Recall')
@@ -320,11 +321,10 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
         shadow=False,
         prop=dict(size=14),
     )
-    plt.tight_layout()
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
-        plt.savefig(fname, format='pdf')
+        plt.savefig(fname, format='pdf', bbox_inches='tight')
         plt.clf()
     else:
         print(model_name)
