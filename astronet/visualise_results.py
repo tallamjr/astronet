@@ -11,8 +11,13 @@ import tensorflow as tf
 
 from numpy import interp
 from pathlib import Path
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import (
+    auc,
+    average_precision_score,
+    confusion_matrix,
+    precision_recall_curve,
+    roc_curve,
+)
 from tensorflow import keras
 
 from astronet.constants import astronet_working_directory as asnwd
@@ -247,6 +252,77 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
+        plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
+
+
+def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.tab20.colors):
+    # TODO: Update docstrings
+    # Plot linewidth.
+    lw = 2
+    plt.figure(figsize=(16, 9))
+
+    # For each class
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    y_score = model.predict(X_test)
+    n_classes = len(class_names)
+
+    for i in range(n_classes):
+        precision[i], recall[i], _ = precision_recall_curve(y_test[:, i],
+                                                            y_score[:, i])
+        average_precision[i] = average_precision_score(y_test[:, i], y_score[:, i])
+
+    # A "micro-average": quantifying score on all classes jointly
+    precision["micro"], recall["micro"], _ = precision_recall_curve(y_test.ravel(), y_score.ravel())
+    average_precision["micro"] = average_precision_score(y_test, y_score,
+                                                         average="micro")
+    # f_scores = np.linspace(0.2, 0.8, num=4)
+    lines = []
+    labels = []
+    # for f_score in f_scores:
+    #     x = np.linspace(0.01, 1)
+    #     y = f_score * x / (2 * x - f_score)
+    #     l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+    #     plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+
+    # lines.append(l)
+    # labels.append('iso-f1 curves')
+    l, = plt.plot(recall["micro"], precision["micro"], color='deeppink', lw=lw)
+    lines.append(l)
+    labels.append('micro-Average Precision-Recall (area = {0:0.2f})'
+                  ''.format(average_precision["micro"]))
+
+    for i, color in zip(range(n_classes), colors):
+        l, = plt.plot(recall[i], precision[i], color=color, lw=lw)
+        lines.append(l)
+        labels.append('Precision-Recall for {0} (area = {1:0.2f})'
+                      ''.format(class_names[i], average_precision[i]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Multi-Class Precision-Recall Curve')
+    plt.legend(
+        lines,
+        labels,
+        ncol=3,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.45),
+        fancybox=True,
+        shadow=True,
+        prop=dict(size=14),
+    )
+
+    if save:
+        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
