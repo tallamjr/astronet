@@ -1207,10 +1207,10 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
                 X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_plasticc_test_from_numpy(redshift=redshift)
             # if avocado is not None:
             #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
-            # else:
-            #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-            #         redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
-            #     )
+            else:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
+                    redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
+                )
 
         if augmented is not None:
             dataform = "augmented"
