@@ -198,7 +198,8 @@ class Training(object):
         model.summary(print_fn=logging.info)
 
         print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, batch_size=X_test.shape[0])[0]}")
-        print(f"LL-BATCHED Model Evaluate: {model.evaluate(test_input, y_test)[0]}")
+        print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test)[0]}")
+        print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, batch_size=VALIDATION_BATCH_SIZE)[0]}")
 
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
