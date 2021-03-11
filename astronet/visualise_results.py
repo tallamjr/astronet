@@ -304,7 +304,7 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
                       ''.format(class_names[i], average_precision[i]))
 
     fig = plt.gcf()
-    fig.subplots_adjust(bottom=0.25)
+    fig.subplots_adjust(bottom=0.75)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('Recall')
@@ -315,11 +315,12 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
         labels,
         ncol=3,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.45),
-        fancybox=True,
-        shadow=True,
+        bbox_to_anchor=(0.5, -0.40),
+        fancybox=False,
+        shadow=False,
         prop=dict(size=14),
     )
+    plt.tight_layout()
 
     if save:
         fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
