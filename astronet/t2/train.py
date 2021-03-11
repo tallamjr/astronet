@@ -3,6 +3,7 @@ import json
 import logging
 import numpy as np
 import os
+import psutil
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,7 @@ try:
 except:
     print("Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/t2/train.py"
+    log = astronet_logger(__file__)
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
@@ -196,6 +198,9 @@ class Training(object):
         )
 
         model.summary(print_fn=logging.info)
+
+        log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
+        log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
 
         print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, batch_size=X_test.shape[0])[0]}")
         print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test)[0]}")
