@@ -159,8 +159,9 @@ y_preds = model.predict([X_test, Z_test])
 print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 y_preds = model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
 print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-y_preds = model.predict([X_test, Z_test], batch_size=num_samples)
-print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+# Causes OOM with all samples -->
+# y_preds = model.predict([X_test, Z_test], batch_size=num_samples)
+# print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
 # Train predictions
 y_preds_train = model.predict([X_train, Z_train])
