@@ -21,7 +21,13 @@ from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_dataset
 
 from astronet.metrics import WeightedLogLoss
-from astronet.visualise_results import plot_acc_history, plot_confusion_matrix, plot_loss_history, plot_multiROC
+from astronet.visualise_results import (
+    plot_acc_history,
+    plot_confusion_matrix,
+    plot_loss_history,
+    plot_multiROC,
+    plot_multiPR,
+)
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -161,6 +167,8 @@ plot_confusion_matrix(
 )
 
 plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
+
+plot_multiPR(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 
 # from pathlib import Path
 # for filename in Path(f"{asnwd}/logs").rglob(f"training-*-{model_name}.log"):

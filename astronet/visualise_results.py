@@ -222,12 +222,12 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     # Plot all ROC curves
     plt.figure(figsize=(16, 9))
     plt.plot(fpr["micro"], tpr["micro"],
-             label='micro-average ROC curve (area = {0:0.2f})'
+             label='micro-Average ROC curve (area = {0:0.2f})'
                    ''.format(roc_auc["micro"]),
              color='deeppink', linestyle=':', linewidth=3)
 
     plt.plot(fpr["macro"], tpr["macro"],
-             label='macro-average ROC curve (area = {0:0.2f})'
+             label='macro-Average ROC curve (area = {0:0.2f})'
                    ''.format(roc_auc["macro"]),
              color='navy', linestyle=':', linewidth=3)
 
