@@ -66,7 +66,8 @@ BATCH_SIZE = find_optimal_batch_size(num_samples)
 print(f"BATCH_SIZE:{BATCH_SIZE}")
 
 # model_name = "1614711597-1ba461b"
-model_name = "1615402794-0.1.dev686+g8ce4a41"
+# model_name = "1615402794-0.1.dev686+g8ce4a41"
+model_name = "1615495431-0.1.dev701+g2539a82.d20210311"
 # model_name = "1613551066-32f3933"
 # model_name = None
 
