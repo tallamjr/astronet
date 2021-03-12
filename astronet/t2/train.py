@@ -202,9 +202,14 @@ class Training(object):
         log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
         log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
 
-        print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, batch_size=X_test.shape[0])[0]}")
-        print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test)[0]}")
-        print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, batch_size=VALIDATION_BATCH_SIZE)[0]}")
+        with tf.device("/cpu:0"):
+            try:
+                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
+            except Exception:
+                print(f"Preventing possible OOM...")
+
+        print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}")
+        print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}")
 
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
@@ -231,11 +236,12 @@ class Training(object):
         model_params['testset'] = self.testset
         model_params['num_classes'] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_input, y_test, batch_size=batch_size
+            test_input, y_test, verbose=0, batch_size=batch_size
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_input, y_test, batch_size=batch_size
+            test_input, y_test, verbose=0, batch_size=batch_size
         )[0]
+        model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
