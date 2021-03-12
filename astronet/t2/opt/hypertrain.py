@@ -157,12 +157,16 @@ class Objective(object):
                 inputs_train_cv = [X_train_cv, Z_train_cv]
                 inputs_val_cv = [X_val_cv, Z_val_cv]
 
+            VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_val_cv.shape[0])
+            print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+
             _ = model.fit(
                 inputs_train_cv,
                 y_train_cv,
                 batch_size=BATCH_SIZE,
                 epochs=EPOCHS,
                 validation_data=(inputs_val_cv, y_val_cv),
+                validation_batch_size=VALIDATION_BATCH_SIZE,
                 verbose=False,
                 callbacks=[
                     DetectOverfittingCallback(
@@ -186,9 +190,10 @@ class Objective(object):
                     ),
                 ],
             )
+            log.info("Partially complete fit done...")
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0)
+            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
