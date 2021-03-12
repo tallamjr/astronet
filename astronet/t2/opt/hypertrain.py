@@ -125,7 +125,9 @@ class Objective(object):
         )
 
         scores = []
-        skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+        # 'random_state' has no effect since shuffle is False. You should leave random_state to its default
+        # (None), or set shuffle=True.'
+        skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
 
         if self.redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
