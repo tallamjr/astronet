@@ -199,14 +199,17 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
+        model.save(f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/t2/models/{self.dataset}/weights-{unixtimestamp}-{label}")
+
         log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
         log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
 
-        with tf.device("/cpu:0"):
-            try:
-                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
-            except Exception:
-                print(f"Preventing possible OOM...")
+#        with tf.device("/cpu:0"):
+#            try:
+#                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
+#            except Exception:
+#                print(f"Preventing possible OOM...")
 
         print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}")
         print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}")
@@ -267,9 +270,6 @@ class Training(object):
 
         with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
-
-        model.save(f"{asnwd}/astronet/t2/models/{self.dataset}/model-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/t2/models/{self.dataset}/weights-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
