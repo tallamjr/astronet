@@ -83,6 +83,13 @@ class Objective(object):
         else:
             X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
 
+        # Generate random boolean mask the length of data
+        # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+        mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+        X_train = X_train[mask]
+        y_train = y_train[mask]
+        ZX_train = ZX_train[mask]
+
         num_classes = y_train.shape[1]
 
         embed_dim = trial.suggest_categorical("embed_dim", [32, 64, 128, 512])  # --> Embedding size for each token
