@@ -35,7 +35,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N plasticc-GPU
+#$ -N plasticc-GPU-train
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -59,17 +59,15 @@ SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source /home/zcicg57/Scratch/astronet/conf/astronet.conf
 
 export PATH="/miniconda3/envs/astronet/bin:$PATH"
-
 conda activate astronet
+which python
+export PYTHONHASHSEED=0
 conda install -c anaconda tensorflow-gpu
-
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/bin/plasticc-myriad
 date
-which python
-export PYTHONHASHSEED=0
 # Test Imports
-# python -c "import astronet as asn; print(asn.__version__)"
+python -c "import astronet as asn; print(asn.__version__)"
 python -c "import tensorflow as tf; print(tf.__version__);"
 python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 # Architecture
@@ -79,7 +77,7 @@ echo "Using $ARCH architecture"
 
 dataset="plasticc"
 # Hyperparameter Optimisation
-# python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50 -z "" -t ""
+# python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 40 -n 5 -z "" -t ""
 # Train
 python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -z "" -t "" --model "1613517996-0a72904"
 date
