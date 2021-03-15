@@ -41,6 +41,7 @@ np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 
 class Training(object):
@@ -160,7 +161,7 @@ class Training(object):
             y_train,
             batch_size=BATCH_SIZE,
             epochs=self.epochs,
-            shuffle=False,
+            shuffle=True,
             validation_data=(test_input, y_test),
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
