@@ -135,7 +135,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
 
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(18, 10))
+    fig, ax = plt.subplots(figsize=(14, 10))
     ax = sns.heatmap(
         cm / np.sum(cm, axis=1, keepdims=1),
         annot=True,
@@ -143,7 +143,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         fmt=".2f",
         # cmap=sns.diverging_palette(220, 20, n=7),
         cmap=cmap,
-        cbar=False,
+        cbar=True,
         ax=ax,
     )
 
@@ -222,7 +222,7 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
 
     # Plot all ROC curves
-    plt.figure(figsize=(16, 9))
+    plt.figure(figsize=(12, 9))
     plt.plot(fpr["micro"], tpr["micro"],
              label='micro-Average ROC curve (area = {0:0.2f})'
                    ''.format(roc_auc["micro"]),
@@ -265,7 +265,7 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
-    plt.figure(figsize=(16, 9))
+    plt.figure(figsize=(12, 12))
 
     # For each class
     precision = dict()
@@ -318,10 +318,10 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
         labels,
         ncol=3,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.45),
+        bbox_to_anchor=(0.5, -0.40),
         fancybox=False,
         shadow=False,
-        prop=dict(size=14),
+        # prop=dict(size=14),
     )
 
     if save:
