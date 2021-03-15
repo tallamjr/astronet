@@ -160,6 +160,7 @@ class Training(object):
             y_train,
             batch_size=BATCH_SIZE,
             epochs=self.epochs,
+            shuffle=False,
             validation_data=(test_input, y_test),
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
