@@ -4,6 +4,7 @@ import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import shutil
 import sys
 import seaborn as sns
@@ -87,7 +88,11 @@ def plot_acc_history(dataset, model_name, event, save=True, ax=None):
         plt.title(fr"Training vs. Validation per Epoch - {dataset}")
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-acc-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -118,7 +123,11 @@ def plot_loss_history(dataset, model_name, event, save=True, ax=None):
         plt.title(r'Training vs. Validation per Epoch')
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-loss-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -174,7 +183,11 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     #     label.set_transform(label.get_transform() + offset)
     plt.tight_layout()
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -253,7 +266,11 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     plt.legend(loc="lower right")
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-roc-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -325,7 +342,11 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
     )
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-pr-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
         plt.savefig(fname, format='pdf', bbox_inches='tight')
         plt.clf()
     else:
