@@ -202,7 +202,10 @@ class Objective(object):
             log.info("Partially complete fit done...")
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
+            # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
+            wloss = WeightedLogLoss()
+            y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
+            loss = wloss(y_val_cv, y_preds).numpy()
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
