@@ -80,7 +80,8 @@ def find_optimal_batch_size(training_set_length):
     if (training_set_length < 10000):
         batch_size_list = [16, 32, 64]
     else:
-        batch_size_list = [512, 1024, 2028, 4096]
+        batch_size_list = [96, 128, 256, 512]
+        # batch_size_list = [512, 1024, 2028, 4096]
     ratios = []
     for batch_size in batch_size_list:
 
