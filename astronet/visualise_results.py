@@ -143,6 +143,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         fmt=".2f",
         # cmap=sns.diverging_palette(220, 20, n=7),
         cmap=cmap,
+        cbar=False,
         ax=ax,
     )
 
