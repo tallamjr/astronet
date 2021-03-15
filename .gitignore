@@ -25,6 +25,7 @@ data/plasticc/avocado
 logs/
 *.log
 *.pdf
+!astronet/t2/plots/**/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
