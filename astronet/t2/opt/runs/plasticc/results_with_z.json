@@ -140,6 +140,20 @@
             "num_layers": 1,
             "objective_score": 0.4120836853981018,
             "z-redshift": true
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "droprate": 0.4,
+            "embed_dim": 64,
+            "ff_dim": 32,
+            "lr": 0.052446085643111706,
+            "name": "1615806502-0.1.dev721+g3e1b85d",
+            "num_heads": 16,
+            "num_layers": 2,
+            "objective_score": 2.2616249561309814,
+            "testset": true,
+            "z-redshift": true
         }
     ]
 }
