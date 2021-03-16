@@ -148,7 +148,10 @@ from pandas.core.common import flatten
 
 # y_true = encoding.inverse_transform(y_train)
 y_true = encoding.inverse_transform(y_train)
-print(Counter(list(flatten(y_true))))
+print("N_TRAIN:", Counter(list(flatten(y_true))))
+
+y_true_test = encoding.inverse_transform(y_test)
+print("N_TEST:", Counter(list(flatten(y_true_test))))
 
 logloss = event["model_evaluate_on_test_loss"]
 acc = event["model_evaluate_on_test_acc"]
