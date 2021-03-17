@@ -63,7 +63,7 @@ class WeightedLogLoss(keras.losses.Loss):
 class DistributionWeightedLogLoss(keras.losses.Loss):
 
     # initialize instance attributes
-    def __init__(self, name="weighted_log_loss"):
+    def __init__(self, name="distribution_weighted_log_loss"):
         super().__init__(name=name)
 
     # compute loss
