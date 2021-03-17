@@ -85,6 +85,7 @@ def test_training_pipeline_wisdm_2010():
     assert accuracy == pytest.approx(expected_output[1], 0.1)
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
 def test_training_pipeline_plasticc():
     clear_session()
 
