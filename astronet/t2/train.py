@@ -21,7 +21,7 @@ from tensorflow.keras.callbacks import (
 
 from astronet.constants import astronet_working_directory as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
-from astronet.metrics import WeightedLogLoss
+from astronet.metrics import WeightedLogLoss, DistributionWeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
@@ -120,12 +120,13 @@ class Training(object):
             # fc_neurons=fc_neurons,
         )
 
-        # We compile our model with a sampled learning rate.
+        # We compile our model with a sampled learning rate and custom metrics
         lr = event['lr']
+        dwloss = DistributionWeightedLogLoss()
         model.compile(
             loss=loss,
             optimizer=optimizers.Adam(lr=lr, clipnorm=1),
-            metrics=["acc"],
+            metrics=["acc", dwloss],
             run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
         )
 
@@ -219,6 +220,7 @@ class Training(object):
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
         print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
+        print(f"LL-Test Model Predictions DW: {dwloss(y_test, y_preds).numpy():.8f}")
 
         if (X_test.shape[0] < 10000):
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
