@@ -16,9 +16,16 @@ data/plasticc/*.pckl
 data/plasticc/*.npy
 data/plasticc/augmented*
 data/plasticc/__*
+data/plasticc/full_transformed_df_timesteps_100_with_z.csv
+data/plasticc/snonly_transformed_df_timesteps_100_with_z.csv
+data/plasticc/test_set
+data/plasticc-backup
+data/plasticc/avocado
+
 logs/
 *.log
 *.pdf
+!astronet/t2/plots/**/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

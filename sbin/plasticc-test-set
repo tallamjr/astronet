@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright 2021
+# Author: Tarek Allam Jr.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#SBATCH --job-name=ptest                # Job name
+#SBATCH --time=48:00:00                 # Time limit hrs:min:sec
+#SBATCH --output=logs/%j.log            # Standard output and error log
+# #SBATCH --exclusive                     # Request exclusive access to a node
+# #SBATCH --cpus-per-task=40              # Number of CPUs per node
+# Add a -e or --error with an error file name to separate output and error
+# logs. Note this will ignore the --output option if used afterwards
+## #SBATCH -e logs/%j.err
+## #SBATCH -o logs/%j.out
+#SBATCH --array=1-12
+set -o pipefail -e
+source $PWD/conf/astronet.conf
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/sbin/plasticc-test-set
+date
+SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
+which python
+# Test Imports
+python -c "import astronet as asn; print(asn.__version__)"
+python -c "import tensorflow as tf; print(tf.__version__)"
+
+declare -a arr=(
+                "plasticc_test_lightcurves_01"
+                "plasticc_test_lightcurves_02"
+                "plasticc_test_lightcurves_03"
+                "plasticc_test_lightcurves_04"
+                "plasticc_test_lightcurves_05"
+                "plasticc_test_lightcurves_06"
+                "plasticc_test_lightcurves_07"
+                "plasticc_test_lightcurves_08"
+                "plasticc_test_lightcurves_09"
+                "plasticc_test_lightcurves_10"
+                "plasticc_test_lightcurves_11"
+            )
+
+echo "${arr[SLURM_ARRAY_TASK_ID-1]}"
+dataset="${arr[SLURM_ARRAY_TASK_ID-1]}"
+# Hyperparameter Optimisation
+python $ASNWD/sbin/plasticc_test_set.py --file $dataset
+date
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."

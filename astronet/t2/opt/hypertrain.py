@@ -63,11 +63,13 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, augmented):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
         self.augmented = augmented
+        self.avocado = avocado
+        self.testset = testset
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -75,10 +77,18 @@ class Objective(object):
 
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
-                dataset, redshift=self.redshift, augmented=self.augmented
+                dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
             )
         else:
             X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
+
+        # Generate random boolean mask the length of data
+        # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+        mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+        X_train = X_train[mask]
+        y_train = y_train[mask]
+        ZX_train = ZX_train[mask]
 
         num_classes = y_train.shape[1]
 
@@ -122,7 +132,9 @@ class Objective(object):
         )
 
         scores = []
-        skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+        # 'random_state' has no effect since shuffle is False. You should leave random_state to its default
+        # (None), or set shuffle=True.'
+        skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
 
         if self.redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
@@ -154,15 +166,21 @@ class Objective(object):
                 inputs_train_cv = [X_train_cv, Z_train_cv]
                 inputs_val_cv = [X_val_cv, Z_val_cv]
 
+            VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_val_cv.shape[0])
+            print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+
             _ = model.fit(
                 inputs_train_cv,
                 y_train_cv,
                 batch_size=BATCH_SIZE,
                 epochs=EPOCHS,
                 validation_data=(inputs_val_cv, y_val_cv),
+                validation_batch_size=VALIDATION_BATCH_SIZE,
                 verbose=False,
                 callbacks=[
-                    # DetectOverfittingCallback(threshold=1.5),
+                    DetectOverfittingCallback(
+                        threshold=2
+                    ),
                     EarlyStopping(
                         min_delta=0.001,
                         mode="min",
@@ -181,9 +199,13 @@ class Objective(object):
                     ),
                 ],
             )
+            log.info("Partially complete fit done...")
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0)
+            # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
+            wloss = WeightedLogLoss()
+            y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
+            loss = wloss(y_val_cv, y_preds).numpy()
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
@@ -202,7 +224,11 @@ if __name__ == "__main__":
 
     import time
     unixtimestamp = int(time.time())
-    label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    try:
+        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    except Exception:
+        from astronet import __version__ as current_version
+        label = current_version
 
     parser = argparse.ArgumentParser(description='Optimising hyperparameters')
 
@@ -220,6 +246,12 @@ if __name__ == "__main__":
 
     parser.add_argument('-a', '--augment', default=None,
             help='Train using augmented plasticc data')
+
+    parser.add_argument('-A', '--avocado', default=None,
+            help='Train using avocado augmented plasticc data')
+
+    parser.add_argument('-t', '--testset', default=None,
+            help='Train using PLAsTiCC test data for representative test')
 
     try:
         args = parser.parse_args()
@@ -239,12 +271,20 @@ if __name__ == "__main__":
     if augmented is not None:
         augmented = True
 
+    avocado = args.avocado
+    if avocado is not None:
+        avocado = True
+
+    testset = args.testset
+    if testset is not None:
+        testset = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
         n_trials=N_TRIALS,
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
@@ -271,6 +311,8 @@ if __name__ == "__main__":
 
     best_result['z-redshift'] = redshift
     best_result['augmented'] = augmented
+    best_result['avocado'] = avocado
+    best_result['testset'] = testset
 
     print("  Params: ")
     for key, value in trial.params.items():

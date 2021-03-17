@@ -1,3 +1,5 @@
+import os
+
 from pathlib import Path
 
 # Central passbands wavelengths
@@ -20,7 +22,8 @@ pb_colors = {
     "lssty": "#e3c530",  # Yellow: https://www.color-hex.com/color/e3c530
 }
 
-astronet_working_directory = f"{Path(__file__).absolute().parent.parent}"
+#astronet_working_directory = f"{Path(__file__).absolute().parent.parent}"
+astronet_working_directory = f"{os.environ['ASNWD']}"
 
 plasticc_weights_dict = {
     6: 1 / 18,

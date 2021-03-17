@@ -23,7 +23,10 @@ class DetectOverfittingCallback(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         ratio = logs["val_loss"] / logs["loss"]
-        print("Epoch: {}, Val/Train loss ratio: {:.2f}".format(epoch, ratio))
+        print(
+            f"Epoch: {epoch}, Val/Train loss ratio: {ratio:.2f} -- \n"
+            f"val_loss: {logs['val_loss']}, loss: {logs['loss']}"
+        )
 
         if ratio > self.threshold:
             print("Stopping training...")

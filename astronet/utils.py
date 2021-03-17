@@ -77,7 +77,11 @@ def astronet_logger(name, level="INFO"):
 
 def find_optimal_batch_size(training_set_length):
 
-    batch_size_list = [16, 32, 64]
+    if (training_set_length < 10000):
+        batch_size_list = [16, 32, 64]
+    else:
+        batch_size_list = [96, 128, 256]
+        # batch_size_list = [512, 1024, 2028, 4096]
     ratios = []
     for batch_size in batch_size_list:
 
@@ -277,18 +281,32 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
 
 def __transient_trim(object_list, df):
     adf = pd.DataFrame(data=[], columns=df.columns)
+    good_object_list = []
     for obj in object_list:
         obs = df[df['object_id'] == obj]
         obs_time = obs['mjd']
         obs_detected_time = obs_time[obs['detected'] == 1]
+        if len(obs_detected_time) == 0:
+            print(f"Zero detected points for object:{object_list.index(obj)}")
+            continue
         is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
         obs_transient = obs[is_obs_transient]
+        if len(obs_transient['mjd']) == 0:
+            is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (obs_time < obs_detected_time.iat[-1] + 1000)
+            obs_transient = obs[is_obs_transient]
         obs_transient['mjd'] -= min(obs_transient['mjd'])  # so all transients start at time 0
+        good_object_list.append(object_list.index(obj))
         adf = np.vstack((adf, obs_transient))
 
     obs_transient = pd.DataFrame(data=adf, columns=obs_transient.columns)
 
-    return obs_transient
+    filter_indices = good_object_list
+    axis = 0
+    array = np.array(object_list)
+
+    new_filtered_object_list = np.take(array, filter_indices, axis)
+
+    return obs_transient, list(new_filtered_object_list)
 
 
 def __generate_gp_all_objects(object_list, obs_transient, timesteps):
@@ -297,14 +315,13 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
         columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
     )
 
-    # import pdb;pdb.set_trace()
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
     gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
     inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
 
     for object_id in object_list:
-
+        print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
         df = obs_transient[obs_transient["object_id"] == object_id]
 
         gp_predict = fit_2d_gp(df)
@@ -314,14 +331,14 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
         obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
         obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
 
-        obj_gps = obj_gps.pivot(index="mjd", columns="filter", values="flux")
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
         obj_gps["object_id"] = object_id
         adf = np.vstack((adf, obj_gps))
     return pd.DataFrame(data=adf, columns=obj_gps.columns)
 
 
-def __load_plasticc_dataset_from_csv(timesteps):
+def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -336,10 +353,15 @@ def __load_plasticc_dataset_from_csv(timesteps):
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
 
-    df = __filter_dataframe_only_supernova(
-        f"{asnwd}/data/plasticc/train_subset.txt",
-        data,
-    )
+    if snonly is not None:
+        dataform = "snonly"
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        dataform = "full"
+        df = data
 
     object_list = list(np.unique(df['object_id']))
 
@@ -358,24 +380,208 @@ def __load_plasticc_dataset_from_csv(timesteps):
 
     df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
 
-    df = df_with_labels.drop(
-        columns=[
-            "ra",
-            "decl",
-            "gal_l",
-            "gal_b",
-            "ddf",
-            "hostgal_specz",
-            "distmod",
-            "mwebv",
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "target",
         ]
     )
 
-    df.to_parquet(
-        f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
-        engine="pyarrow",
-        compression="snappy",
+    print(df.dtypes)
+    df.convert_dtypes()
+    df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv")
+
+    # df.to_parquet(
+    #     f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
+    #     engine="pyarrow",
+    #     compression="snappy",
+    # )
+
+    return df
+
+
+def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    # batch_filename = "plasticc_test_lightcurves_01"
+
+    data = pd.read_csv(
+        f"{asnwd}/data/plasticc/test_set/{batch_filename}.csv",
+        sep=",",
     )
+    data = __remap_filters(df=data)
+    data.rename(
+        {"flux_err": "flux_error"}, axis="columns", inplace=True
+    )  # snmachine and PLAsTiCC uses a different denomination
+    data.rename(
+        {"detected_bool": "detected"}, axis="columns", inplace=True
+    )  # snmachine and PLAsTiCC uses a different denomination
+
+    if snonly is not None:
+        dataform = "snonly"
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        dataform = "full_test"
+        df = data
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{asnwd}/data/plasticc/test_set/plasticc_test_metadata.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "true_target",
+        ]
+    )
+
+    print(df.dtypes)
+    df.convert_dtypes()
+    df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(
+        f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv"
+    )
+
+    # df.to_parquet(
+    #     f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
+    #     engine="pyarrow",
+    #     compression="snappy",
+    # )
+
+    return df
+
+
+def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    data = pd.read_csv(
+        f"{asnwd}/data/plasticc/avocado/{batch_filename}.csv",
+        sep=",",
+    )
+
+    data.rename(
+        {"band": "filter"}, axis="columns", inplace=True
+    )
+    data.rename(
+        {"time": "mjd"}, axis="columns", inplace=True
+    )
+
+    if snonly is not None:
+        dataform = "snonly"
+        df = __filter_dataframe_only_supernova(
+            f"{asnwd}/data/plasticc/train_subset.txt",
+            data,
+        )
+    else:
+        dataform = "avocado"
+        df = data
+
+    object_list = list(np.unique(df['object_id']))
+
+    obs_transient, object_list = __transient_trim(object_list, df)
+    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+
+    metadata_pd = pd.read_csv(
+        f"{asnwd}/data/plasticc/avocado/avo_aug_0.csv",
+        sep=",",
+        index_col="object_id",
+    )
+
+    metadata_pd = metadata_pd.reset_index()
+    # metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+
+    df_with_labels.rename(
+        {"class": "target"}, axis="columns", inplace=True
+    )
+    df_with_labels.rename(
+        {"host_photoz": "hostgal_photoz"}, axis="columns", inplace=True
+    )
+    df_with_labels.rename(
+        {"host_photoz_error": "hostgal_photoz_err"}, axis="columns", inplace=True
+    )
+
+    df = df_with_labels.filter(
+        items=[
+            "mjd",
+            "lsstg",
+            "lssti",
+            "lsstr",
+            "lsstu",
+            "lssty",
+            "lsstz",
+            "object_id",
+            "hostgal_photoz",
+            "hostgal_photoz_err",
+            "target",
+        ]
+    )
+
+    print(df.dtypes)
+    df.convert_dtypes()
+    # df['object_id'] = df['object_id'].astype(int)
+    print(df.dtypes)
+
+    print(df.columns)
+    print(df.head())
+    print(df.dtypes)
+
+    df.to_csv(f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv")
 
     return df
 
@@ -447,7 +653,6 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     print(data.head())
 
-    # import pdb;pdb.set_trace()
     df = __filter_dataframe_only_supernova(
         f"{asnwd}/data/plasticc/aug_object_list.txt",
         data,
@@ -520,7 +725,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
-def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
+def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -533,7 +738,7 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
         dataform = "augmented"
         try:
             df = pd.read_csv(
-                f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
                 sep=",",
             )
             # df = pd.read_parquet(
@@ -543,12 +748,29 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
 
         except IOError:
             df = __load_augmented_plasticc_dataset_from_csv(timesteps)
-    else:
-        dataform = "original"
+    elif snonly is not None:
+        dataform = "snonly"
         try:
-            df = pd.read_parquet(
-                f"{asnwd}/data/plasticc/transformed_df_timesteps_{timesteps}_with_z.parquet",
-                engine="pyarrow",
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_plasticc_dataset_from_csv(timesteps, snonly=True)
+    elif avocado is not None:
+        dataform = "avocado"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_avocado_plasticc_dataset_from_csv(timesteps)
+    else:
+        dataform = "full"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
             )
 
         except IOError:
@@ -607,24 +829,315 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None):
         )
 
         np.save(
-                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_train.npy",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_train.npy",
                 ZX_train,
         )
         np.save(
-                f"{asnwd}/data/plasticc/aug_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
                 ZX_test,
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None):
+def load_full_avocado_plasticc_from_numpy(timesteps=100, redshift=None, batch_filename=None):
+
+    dataform = "avocado"
+    try:
+        X_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_X_full_avo_train.npy",
+        )
+
+        y_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_y_full_avo_train.npy",
+        )
+
+        Z_train = np.load(
+            f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_Z_full_avo_train.npy",
+        )
+
+        X_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+            # mmap_mode='r'
+        )
+
+        y_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+        )
+
+        Z_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+        )
+
+
+    except IOError:
+        X_train, y_train, Z_train = save_avocado_training_set(batch_filename=batch_filename)
+
+    if redshift is not None:
+        return X_train, y_train, X_full_test_no_99, y_full_test_no_99, Z_train, Z_full_test_no_99
+    else:
+        return X_train, y_train
+
+
+def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    try:
+        X_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+            # mmap_mode='r'
+        )
+
+        y_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+        )
+
+        Z_full_test_no_99 = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+        )
+
+    except IOError:
+        X_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test.npy",
+            # mmap_mode='r'
+        )
+
+        y_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test.npy",
+        )
+
+        Z_full_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test.npy",
+        )
+
+        print(X_full_test.shape, y_full_test.shape, Z_full_test.shape)
+
+        # Get index of class 99, append index of those NOT 99 to 'keep' list
+        class_99_index = []
+        for i in range(len(y_full_test.flatten())):
+            if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
+                pass
+            else:
+                class_99_index.append(i)
+
+        print(len(class_99_index))
+
+        filter_indices = class_99_index
+        axis = 0
+        array = X_full_test
+        arrayY = y_full_test
+        arrayZ = Z_full_test
+
+        X_full_test_no_99 = np.take(array, filter_indices, axis)
+        y_full_test_no_99 = np.take(arrayY, filter_indices, axis)
+        Z_full_test_no_99 = np.take(arrayZ, filter_indices, axis)
+
+
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(
+        X_full_test_no_99, y_full_test_no_99, train_size=0.75, random_state=RANDOM_SEED
+    )
+
+    Z_train, Z_test, _, _ = model_selection.train_test_split(
+        Z_full_test_no_99, y_full_test_no_99, train_size=0.75, random_state=RANDOM_SEED
+    )
+
+    if redshift is not None:
+        return X_train, y_train, X_test, y_test, Z_train, Z_test
+    else:
+        return X_train, y_train, X_test, y_test
+
+
+def save_avocado_training_set(
+    timesteps=100,
+    step=100,
+    redshift=None,
+    augmented=None,
+    snonly=None,
+    batch_filename=None,
+):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    dataform = "avocado"
+    try:
+        df = pd.read_csv(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+        )
+
+    except IOError:
+        df = __load_avocado_plasticc_dataset_from_csv(timesteps, batch_filename=batch_filename)
+
+
+    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    robust_scale(df, cols)
+
+    Xs, ys = create_dataset(
+        df[cols],
+        df.target,
+        TIME_STEPS,
+        STEP
+    )
+
+    # X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    #     Xs, ys, random_state=RANDOM_SEED
+    # )
+
+    np.save(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
+            Xs,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
+            ys,
+    )
+
+    if redshift is None:
+        return Xs, ys
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        # ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+        #     np.array(ZX), zys, random_state=RANDOM_SEED
+        # )
+
+        np.save(
+                f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
+                np.array(ZX),
+        )
+        # np.save(
+        #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+        #         ZX_test,
+        # )
+
+        return Xs, ys, np.array(ZX)
+
+
+def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=None, snonly=None,
+        batch_filename=None):
+
+    RANDOM_SEED = 42
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    TIME_STEPS = timesteps
+    STEP = step
+
+    if augmented is not None:
+        dataform = "augmented"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+                sep=",",
+            )
+            # df = pd.read_parquet(
+            #     f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.parquet",
+            #     engine="pyarrow",
+            # )
+
+        except IOError:
+            df = __load_augmented_plasticc_dataset_from_csv(timesteps)
+    elif snonly is not None:
+        dataform = "snonly"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_plasticc_dataset_from_csv(timesteps, snonly=True)
+    else:
+        dataform = "full_test"
+        try:
+            df = pd.read_csv(
+                f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv",
+            )
+
+        except IOError:
+            df = __load_plasticc_test_set_dataset_from_csv(timesteps, batch_filename=batch_filename)
+
+    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    robust_scale(df, cols)
+
+    Xs, ys = create_dataset(
+        df[cols],
+        df.true_target,
+        TIME_STEPS,
+        STEP
+    )
+
+    # X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    #     Xs, ys, random_state=RANDOM_SEED
+    # )
+
+    np.save(
+            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
+            Xs,
+    )
+    np.save(
+            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
+            ys,
+    )
+
+    if redshift is None:
+        return Xs, ys
+    else:
+        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        robust_scale(df, zcols)
+
+        ZXs, zys = create_dataset(
+            df[zcols],
+            df.true_target,
+            TIME_STEPS,
+            STEP
+        )
+
+        ZX = []
+        for z in range(0, len(ZXs)):
+            ZX.append(stats.mode(ZXs[z])[0][0])
+
+        # ZX_train, ZX_test, _, _ = model_selection.train_test_split(
+        #     np.array(ZX), zys, random_state=RANDOM_SEED
+        # )
+
+        np.save(
+                f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test_{batch_filename}.npy",
+                np.array(ZX),
+        )
+        # np.save(
+        #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+        #         ZX_test,
+        # )
+
+        return Xs, ys, np.array(ZX)
+
+
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
-        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        encoding_file = f"{asnwd}/data/{dataset}.encoding"
         if not os.path.exists(encoding_file):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
@@ -636,7 +1149,7 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None):
         X_train, y_train, X_test, y_test = load_wisdm_2019()
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
-        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        encoding_file = f"{asnwd}/data/{dataset}.encoding"
         if not os.path.exists(encoding_file):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
@@ -665,7 +1178,7 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None):
         enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
         y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
         y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
-        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataset}.encoding"
+        encoding_file = f"{asnwd}/data/{dataset}.encoding"
         if not os.path.exists(encoding_file):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)
@@ -683,19 +1196,34 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None):
     elif dataset == "plasticc":
         # Load data
         if redshift is None:
-            X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented)
+            if avocado is not None:
+                X_train, y_train, X_test, y_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+            else:
+                X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly,
+                        avocado=avocado)
         else:
-            X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-                redshift=redshift, augmented=augmented
-            )
+            if testset is not None:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_plasticc_test_from_numpy(redshift=redshift)
+            # if avocado is not None:
+            #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+            else:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
+                    redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
+                )
 
         if augmented is not None:
             dataform = "augmented"
+        elif snonly is not None:
+            dataform = "snonly"
+        elif avocado is not None:
+            dataform = "avocado"
+        elif testset is not None:
+            dataform = "testset"
         else:
-            dataform = "original"
+            dataform = "full"
         # One hot encode y
         enc, y_train, y_test = one_hot_encode(y_train, y_test)
-        encoding_file = f"{Path(__file__).absolute().parent.parent}/data/{dataform}-{dataset}.encoding"
+        encoding_file = f"{asnwd}/data/{dataform}-{dataset}.encoding"
         if not os.path.exists(encoding_file):
             with open(encoding_file, "wb") as f:
                 joblib.dump(enc, f)

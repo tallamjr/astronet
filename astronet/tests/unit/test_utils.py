@@ -28,9 +28,10 @@ def test_load_wisdm_2019():
     assert y_test.shape == (29876, 1)
 
 
-def test_load_plasticc():
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
+def test_load_plasticc_snonly():
 
-    X_train, y_train, X_test, y_test = load_plasticc(timesteps=100, step=100)
+    X_train, y_train, X_test, y_test = load_plasticc(timesteps=100, step=100, snonly=True)
 
     assert X_train.shape == (2991, 100, 6)
     assert X_test.shape == (998, 100, 6)
@@ -39,23 +40,39 @@ def test_load_plasticc():
     assert y_test.shape == (998, 1)
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
+def test_load_plasticc():
+
+    X_train, y_train, X_test, y_test = load_plasticc(timesteps=100, step=100)
+
+    assert X_train.shape == (5885, 100, 6)
+    assert X_test.shape == (1962, 100, 6)
+
+    assert y_train.shape == (5885, 1)
+    assert y_test.shape == (1962, 1)
+
+
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
 def test_load_dataset():
 
     X_train, y_train, X_test, y_test, loss = load_dataset("plasticc")
 
-    assert X_train.shape == (2991, 100, 6)
-    assert X_test.shape == (998, 100, 6)
+    assert X_train.shape == (5885, 100, 6)
+    assert X_test.shape == (1962, 100, 6)
 
-    assert y_train.shape == (2991, 3)
-    assert y_test.shape == (998, 3)
+    assert y_train.shape == (5885, 14)
+    assert y_test.shape == (1962, 14)
 
     assert type(WeightedLogLoss()) == type(loss)
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
 def test_load_dataset_with_z():
 
     dataset = "plasticc"
-    X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(dataset, redshift=True)
+    X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
+        dataset, redshift=True, snonly=True
+    )
 
     assert X_train.shape == (2991, 100, 6)
     assert X_test.shape == (998, 100, 6)

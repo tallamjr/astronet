@@ -38,7 +38,7 @@ def test_plasticc_gp_interpolation():
     object_list = object_list[2:3]
     assert object_list == [1124]
 
-    obs_transient_single = __transient_trim(object_list, df)
+    obs_transient_single, _ = __transient_trim(object_list, df)
 
     gp_predict = fit_2d_gp(obs_transient_single)
     number_gp = 100

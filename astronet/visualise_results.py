@@ -4,16 +4,21 @@ import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import shutil
 import sys
 import seaborn as sns
 import tensorflow as tf
 
-from itertools import cycle
 from numpy import interp
 from pathlib import Path
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import (
+    auc,
+    average_precision_score,
+    confusion_matrix,
+    precision_recall_curve,
+    roc_curve,
+)
 from tensorflow import keras
 
 from astronet.constants import astronet_working_directory as asnwd
@@ -22,26 +27,33 @@ from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
 
 
-def _get_encoding(dataset):
+def _get_encoding(dataset, dataform=None):
 
-    with open(f"{asnwd}/data/{dataset}.encoding", "rb") as eb:
+    if dataform is not None:
+        encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
+    else:
+        encoding_filename = f"{asnwd}/data/{dataset}.encoding"
+
+    with open(encoding_filename, "rb") as eb:
         encoding = joblib.load(eb)
     class_encoding = encoding.categories_[0]
 
     if dataset == "plasticc":
         class_mapping = {
-            15: "TDE",
-            42: "SNII",
-            52: "SNIax",
-            62: "SNIbc",
-            64: "KN",
-            67: "SNIa-91bg",
-            88: "AGN",
             90: "SNIa",
+            67: "SNIa-91bg",
+            52: "SNIax",
+            42: "SNII",
+            62: "SNIbc",
             95: "SLSN-I",
-            1: "SNIa",
-            2: "SNII",
-            3: "SNIbc",
+            15: "TDE",
+            64: "KN",
+            88: "AGN",
+            92: "RRL",
+            65: "M-dwarf",
+            16: "EB",
+            53: "Mira",
+            6: "mu-Lens-Single",
         }
 
         class_encoding
@@ -76,7 +88,11 @@ def plot_acc_history(dataset, model_name, event, save=True, ax=None):
         plt.title(fr"Training vs. Validation per Epoch - {dataset}")
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-acc-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -107,7 +123,11 @@ def plot_loss_history(dataset, model_name, event, save=True, ax=None):
         plt.title(r'Training vs. Validation per Epoch')
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-loss-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -124,7 +144,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
 
     sns.set(style='whitegrid', palette='muted', font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(18, 10))
+    fig, ax = plt.subplots(figsize=(14, 10))
     ax = sns.heatmap(
         cm / np.sum(cm, axis=1, keepdims=1),
         annot=True,
@@ -132,6 +152,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         fmt=".2f",
         # cmap=sns.diverging_palette(220, 20, n=7),
         cmap=cmap,
+        cbar=True,
         ax=ax,
     )
 
@@ -149,18 +170,24 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     if dataset == "plasticc":
         wloss = WeightedLogLoss()
         wloss = wloss(y_test, y_preds).numpy()
-        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.2f}")
+        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.3f}")
     else:
         plt.title(f"Test Set Confusion Matrix -- {dataset}")
 
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
-    plt.setp(ax.yaxis.get_majorticklabels(), ha="right")
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=-45, ha="left", rotation_mode="anchor")
+    plt.setp(ax.yaxis.get_majorticklabels(), rotation="horizontal", ha="right", rotation_mode="anchor")
     # apply offset transform to all x ticklabels.
-    for label in ax.yaxis.get_majorticklabels():
-        label.set_transform(label.get_transform() + offset)
+    # for label in ax.yaxis.get_majorticklabels():
+    #     label.set_transform(label.get_transform() + offset)
+    plt.tight_layout()
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -168,7 +195,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         plt.show()
 
 
-def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True):
+def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.Accent.colors):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -208,24 +235,29 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
 
     # Plot all ROC curves
-    plt.figure(figsize=(16, 9))
+    plt.figure(figsize=(12, 9))
     plt.plot(fpr["micro"], tpr["micro"],
-             label='micro-average ROC curve (area = {0:0.2f})'
+             label='micro-Average ROC curve (area = {0:0.2f})'
                    ''.format(roc_auc["micro"]),
              color='deeppink', linestyle=':', linewidth=3)
 
     plt.plot(fpr["macro"], tpr["macro"],
-             label='macro-average ROC curve (area = {0:0.2f})'
+             label='macro-Average ROC curve (area = {0:0.2f})'
                    ''.format(roc_auc["macro"]),
              color='navy', linestyle=':', linewidth=3)
 
-    colors = cycle(['aqua', 'darkorange', 'cornflowerblue'])
-    for i, color in zip(range(n_classes), colors):
-        plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+    plt.rcParams["axes.prop_cycle"] = plt.cycler("color", colors)
+    for i in range(n_classes):
+        plt.plot(fpr[i], tpr[i], lw=lw,
                  label='ROC: {0} (area = {1:0.2f})'
                  ''.format(class_names[i], roc_auc[i]))
+    # colors = plt.cycle(['aqua', 'darkorange', 'cornflowerblue'])
+    # for i, color in zip(range(n_classes), colors):
+    #     plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+    #              label='ROC: {0} (area = {1:0.2f})'
+    #              ''.format(class_names[i], roc_auc[i]))
 
-    plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+    # plt.plot([0, 1], [0, 1], 'k--', lw=lw)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
@@ -234,8 +266,88 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
     plt.legend(loc="lower right")
 
     if save:
-        fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-roc-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
+
+
+def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.tab20.colors):
+    # TODO: Update docstrings
+    # Plot linewidth.
+    lw = 2
+    plt.figure(figsize=(12, 12))
+
+    # For each class
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    y_score = model.predict(X_test)
+    n_classes = len(class_names)
+
+    for i in range(n_classes):
+        precision[i], recall[i], _ = precision_recall_curve(y_test[:, i],
+                                                            y_score[:, i])
+        average_precision[i] = average_precision_score(y_test[:, i], y_score[:, i])
+
+    # A "micro-average": quantifying score on all classes jointly
+    precision["micro"], recall["micro"], _ = precision_recall_curve(y_test.ravel(), y_score.ravel())
+    average_precision["micro"] = average_precision_score(y_test, y_score,
+                                                         average="micro")
+    # f_scores = np.linspace(0.2, 0.8, num=4)
+    lines = []
+    labels = []
+    # for f_score in f_scores:
+    #     x = np.linspace(0.01, 1)
+    #     y = f_score * x / (2 * x - f_score)
+    #     l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+    #     plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+
+    # lines.append(l)
+    # labels.append('iso-f1 curves')
+    l, = plt.plot(recall["micro"], precision["micro"], color='deeppink',
+            linestyle=':', lw=lw)
+    lines.append(l)
+    labels.append('micro-Average Precision-Recall (area = {0:0.2f})'
+                  ''.format(average_precision["micro"]))
+
+    for i, color in zip(range(n_classes), colors):
+        l, = plt.plot(recall[i], precision[i], color=color, lw=lw)
+        lines.append(l)
+        labels.append('Precision-Recall for {0} (area = {1:0.2f})'
+                      ''.format(class_names[i], average_precision[i]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Multi-Class Precision vs. Recall')
+    plt.legend(
+        lines,
+        labels,
+        ncol=3,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.40),
+        fancybox=False,
+        shadow=False,
+        # prop=dict(size=14),
+    )
+
+    if save:
+        try:
+            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-pr-{model_name}.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
+        plt.savefig(fname, format='pdf', bbox_inches='tight')
         plt.clf()
     else:
         print(model_name)
@@ -288,18 +400,20 @@ if __name__ == '__main__':
     elif args.dataset == "plasticc":
         load_dataset = load_plasticc
         class_mapping = {
-            15: "TDE",
-            42: "SNII",
-            52: "SNIax",
-            62: "SNIbc",
-            64: "KN",
-            67: "SNIa-91bg",
-            88: "AGN",
             90: "SNIa",
+            67: "SNIa-91bg",
+            52: "SNIax",
+            42: "SNII",
+            62: "SNIbc",
             95: "SLSN-I",
-            1: "SNIa",
-            2: "SNII",
-            3: "SNIbc",
+            15: "TDE",
+            64: "KN",
+            88: "AGN",
+            92: "RRL",
+            65: "M-dwarf",
+            16: "EB",
+            53: "Mira",
+            6: "mu-Lens-Single",
         }
 
     # Load data
@@ -346,3 +460,8 @@ if __name__ == '__main__':
     )
 
     plot_multiROC(dataset, model_name, model, X_test, y_test, class_names)
+
+
+# Class Activation Maps
+
+
