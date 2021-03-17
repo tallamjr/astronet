@@ -315,7 +315,6 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
         columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
     )
 
-    # import pdb;pdb.set_trace()
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
     gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
@@ -654,7 +653,6 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     print(data.head())
 
-    # import pdb;pdb.set_trace()
     df = __filter_dataframe_only_supernova(
         f"{asnwd}/data/plasticc/aug_object_list.txt",
         data,
