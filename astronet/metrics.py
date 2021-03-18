@@ -17,10 +17,10 @@ pd.options.mode.chained_assignment = None  # default='warn'
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
 
-class WeightedLogLoss(keras.losses.Loss):
+class ClassWeightedLogLoss(keras.losses.Loss):
 
     # initialize instance attributes
-    def __init__(self, name="weighted_log_loss"):
+    def __init__(self, name="class_weighted_log_loss"):
         super().__init__(name=name)
 
     # compute loss
@@ -60,10 +60,10 @@ class WeightedLogLoss(keras.losses.Loss):
         return loss
 
 
-class DistributionWeightedLogLoss(keras.losses.Loss):
+class WeightedLogLoss(keras.losses.Loss):
 
     # initialize instance attributes
-    def __init__(self, name="distribution_weighted_log_loss"):
+    def __init__(self, name="weighted_log_loss"):
         super().__init__(name=name)
 
     # compute loss
