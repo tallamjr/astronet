@@ -66,7 +66,9 @@ class T2Model(keras.Model):
                 x = layer(x, training)
 
             # Additional layers when adding Z features
-            x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
+            z = inputs[1]
+            z = tf.broadcast_to(z, shape=x.shape)
+            x = tf.keras.layers.Concatenate(axis=1)([z, x])
 
             x = self.pooling(x)
             if training:
