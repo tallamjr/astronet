@@ -33,6 +33,7 @@ class T2Model(keras.Model):
                                 for _ in range(num_layers)]
 
         # Additional layers when adding Z features here
+        self.add_feats      = AdditionalFeatures()
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(self.droprate)
 
@@ -67,8 +68,9 @@ class T2Model(keras.Model):
 
             # Additional layers when adding Z features
             z = inputs[1]
-            z = tf.broadcast_to(z, shape=x.shape)
-            x = tf.keras.layers.Concatenate(axis=1)([z, x])
+            x = add_feats([x, z])
+#            z = tf.broadcast_to(z, shape=x.shape)
+#            x = tf.keras.layers.Concatenate(axis=1)([z, x])
 
             x = self.pooling(x)
             if training:

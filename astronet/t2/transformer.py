@@ -126,3 +126,16 @@ class TransformerBlock(layers.Layer):
         out2 = self.layernorm2(out1 + ffn_output)  # Residual connection, # (batch_size, input_seq_len, d_model)
 
         return out2  # (batch_size, input_seq_len, d_model)
+
+
+class AdditionalFeatures(layers.Layer):
+    def __init__(self, **kwargs):
+        super(AdditionalFeatures, self).__init__(**kwargs)
+
+    def call(self, inputs):
+        x = inputs[0]
+        z = inputs[1]
+        z = tf.broadcast_to(z, shape=x.shape)
+        x = tf.keras.layers.Concatenate(axis=1)([z, x])
+
+        return x
