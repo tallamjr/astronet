@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from astronet.t2.transformer import ConvEmbedding, RelativePositionEmbedding, PositionalEncoding, TransformerBlock
+from astronet.t2.transformer import ConvEmbedding, RelativePositionEmbedding, PositionalEncoding, TransformerBlock, AdditionalFeatures
 
 
 class T2Model(keras.Model):
