@@ -68,7 +68,7 @@ class T2Model(keras.Model):
 
             # Additional layers when adding Z features
             z = inputs[1]
-            x = add_feats([x, z])
+            x = self.add_feats([x, z])
 #            z = tf.broadcast_to(z, shape=x.shape)
 #            x = tf.keras.layers.Concatenate(axis=1)([z, x])
 
