@@ -135,7 +135,7 @@ class AdditionalFeatures(layers.Layer):
     def call(self, inputs):
         x = inputs[0]
         z = inputs[1]
-        z = tf.broadcast_to(z, shape=x.shape)
+        z = tf.broadcast_to(z, shape=tf.shape(x))
         x = tf.keras.layers.Concatenate(axis=1)([z, x])
 
         return x
