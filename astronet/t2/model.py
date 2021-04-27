@@ -32,10 +32,10 @@ class T2Model(keras.Model):
         self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
                                 for _ in range(num_layers)]
 
+        # <-- Additional layers when adding Z features here -->
+
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(self.droprate)
-
-        # Additional layers when adding Z features here
 
         # self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         # self.dropout2       = layers.Dropout(self.droprate)
@@ -63,6 +63,9 @@ class T2Model(keras.Model):
             x = self.embedding(inputs[0])
             x = self.pos_encoding(x)
 
+            for layer in self.encoder:
+                x = layer(x, training)
+
             # Additional Z features
             z = inputs[1]
             # >>> z.shape
@@ -76,9 +79,6 @@ class T2Model(keras.Model):
             x = tf.keras.layers.Concatenate(axis=2)([x, z])
             # >>> x.shape
             # TensorShape([None, 100, 34])
-
-            for layer in self.encoder:
-                x = layer(x, training)
 
             x = self.pooling(x)
             if training:
