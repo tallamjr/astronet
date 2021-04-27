@@ -56,8 +56,8 @@ class T2Model(keras.Model):
                 x = self.dropout1(x, training=training)
 
             # x = self.fc(x)
-            if training:
-                x = self.dropout2(x, training=training)
+            # if training:
+            #     x = self.dropout2(x, training=training)
 
         else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
             x = self.embedding(inputs[0])
@@ -88,8 +88,8 @@ class T2Model(keras.Model):
             # x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
 
             # x = self.fc(x)
-            if training:
-                x = self.dropout2(x, training=training)
+            # if training:
+            #     x = self.dropout2(x, training=training)
 
         classifier = self.classifier(x)
 
