@@ -37,8 +37,8 @@ class T2Model(keras.Model):
 
         # Additional layers when adding Z features here
 
-        self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
-        self.dropout2       = layers.Dropout(self.droprate)
+        # self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
+        # self.dropout2       = layers.Dropout(self.droprate)
 
         self.classifier     = layers.Dense(self.num_classes, activation="softmax")
 
@@ -55,13 +55,27 @@ class T2Model(keras.Model):
             if training:
                 x = self.dropout1(x, training=training)
 
-            x = self.fc(x)
+            # x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
 
         else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
             x = self.embedding(inputs[0])
             x = self.pos_encoding(x)
+
+            # Additional Z features
+            z = inputs[1]
+            # >>> z.shape
+            # TensorShape([None, 2])
+            z = tf.tile(z, [1, 100])
+            # >>> z.shape
+            # TensorShape([None, 200])
+            z = tf.keras.layers.Reshape([100, 2])(z)
+            # >>> z.shape
+            # TensorShape([None, 100, 2])
+            x = tf.keras.layers.Concatenate(axis=2)([x, z])
+            # >>> x.shape
+            # TensorShape([None, 100, 34])
 
             for layer in self.encoder:
                 x = layer(x, training)
@@ -71,9 +85,9 @@ class T2Model(keras.Model):
                 x = self.dropout1(x, training=training)
 
             # Additional layers when adding Z features
-            x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
+            # x = tf.keras.layers.Concatenate(axis=1)([inputs[1], x])
 
-            x = self.fc(x)
+            # x = self.fc(x)
             if training:
                 x = self.dropout2(x, training=training)
 
