@@ -51,25 +51,8 @@ class T2Model(keras.Model):
 
     def call(self, inputs, training=None):
 
-        if tf.is_tensor(inputs):
-            x = self.embedding(inputs)
-            x = self.pos_encoding(x)
-
-            for layer in self.encoder:
-                x = layer(x, training)
-
-            x = self.pooling(x)
-            if training:
-                x = self.dropout1(x, training=training)
-
-            # x = self.fc(x)
-            # if training:
-            #     x = self.dropout2(x, training=training)
-
-            classifier = self.classifier(x)
-
             # Else this implies input is a list; a list of tensors, i.e. multiple inputs
-        elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
+        if (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
             # X in L x M
             x = inputs[0]
             # Additional Z features
@@ -133,6 +116,24 @@ class T2Model(keras.Model):
             x = self.pooling(x)
             if training:
                 x = self.dropout1(x, training=training)
+
+            classifier = self.classifier(x)
+
+        # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
+        else:
+            x = self.embedding(inputs)
+            x = self.pos_encoding(x)
+
+            for layer in self.encoder:
+                x = layer(x, training)
+
+            x = self.pooling(x)
+            if training:
+                x = self.dropout1(x, training=training)
+
+            # x = self.fc(x)
+            # if training:
+            #     x = self.dropout2(x, training=training)
 
             classifier = self.classifier(x)
 
