@@ -18,7 +18,7 @@ class T2Model(keras.Model):
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
         self.ff_dim         = ff_dim
-        self.num_filters    = num_filters
+        self.num_filters    = (num_filters - 2)  # Minus 2 because we will add 2 more dimensions later when adding Z and Zerr
         self.num_layers     = num_layers
         self.droprate       = droprate
         # self.fc_neurons     = fc_neurons
@@ -27,12 +27,13 @@ class T2Model(keras.Model):
         self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
 
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
+
+        # <-- Additional layers when adding Z features here -->
+
         self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
 
         self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
                                 for _ in range(num_layers)]
-
-        # <-- Additional layers when adding Z features here -->
 
         self.pooling        = layers.GlobalAveragePooling1D()
         self.dropout1       = layers.Dropout(self.droprate)
@@ -61,10 +62,6 @@ class T2Model(keras.Model):
 
         else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
             x = self.embedding(inputs[0])
-            x = self.pos_encoding(x)
-
-            for layer in self.encoder:
-                x = layer(x, training)
 
             # Additional Z features
             z = inputs[1]
@@ -78,7 +75,12 @@ class T2Model(keras.Model):
             # TensorShape([None, 100, 2])
             x = tf.keras.layers.Concatenate(axis=2)([x, z])
             # >>> x.shape
-            # TensorShape([None, 100, 34])
+            # TensorShape([None, 100, ((embed_dim - 2)  + 2)])
+
+            x = self.pos_encoding(x)
+
+            for layer in self.encoder:
+                x = layer(x, training)
 
             x = self.pooling(x)
             if training:
