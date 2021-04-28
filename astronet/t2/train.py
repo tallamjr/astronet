@@ -117,6 +117,7 @@ class Training(object):
             num_classes=num_classes,
             num_layers=num_layers,
             droprate=droprate,
+            add_feats_to="d",
             # fc_neurons=fc_neurons,
         )
 

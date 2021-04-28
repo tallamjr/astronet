@@ -12,15 +12,17 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes, num_layers, droprate, **kwargs):
+    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes,
+            num_layers, droprate, add_feats_to="d", **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
         self.num_heads      = num_heads
         self.ff_dim         = ff_dim
-        self.num_filters    = (num_filters - 2)  # Minus 2 because we will add 2 more dimensions later when adding Z and Zerr
+        self.num_filters    = num_filters
         self.num_layers     = num_layers
         self.droprate       = droprate
+        self.add_feats_to   = add_feats_to
         # self.fc_neurons     = fc_neurons
 
         self.num_classes    = num_classes
@@ -60,9 +62,10 @@ class T2Model(keras.Model):
             # if training:
             #     x = self.dropout2(x, training=training)
 
-        else:   # Else this implies input is a list; a list of tensors, i.e. multiple inputs
-            x = self.embedding(inputs[0])
-
+            # Else this implies input is a list; a list of tensors, i.e. multiple inputs
+        elif (isinstance(inputs, list)) and (self.add_feats_to == "d"):
+            # X in L x M
+            x = inputs[0]
             # Additional Z features
             z = inputs[1]
             # >>> z.shape
@@ -75,9 +78,11 @@ class T2Model(keras.Model):
             # TensorShape([None, 100, 2])
             x = tf.keras.layers.Concatenate(axis=2)([x, z])
             # >>> x.shape
-            # TensorShape([None, 100, ((embed_dim - 2)  + 2)])
+            # TensorShape([None, 100, 8)])
 
-            x = self.pos_encoding(x)
+            x = self.embedding(x)  # Transforms X in L x (M + Z) -> X in L x d
+
+            x = self.pos_encoding(x) # X <- X + P, where X in L x d
 
             for layer in self.encoder:
                 x = layer(x, training)
@@ -92,6 +97,34 @@ class T2Model(keras.Model):
             # x = self.fc(x)
             # if training:
             #     x = self.dropout2(x, training=training)
+
+        elif (isinstance(inputs, list)) and (self.add_feats_to == "L"):
+            # X in L x M
+            x = inputs[0]
+            # Additional Z features
+            z = inputs[1]
+            # >>> z.shape
+            # TensorShape([None, 2])
+            z = tf.tile(z, [1, 6])
+            # >>> z.shape
+            # TensorShape([None, 12])
+            z = tf.keras.layers.Reshape([2, 6])(z)
+            # >>> z.shape
+            # TensorShape([None, 2, 6])
+            x = tf.keras.layers.Concatenate(axis=1)([x, z])
+            # >>> x.shape
+            # TensorShape([None, 102, 6)])
+
+            x = self.embedding(x)  # Transforms X in (L + 2) x M -> X in L x d
+
+            x = self.pos_encoding(x) # X <- X + P, where X in L x d
+
+            for layer in self.encoder:
+                x = layer(x, training)
+
+            x = self.pooling(x)
+            if training:
+                x = self.dropout1(x, training=training)
 
         classifier = self.classifier(x)
 
