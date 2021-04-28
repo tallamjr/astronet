@@ -51,25 +51,57 @@ class T2Model(keras.Model):
 
     def call(self, inputs, training=None):
 
-            # Else this implies input is a list; a list of tensors, i.e. multiple inputs
-        if (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
+        # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
+        if tf.is_tensor(inputs):
+            x = self.embedding(inputs)
+            x = self.pos_encoding(x)
+
+            for layer in self.encoder:
+                x = layer(x, training)
+
+            x = self.pooling(x)
+            if training:
+                x = self.dropout1(x, training=training)
+
+            # x = self.fc(x)
+            # if training:
+            #     x = self.dropout2(x, training=training)
+
+            classifier = self.classifier(x)
+
+        # if (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
+        # Else this implies input is a list; a list of tensors, i.e. multiple inputs
+        else:
             # X in L x M
             x = inputs[0]
             # Additional Z features
             z = inputs[1]
             # >>> z.shape
             # TensorShape([None, 2])
-            z = tf.tile(z, [1, 100])
-            # >>> z.shape
-            # TensorShape([None, 200])
-            z = tf.keras.layers.Reshape([100, 2])(z)
-            # >>> z.shape
-            # TensorShape([None, 100, 2])
-            x = tf.keras.layers.Concatenate(axis=2)([x, z])
-            # >>> x.shape
-            # TensorShape([None, 100, 8)])
+            if self.add_aux_feats_to == "M":
+                z = tf.tile(z, [1, 100])
+                # >>> z.shape
+                # TensorShape([None, 200])
+                z = tf.keras.layers.Reshape([100, 2])(z)
+                # >>> z.shape
+                # TensorShape([None, 100, 2])
+                x = tf.keras.layers.Concatenate(axis=2)([x, z])
+                # >>> x.shape
+                # TensorShape([None, 100, 8)])
+            else:  # Else self.add_aux_feats_to == 'L'
+                z = tf.tile(z, [1, 6])
+                # >>> z.shape
+                # TensorShape([None, 12])
+                z = tf.keras.layers.Reshape([2, 6])(z)
+                # >>> z.shape
+                # TensorShape([None, 2, 6])
+                x = tf.keras.layers.Concatenate(axis=1)([x, z])
+                # >>> x.shape
+                # TensorShape([None, 102, 6)])
 
-            x = self.embedding(x)  # Transforms X in L x (M + Z) -> X in L x d
+            # Transforms X in L x (M + Z) -> X in L x d if self.add_aux_feats_to == "M" or
+            # transforms X in (L + 2) x M -> X in L x d if self.add_aux_feats_to == "L"
+            x = self.embedding(x)
 
             x = self.pos_encoding(x) # X <- X + P, where X in L x d
 
@@ -89,53 +121,27 @@ class T2Model(keras.Model):
 
             classifier = self.classifier(x)
 
-        elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "L"):
+        #elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "L"):
             # X in L x M
-            x = inputs[0]
+        #    x = inputs[0]
             # Additional Z features
-            z = inputs[1]
+        #    z = inputs[1]
             # >>> z.shape
             # TensorShape([None, 2])
-            z = tf.tile(z, [1, 6])
-            # >>> z.shape
-            # TensorShape([None, 12])
-            z = tf.keras.layers.Reshape([2, 6])(z)
-            # >>> z.shape
-            # TensorShape([None, 2, 6])
-            x = tf.keras.layers.Concatenate(axis=1)([x, z])
-            # >>> x.shape
-            # TensorShape([None, 102, 6)])
 
-            x = self.embedding(x)  # Transforms X in (L + 2) x M -> X in L x d
+        #    x = self.embedding(x)  # Transforms X in (L + 2) x M -> X in L x d
 
-            x = self.pos_encoding(x) # X <- X + P, where X in L x d
+        #    x = self.pos_encoding(x) # X <- X + P, where X in L x d
 
-            for layer in self.encoder:
-                x = layer(x, training)
+        #    for layer in self.encoder:
+        #        x = layer(x, training)
 
-            x = self.pooling(x)
-            if training:
-                x = self.dropout1(x, training=training)
+        #    x = self.pooling(x)
+        #    if training:
+        #        x = self.dropout1(x, training=training)
 
-            classifier = self.classifier(x)
+        #    classifier = self.classifier(x)
 
-        # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
-        else:
-            x = self.embedding(inputs)
-            x = self.pos_encoding(x)
-
-            for layer in self.encoder:
-                x = layer(x, training)
-
-            x = self.pooling(x)
-            if training:
-                x = self.dropout1(x, training=training)
-
-            # x = self.fc(x)
-            # if training:
-            #     x = self.dropout2(x, training=training)
-
-            classifier = self.classifier(x)
 
         return classifier
 
