@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N t2GPU-add_feats_to_L
+#$ -N t2GPU-add_feats_to_M
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
