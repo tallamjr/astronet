@@ -66,6 +66,8 @@ class T2Model(keras.Model):
             # if training:
             #     x = self.dropout2(x, training=training)
 
+            classifier = self.classifier(x)
+
             # Else this implies input is a list; a list of tensors, i.e. multiple inputs
         elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
             # X in L x M
@@ -102,6 +104,8 @@ class T2Model(keras.Model):
             # if training:
             #     x = self.dropout2(x, training=training)
 
+            classifier = self.classifier(x)
+
         elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "L"):
             # X in L x M
             x = inputs[0]
@@ -130,7 +134,7 @@ class T2Model(keras.Model):
             if training:
                 x = self.dropout1(x, training=training)
 
-        classifier = self.classifier(x)
+            classifier = self.classifier(x)
 
         return classifier
 
