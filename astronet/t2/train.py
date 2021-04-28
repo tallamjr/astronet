@@ -63,6 +63,7 @@ class Training(object):
                 avocado=self.avocado, testset=self.testset
             )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{self.dataset}/results_with_z.json"
+            num_aux_feats = ZX_train.shape[1]
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented)
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
@@ -117,7 +118,8 @@ class Training(object):
             num_classes=num_classes,
             num_layers=num_layers,
             droprate=droprate,
-            add_feats_to="L",
+            num_aux_feats=num_aux_feats,
+            add_aux_feats_to="L",
             # Either add features to M dimension or L dimension. Adding to L allows for
             # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
             # fc_neurons=fc_neurons,
