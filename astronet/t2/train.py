@@ -119,7 +119,7 @@ class Training(object):
             num_layers=num_layers,
             droprate=droprate,
             num_aux_feats=num_aux_feats,
-            add_aux_feats_to="L",
+            add_aux_feats_to="M",
             # Either add features to M dimension or L dimension. Adding to L allows for
             # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
             # fc_neurons=fc_neurons,
