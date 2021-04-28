@@ -13,7 +13,7 @@ class T2Model(keras.Model):
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
     def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes,
-            num_layers, droprate, add_feats_to="M", **kwargs):
+            num_layers, droprate, num_aux_feats=0, add_aux_feats_to="M", **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
@@ -22,11 +22,15 @@ class T2Model(keras.Model):
         self.num_filters    = num_filters
         self.num_layers     = num_layers
         self.droprate       = droprate
-        self.add_feats_to   = add_feats_to
+        self.num_aux_feats  = num_aux_feats
+        self.add_aux_feats_to   = add_aux_feats_to
         # self.fc_neurons     = fc_neurons
 
         self.num_classes    = num_classes
-        self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
+        if self.add_aux_feats_to == "L":
+            self.sequence_length = input_dim[1] + self.num_aux_feats
+        else:
+            self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
 
         self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
 
@@ -63,7 +67,7 @@ class T2Model(keras.Model):
             #     x = self.dropout2(x, training=training)
 
             # Else this implies input is a list; a list of tensors, i.e. multiple inputs
-        elif (isinstance(inputs, list)) and (self.add_feats_to == "M"):
+        elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
             # X in L x M
             x = inputs[0]
             # Additional Z features
@@ -98,7 +102,7 @@ class T2Model(keras.Model):
             # if training:
             #     x = self.dropout2(x, training=training)
 
-        elif (isinstance(inputs, list)) and (self.add_feats_to == "L"):
+        elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "L"):
             # X in L x M
             x = inputs[0]
             # Additional Z features
