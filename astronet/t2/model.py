@@ -13,7 +13,7 @@ class T2Model(keras.Model):
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
     def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes,
-            num_layers, droprate, add_feats_to="d", **kwargs):
+            num_layers, droprate, add_feats_to="M", **kwargs):
         super(T2Model, self).__init__()
         self.input_dim      = input_dim
         self.embed_dim      = embed_dim
@@ -63,7 +63,7 @@ class T2Model(keras.Model):
             #     x = self.dropout2(x, training=training)
 
             # Else this implies input is a list; a list of tensors, i.e. multiple inputs
-        elif (isinstance(inputs, list)) and (self.add_feats_to == "d"):
+        elif (isinstance(inputs, list)) and (self.add_feats_to == "M"):
             # X in L x M
             x = inputs[0]
             # Additional Z features
