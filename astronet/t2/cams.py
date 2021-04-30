@@ -4,6 +4,7 @@ import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import shutil
 import sys
 import seaborn as sns
@@ -209,6 +210,53 @@ print("class activation map shape ", cam.shape)
 cam_all = np.dot(features, gap_weights)
 print("all class activation map shape ", cam_all.shape)
 
+from scipy.special import softmax
+np.set_printoptions(precision=15)
+pd.options.display.float_format = '{:.15f}'.format
+
+cam_all_softmax = softmax(cam_all, axis=1)
+print(cam_all_softmax.shape)
+
+(num_objects, num_cam_features, num_classes) = cam_all.shape
+
+import numpy.testing as npt
+npt.assert_almost_equal((cam_all.shape[0] * cam_all.shape[2]), cam_all_softmax.sum(), decimal=1)
+
+# camr = cam_all_softmax[:,100:102,:]
+camr = cam_all_softmax[:,:,:]
+
+# df = pd.DataFrame(data=camr.reshape(27468,2), columns=["redshift", "redshift_error"])
+df = pd.DataFrame(data=camr.reshape((num_objects * num_classes), num_cam_features))
+
+data = pd.DataFrame(columns=df.columns)
+for i, chunk in enumerate(np.array_split(df, 14)):
+#     print(chunk.shape, i+1)
+    chunk["class"] = class_names[i]
+#     chunk["class"] = i
+    assert len(chunk) == len(df) / 14
+    data = pd.concat([data, chunk])
+
+assert data.shape == (num_objects, (num_cam_features + 1))
+
+data = data.rename(columns={100: "redshift", 101: "redshift-error"})
+
+import seaborn as sns
+
+from matplotlib import rcParams
+
+# figure size in inches
+rcParams['figure.figsize'] = 11.7,8.27
+sns.set_theme(style="whitegrid")
+
+ax = sns.violinplot(x=data["class"], y=data["redshift-error"], cut=0)
+fig = ax.get_figure()
+fig.savefig('violinplot.png')
+
+df = data[data["redshift"] < 0.0001]
+print(df['redshift'].dtypes, df.shape)
+ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box")
+
+ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
 
 def show_cam(image_index, desired_class, counter):
     '''displays the class activation map of a particular image'''
