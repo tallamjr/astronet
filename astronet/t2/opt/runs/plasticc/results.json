@@ -79,6 +79,18 @@
             "num_heads": 16,
             "objective_score": 0.255125892162323,
             "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "droprate": 0.1,
+            "embed_dim": 32,
+            "ff_dim": 128,
+            "lr": 0.01733092265976495,
+            "name": "1613517996-0a72904",
+            "num_heads": 16,
+            "num_layers": 1,
+            "objective_score": 0.4120836853981018,
+            "z-redshift": true
         }
     ]
 }
