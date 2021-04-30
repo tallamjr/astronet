@@ -69,6 +69,7 @@ class Training(object):
                 avocado=self.avocado, testset=self.testset
             )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
+            num_aux_feats = 0
 
         num_classes = y_train.shape[1]
 
