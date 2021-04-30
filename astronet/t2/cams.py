@@ -12,9 +12,11 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import seaborn as sns
 
 from itertools import cycle
 from numpy import interp
+from matplotlib import rcParams
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 from pathlib import Path
 from sklearn.metrics import confusion_matrix
@@ -71,7 +73,9 @@ if snonly is not None:
 else:
     dataform = "full"
 
-X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(dataset, redshift=True, snonly=snonly)
+X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
+    dataset, redshift=True, snonly=snonly, testset=None,
+)
 
 num_classes = y_train.shape[1]
 print(num_classes)
@@ -155,7 +159,24 @@ for i in model.layers:
     print(i.output)
 
 encoding, class_encoding, class_names = _get_encoding(dataset, dataform=dataform)
-
+class_mapping = {
+    90: "SNIa",
+    67: "SNIa-91bg",
+    52: "SNIax",
+    42: "SNII",
+    62: "SNIbc",
+    95: "SLSN-I",
+    15: "TDE",
+    64: "KN",
+    88: "AGN",
+    92: "RRL",
+    65: "M-dwarf",
+    16: "EB",
+    53: "Mira",
+    6: "$\mu$-Lens-Single",
+}
+class_encoding
+class_names = list(np.vectorize(class_mapping.get)(class_encoding))
 print(class_names)
 
 for i in range(len(model.layers)):
@@ -236,27 +257,83 @@ for i, chunk in enumerate(np.array_split(df, 14)):
     assert len(chunk) == len(df) / 14
     data = pd.concat([data, chunk])
 
-assert data.shape == (num_objects, (num_cam_features + 1))
+assert data.shape == ((num_objects * num_classes), (num_cam_features + 1))
 
 data = data.rename(columns={100: "redshift", 101: "redshift-error"})
 
-import seaborn as sns
-
-from matplotlib import rcParams
 
 # figure size in inches
-rcParams['figure.figsize'] = 11.7,8.27
+rcParams["figure.figsize"] = 16, 9
+rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.serif": ["Computer Modern Roman"]})
 sns.set_theme(style="whitegrid")
 
-ax = sns.violinplot(x=data["class"], y=data["redshift-error"], cut=0)
+######################################################################################
+ax = sns.violinplot(x=data["class"], y=data["redshift-error"], inner="box", cut=0)
+
+ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=16)
+ax.set_xlabel('Class', fontsize=16)
+ax.set_xticklabels(class_names)
+ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
 fig = ax.get_figure()
-fig.savefig('violinplot.png')
+plt.savefig(
+    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
+    format="pdf",
+)
+plt.clf()
+######################################################################################
+ax = sns.violinplot(x=data["class"], y=data['redshift'], inner="box", cut=0)
+
+ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=16)
+ax.set_xlabel('Class', fontsize=16)
+ax.set_xticklabels(class_names)
+ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+fig = ax.get_figure()
+plt.savefig(
+    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
+    format="pdf",
+)
+plt.clf()
+######################################################################################
+ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
+
+ax.set_title(r'Attention Weight Distriubtion - Redshift', fontsize=16)
+ax.set_xlabel('All Classes', fontsize=16)
+ax.set_xticks([])
+ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+fig = ax.get_figure()
+plt.savefig(
+    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-all-data.pdf",
+    format="pdf",
+)
+plt.clf()
+######################################################################################
+ax = sns.violinplot(data=data["redshift-error"], inner="box", cut=0)
+
+ax.set_title(r'Attention Weight Distriubtion - Redshift Error', fontsize=16)
+ax.set_xlabel('All Classes', fontsize=16)
+ax.set_xticks([])
+ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+fig = ax.get_figure()
+plt.savefig(
+    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-all-data.pdf",
+    format="pdf",
+)
+plt.clf()
+######################################################################################
 
 df = data[data["redshift"] < 0.0001]
 print(df['redshift'].dtypes, df.shape)
-ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box")
 
-ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
+df = data[data["redshift-error"] < 0.0001]
+print(df['redshift-error'].dtypes, df.shape)
+
 
 def show_cam(image_index, desired_class, counter):
     '''displays the class activation map of a particular image'''
