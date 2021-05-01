@@ -1,0 +1,80 @@
+#!/bin/bash -l
+# Copyright 2021
+# Author: Tarek Allam Jr.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Batch script to run a serial job under SGE.
+# https://www.rc.ucl.ac.uk/docs/Job_Results/#qsub-emailing
+#$ -m base
+
+# Request a number of GPU cards, in this case 2 (the maximum)
+# #$ -l gpu=1
+
+# Request a V100 node only
+# #$ -ac allow=EF
+
+# Request ten minutes of wallclock time (format hours:minutes:seconds).
+#$ -l h_rt=47:10:0
+
+# Request 1 gigabyte of RAM (must be an integer followed by M, G, or T)
+# #$ -l mem=80G
+
+# Request 15 gigabyte of TMPDIR space (default is 10 GB - remove if cluster is diskless)
+#$ -l tmpfs=15G
+
+## #$ -o logs/$JOB_ID.log
+
+# Combine stdout with stderr
+#$ -j yes
+
+# Set the name of the job.
+#$ -N split-X-full
+
+# Set the working directory to somewhere in your scratch space.
+#  This is a necessary step as compute nodes cannot write to $HOME.
+# Replace "<your_UCL_id>" with your UCL user ID.
+#$ -wd /home/zcicg57/Scratch/workspace
+
+# Your work should be done in $TMPDIR
+cd $TMPDIR
+
+# load the cuda module (in case you are running a CUDA program)
+module unload compilers mpi
+module load compilers/gnu/4.9.2
+module load python/3.7.4
+module load cuda/10.0.130/gnu-4.9.2
+module load cudnn/6.0/cuda-8.0
+module load tensorflow/2.0.0/gpu-py37
+# export LD_LIBRAY_PATH="/shared/ucl/apps/modulefiles/development/cuda/10.0.130/gnu-4.9.2:$LD_LIBRAY_PATH"
+
+# Run the application
+SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
+source /home/zcicg57/Scratch/astronet/conf/astronet.conf
+
+export PATH="/miniconda3/envs/astronet/bin:$PATH"
+conda activate astronet
+which python
+export PYTHONHASHSEED=0
+# Print the contents of this file to stdout from line 15 onwards
+awk 'NR>15' $ASNWD/bin/plasticc-myriad
+date
+# Test Imports
+python -c "import astronet as asn; print(asn.__version__)"
+python $ASNWD/sbin/split_X_full_save_X_test.py
+date
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+
+# Preferably, tar-up (archive) all output files onto the shared scratch area
+tar -zcvf $HOME/Scratch/files_from_job_$JOB_ID.tar.gz $TMPDIR
+# Make sure you have given enough time for the copy to complete!
