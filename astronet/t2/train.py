@@ -65,8 +65,11 @@ class Training(object):
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{self.dataset}/results_with_z.json"
             num_aux_feats = ZX_train.shape[1]
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented)
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
+            num_aux_feats = 0
 
         num_classes = y_train.shape[1]
 
