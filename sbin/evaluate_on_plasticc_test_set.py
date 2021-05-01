@@ -47,20 +47,31 @@ print(plt.style.available)
 
 architecture = "t2"
 dataset = "plasticc"
-X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
-                                                                        dataset,
-                                                                        redshift=True,
-                                                                        avocado=None,
-                                                                        testset=True
-                                                        )
-print(f"""
-        X_TRAIN: {X_train.shape}, Y_TRAIN: {y_train.shape},\n
-        X_TEST: {X_test.shape}, Y_TEST: {y_test.shape},\n
-        Z_TRAIN: {Z_train.shape}, Z_TEST: {Z_test.shape}\n
-        """
+# X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
+#                                                                         dataset,
+#                                                                         redshift=True,
+#                                                                         avocado=None,
+#                                                                         testset=True
+#                                                         )
+# print(f"""
+#         X_TRAIN: {X_train.shape}, Y_TRAIN: {y_train.shape},\n
+#         X_TEST: {X_test.shape}, Y_TEST: {y_test.shape},\n
+#         Z_TRAIN: {Z_train.shape}, Z_TEST: {Z_test.shape}\n
+#         """
+# )
+
+X_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
+)
+y_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
+)
+Z_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
 )
 
-num_classes = y_train.shape[1]
+# num_classes = y_train.shape[1]
+num_classes = y_test.shape[1]
 num_samples, timesteps, num_features = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
 BATCH_SIZE = find_optimal_batch_size(num_samples)
 print(f"BATCH_SIZE:{BATCH_SIZE}")
@@ -68,9 +79,10 @@ print(f"BATCH_SIZE:{BATCH_SIZE}")
 # model_name = "1614711597-1ba461b"
 # model_name = "1615402794-0.1.dev686+g8ce4a41"
 # model_name = "1615495431-0.1.dev701+g2539a82.d20210311" # <-- 0.505
-model_name = "1619538848-0.1.dev753+g8c73954"
+# model_name = "1619538848-0.1.dev753+g8c73954"
 # model_name = "1613551066-32f3933"
 # model_name = None
+model_name = "1619624444-0.1.dev765+g7c90cbb.d20210428"
 
 with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json") as f:
     events = json.load(f)
@@ -148,8 +160,8 @@ from collections import Counter
 from pandas.core.common import flatten
 
 # y_true = encoding.inverse_transform(y_train)
-y_true = encoding.inverse_transform(y_train)
-print("N_TRAIN:", Counter(list(flatten(y_true))))
+# y_true = encoding.inverse_transform(y_train)
+# print("N_TRAIN:", Counter(list(flatten(y_true))))
 
 y_true_test = encoding.inverse_transform(y_test)
 print("N_TEST:", Counter(list(flatten(y_true_test))))
@@ -169,8 +181,8 @@ print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 # print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
 # Train predictions
-y_preds_train = model.predict([X_train, Z_train])
-print(f"LL-Train: {wloss(y_train, y_preds_train).numpy():.2f}")
+# y_preds_train = model.predict([X_train, Z_train])
+# print(f"LL-Train: {wloss(y_train, y_preds_train).numpy():.2f}")
 
 print("Plotting figures...")
 cmap = sns.light_palette("Navy", as_cmap=True)
