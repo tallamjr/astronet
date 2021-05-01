@@ -73,19 +73,29 @@ if snonly is not None:
 else:
     dataform = "full"
 
-X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
-    dataset, redshift=True, snonly=snonly, testset=None,
+# X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
+#     dataset, redshift=True, snonly=snonly, testset=None,
+# )
+
+X_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
+)
+y_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
+)
+Z_test = np.load(
+        f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
 )
 
-num_classes = y_train.shape[1]
+num_classes = y_test.shape[1]
 print(num_classes)
 
-BATCH_SIZE = find_optimal_batch_size(X_train.shape[0])
-_, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
+_, timesteps, num_features = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
 input_shape = (BATCH_SIZE, timesteps, num_features)
 print(input_shape)
 
-_, num_z_features = Z_train.shape
+_, num_z_features = Z_test.shape
 Z_input_shape = (BATCH_SIZE, num_z_features)
 
 model_name = "1619624444-0.1.dev765+g7c90cbb.d20210428"
@@ -259,7 +269,13 @@ for i, chunk in enumerate(np.array_split(df, 14)):
 
 assert data.shape == ((num_objects * num_classes), (num_cam_features + 1))
 
-data = data.rename(columns={100: "redshift", 101: "redshift-error"})
+for i, chunk in enumerate(np.array_split(data, 1)):
+    print(chunk.shape)
+    chunk["class"] = "All Classes"
+    data_all = pd.concat([data, chunk])
+
+# data = data.rename(columns={100: "redshift", 101: "redshift-error"})
+data_all = data_all.rename(columns={100: "redshift", 101: "redshift-error"})
 
 
 # figure size in inches
@@ -270,15 +286,19 @@ rcParams.update({
     "font.serif": ["Computer Modern Roman"]})
 sns.set_theme(style="whitegrid")
 
+class_names.append("All Classes")
+print(class_names)
+
+assert len(class_names) == 15
 ######################################################################################
-ax = sns.violinplot(x=data["class"], y=data["redshift-error"], inner="box", cut=0)
+ax = sns.violinplot(x=data_all["class"], y=data_all["redshift-error"], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=16)
 ax.set_xlabel('Class', fontsize=16)
 ax.set_xticklabels(class_names)
 ax.set_ylabel('Attention Weight Percentage', fontsize=16)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-ax.set(ylim=(0, 0.05))
+ax.set(ylim=(0, 0.04))
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
@@ -286,13 +306,14 @@ plt.savefig(
 )
 plt.clf()
 ######################################################################################
-ax = sns.violinplot(x=data["class"], y=data['redshift'], inner="box", cut=0)
+ax = sns.violinplot(x=data_all["class"], y=data_all['redshift'], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=16)
 ax.set_xlabel('Class', fontsize=16)
 ax.set_xticklabels(class_names)
 ax.set_ylabel('Attention Weight Percentage', fontsize=16)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+ax.set(ylim=(0, 0.04))
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
@@ -300,33 +321,33 @@ plt.savefig(
 )
 plt.clf()
 ######################################################################################
-ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
+# ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
 
-ax.set_title(r'Attention Weight Distriubtion - Redshift', fontsize=16)
-ax.set_xlabel('All Classes', fontsize=16)
-ax.set_xticks([])
-ax.set_ylabel('Attention Weight Percentage', fontsize=16)
-ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-fig = ax.get_figure()
-plt.savefig(
-    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-all-data.pdf",
-    format="pdf",
-)
-plt.clf()
+# ax.set_title(r'Attention Weight Distriubtion - Redshift', fontsize=16)
+# ax.set_xlabel('All Classes', fontsize=16)
+# ax.set_xticks([])
+# ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+# ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+# fig = ax.get_figure()
+# plt.savefig(
+#     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-all-data.pdf",
+#     format="pdf",
+# )
+# plt.clf()
 ######################################################################################
-ax = sns.violinplot(data=data["redshift-error"], inner="box", cut=0)
+# ax = sns.violinplot(data=data["redshift-error"], inner="box", cut=0)
 
-ax.set_title(r'Attention Weight Distriubtion - Redshift Error', fontsize=16)
-ax.set_xlabel('All Classes', fontsize=16)
-ax.set_xticks([])
-ax.set_ylabel('Attention Weight Percentage', fontsize=16)
-ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-fig = ax.get_figure()
-plt.savefig(
-    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-all-data.pdf",
-    format="pdf",
-)
-plt.clf()
+# ax.set_title(r'Attention Weight Distriubtion - Redshift Error', fontsize=16)
+# ax.set_xlabel('All Classes', fontsize=16)
+# ax.set_xticks([])
+# ax.set_ylabel('Attention Weight Percentage', fontsize=16)
+# ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+# fig = ax.get_figure()
+# plt.savefig(
+#     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-all-data.pdf",
+#     format="pdf",
+# )
+# plt.clf()
 ######################################################################################
 
 df = data[data["redshift"] < 0.0001]
