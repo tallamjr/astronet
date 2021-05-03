@@ -244,14 +244,15 @@ print("all class activation map shape ", cam_all.shape)
 from scipy.special import softmax
 np.set_printoptions(precision=15)
 pd.options.display.float_format = '{:.15f}'.format
-
+import pdb;pdb.set_trace()
 cam_all_softmax = softmax(cam_all, axis=1)
 print(cam_all_softmax.shape)
 
 (num_objects, num_cam_features, num_classes) = cam_all.shape
 
 import numpy.testing as npt
-npt.assert_almost_equal((cam_all.shape[0] * cam_all.shape[2]), cam_all_softmax.sum(), decimal=1)
+# npt.assert_almost_equal((cam_all.shape[0] * cam_all.shape[2]), cam_all_softmax.sum(), decimal=1)
+npt.assert_almost_equal((num_objects * num_classes), cam_all_softmax.sum(), decimal=1)
 
 # camr = cam_all_softmax[:,100:102,:]
 camr = cam_all_softmax[:,:,:]
