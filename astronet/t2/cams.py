@@ -276,8 +276,17 @@ for i, chunk in enumerate(np.array_split(data, 1)):
     data_all = pd.concat([data, chunk])
 
 # data = data.rename(columns={100: "redshift", 101: "redshift-error"})
-data_all = data_all.rename(columns={100: "redshift", 101: "redshift-error"})
+data_all.rename(
+    columns={100: "redshift", 101: "redshift-error"}, inplace=True
+)
+# data_all = data_all.rename(columns={100: "redshift", 101: "redshift-error"})
 
+df = data_all.filter(
+    items=[
+        "redshift",
+        "redshift-error",
+    ]
+)
 
 # figure size in inches
 rcParams["figure.figsize"] = 16, 9
@@ -292,7 +301,7 @@ print(class_names)
 
 assert len(class_names) == 15
 ######################################################################################
-ax = sns.violinplot(x=data_all["class"], y=data_all["redshift-error"], inner="box", cut=0)
+ax = sns.violinplot(x=df["class"], y=df["redshift-error"], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=16)
 ax.set_xlabel('Class', fontsize=16)
@@ -307,7 +316,7 @@ plt.savefig(
 )
 plt.clf()
 ######################################################################################
-ax = sns.violinplot(x=data_all["class"], y=data_all['redshift'], inner="box", cut=0)
+ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=16)
 ax.set_xlabel('Class', fontsize=16)
