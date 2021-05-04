@@ -285,6 +285,7 @@ df = data_all.filter(
     items=[
         "redshift",
         "redshift-error",
+        "class",
     ]
 )
 
