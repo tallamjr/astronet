@@ -309,7 +309,7 @@ ax.set_xlabel('Class', fontsize=16)
 ax.set_xticklabels(class_names)
 ax.set_ylabel('Attention Weight Percentage', fontsize=16)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-ax.set(ylim=(0, 0.04))
+ax.set(ylim=(0, 0.02))
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
@@ -324,7 +324,7 @@ ax.set_xlabel('Class', fontsize=16)
 ax.set_xticklabels(class_names)
 ax.set_ylabel('Attention Weight Percentage', fontsize=16)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-ax.set(ylim=(0, 0.04))
+ax.set(ylim=(0, 0.02))
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
