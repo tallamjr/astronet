@@ -361,11 +361,11 @@ plt.clf()
 # plt.clf()
 ######################################################################################
 
-df = data[data["redshift"] < 0.0001]
-print(df['redshift'].dtypes, df.shape)
+# df = data[data["redshift"] < 0.0001]
+# print(df['redshift'].dtypes, df.shape)
 
-df = data[data["redshift-error"] < 0.0001]
-print(df['redshift-error'].dtypes, df.shape)
+# df = data[data["redshift-error"] < 0.0001]
+# print(df['redshift-error'].dtypes, df.shape)
 
 
 def show_cam(image_index, desired_class, counter):
