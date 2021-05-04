@@ -312,6 +312,7 @@ ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
 ax.set(ylim=(0, 0.02))
 ax.tick_params(labelsize=18)
 fig = ax.get_figure()
+fig.tight_layout()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
     format="pdf",
@@ -328,6 +329,7 @@ ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
 ax.set(ylim=(0, 0.02))
 ax.tick_params(labelsize=18)
 fig = ax.get_figure()
+fig.tight_layout()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
     format="pdf",
