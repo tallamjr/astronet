@@ -36,7 +36,7 @@ class T2Model(keras.Model):
 
         # <-- Additional layers when adding Z features here -->
 
-        #self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
+        self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
 
         self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
                                 for _ in range(num_layers)]
@@ -103,7 +103,7 @@ class T2Model(keras.Model):
             # transforms X in (L + 2) x M -> X in L x d if self.add_aux_feats_to == "L"
             x = self.embedding(x)
 
-            #x = self.pos_encoding(x) # X <- X + P, where X in L x d
+            x = self.pos_encoding(x) # X <- X + P, where X in L x d
 
             for layer in self.encoder:
                 x = layer(x, training)
