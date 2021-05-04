@@ -305,11 +305,12 @@ assert len(class_names) == 15
 ax = sns.violinplot(x=df["class"], y=df["redshift-error"], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=28)
-ax.set_xlabel('Class', fontsize=18)
-ax.set_xticklabels(class_names)
+ax.set_xlabel('Class', fontsize=28)
+ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
 ax.set_ylabel('Attention Weight Percentage', fontsize=28)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
 ax.set(ylim=(0, 0.02))
+ax.tick_params(labelsize=18)
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
@@ -320,11 +321,12 @@ plt.clf()
 ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box", cut=0)
 
 ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=28)
-ax.set_xlabel('Class', fontsize=18)
-ax.set_xticklabels(class_names)
+ax.set_xlabel('Class', fontsize=28)
+ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
 ax.set_ylabel('Attention Weight Percentage', fontsize=28)
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
 ax.set(ylim=(0, 0.02))
+ax.tick_params(labelsize=18)
 fig = ax.get_figure()
 plt.savefig(
     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
