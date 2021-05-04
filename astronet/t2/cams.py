@@ -391,34 +391,58 @@ def show_cam(image_index, desired_class, counter):
     cam_output = np.expand_dims(cam_output, axis=0)
     print('Predicted Class = ' +str(prediction)+ ', Probability = ' + str(results[image_index][prediction]))
 
+    cam_output_softmax = softmax(cam_output)
+    print(cam_output_softmax.sum(axis=1))
+    cam_output_L = cam_output_softmax[:,:100]
+    cam_output_z = cam_output_softmax[:,100:102]
+    print(cam_output_L.shape, cam_output_z.shape)
+
     if (results[image_index][prediction] < 0.90):
         return False
 
+    dfz = pd.DataFrame(data=cam_output_z, columns=["redshift", "redshift-error"])
+
     my_cmap = sns.light_palette("Navy", as_cmap=True)
-    fig, ax = plt.subplots(figsize=(20, 8))
-    from scipy.special import softmax
-    sns.heatmap(softmax(cam_output), cmap=my_cmap, cbar=False, robust=True, ax=ax, annot=False, fmt=".1%",) # vmin=v.min(), vmax=v.max()
-    cbar = ax.figure.colorbar(ax.collections[0])
-    cbar.set_ticks([0, 1])
-    cbar.set_ticklabels(["0%", "100%"])
+    fig, axs = plt.subplots(1, 2, figsize=(22, 8), gridspec_kw={'width_ratios': [3, 1]})
+#     fig, ax = plt.subplots(figsize=(20, 8))
+
+    dfz.plot(kind="bar", ax=axs[1], width=0.1, color=plt.cm.seismic(np.linspace(0, 1, 2))) #plt.cm.BuPu(np.linspace(0, 0.5, 2)))
+    axs[1].yaxis.set_label_position("right")
+    axs[1].yaxis.tick_right()
+    axs[1].set_xlabel(r'Additional Features, $k$', fontsize=28)
+    axs[1].set_ylabel(r'Attention Weight Percentage', fontsize=28)
+    axs[1].set_xticklabels([])
+    axs[1].legend(["Redshift", "Redshift Error"], fontsize=18, loc='best')
+    axs[1].yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0, decimals=3))
+#     axs[1].yaxis.set_minor_formatter(ticker.ScalarFormatter())
+#     axs[1].ticklabel_format(style='sci', axis='y', scilimits=(-10,2))
+    print(dfz.head())
+
+    ax = axs[0]
+
+    hm = sns.heatmap(cam_output_L,
+                        cmap=my_cmap,
+                        cbar=True,
+                        robust=False,
+                        ax=ax,
+                        annot=False,
+#                         cbar_kws={'format': '%.0f%%', 'ticks': [0, 50, 100]},
+                        vmax=1,
+                        vmin=0) # vmin=v.min(), vmax=v.max()
+
+#     hm.collections[0].colorbar.set_label(r'Attention Weight Percentage', fontsize=28)
+
+    hm.collections[0].colorbar.set_ticks([0, .25, .75, 1])
+    hm.collections[0].colorbar.set_ticklabels([r'0\%', r'25\%', r'75\%', r'100\%'])
+
     ax2 = ax.twinx()
-#     ax2.set_ylabel(r'\textit{d}', labelpad=15, fontsize=36)
+
     ax2.plot(X_test[image_index], lw=5)
 
     ax2.grid(False)
     ax2.get_yaxis().set_visible(True)
 
     ax2.set_yticklabels([])
-#     ax.set_xticklabels([])
-
-#     ax.xaxis.set_ticks(np.arange(1, 100, 10))
-#     ticks = ['$0$', '$10$', '$20$', '$30$', '$40$', '$50$', '$60$', '$70$', '$80$', '$90$']
-# #     lst = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
-#     lst = list(np.linspace(0, 100, 10, endpoint=False, dtype=int))
-# #     ticks = list(map(str, lst))
-#     ax.set_xticklabels(ticks)
-#     ax.tick_params(axis='x', direction='out', length=6, width=2, colors='k',
-#                grid_color='k', grid_alpha=0.5)
 
     ax.set_xlabel(r'Sequence Length, $L$', fontsize=28)
     ax2.set_ylabel(r'Attention Weight Percentage', fontsize=28)
@@ -429,14 +453,14 @@ def show_cam(image_index, desired_class, counter):
     ax.xaxis.set_major_locator(MultipleLocator(20))
     ax.xaxis.set_major_formatter(mpl.ticker.FormatStrFormatter(r'${%d}$'))
 
-    # For the minor ticks, use no labels; default NullFormatter.
-#     ax.xaxis.set_minor_locator(MultipleLocator(5))
     ax.xaxis.set_minor_locator(ticker.AutoMinorLocator())
-    ax.get_yaxis().set_visible(False)
+    ax.get_yaxis().set_visible(True)
+    ax.set_yticklabels([])
 
-    plt.axvline(x=99, color="lime", linestyle="dashed", linewidth=2)
+
   # display the image
-    plt.title(rf"Predicted Class: {class_names[desired_class]} with Probability = {results[image_index][prediction]:.3f}", fontsize=36)
+    fig.suptitle(rf"Predicted Class: {class_names[desired_class]} with Probability = {results[image_index][prediction]:.3f}", fontsize=36)
+    fig.tight_layout()
     plt.savefig(f"{asnwd}/notebooks/cams/CAM-{class_names[desired_class]}-{counter}")
     plt.show()
     plt.clf()
@@ -462,8 +486,6 @@ def show_maps(desired_class, num_maps):
         # images that match the class will be shown
         random_sample = np.random.choice(len(results), 1)[0]
         if np.argmax(results[random_sample]) == desired_class:
-#         if np.argmax(results[i]) == desired_class:
-#             counter += 1
             sc = show_cam(random_sample, desired_class, counter)
             if sc is not None:
                 continue
