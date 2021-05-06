@@ -289,6 +289,11 @@ df = data_all.filter(
     ]
 )
 
+redshift_mean = df["redshift"].mean() * 100
+print(f"REDSHIFT MEAN: {redshift_mean}")
+redshift_error_mean = df["redshift-error"].mean() * 100
+print(f"REDSHIFT-ERROR MEAN: {redshift_error_mean}")
+
 # figure size in inches
 rcParams["figure.figsize"] = 16, 9
 rcParams.update({
@@ -482,7 +487,7 @@ def show_maps(desired_class, num_maps):
         print("please choose a class between 0 and {len(class_names) - 1}")
 
     # go through the first 10000 images
-    for i in range(0,1000):
+    for i in range(0,50000):
         # break if we already displayed the specified number of maps
         if counter == num_maps:
             break
@@ -497,4 +502,4 @@ def show_maps(desired_class, num_maps):
                 counter += 1
 
 
-# show_maps(desired_class=class_names.index("SNIa"), num_maps=1)
+show_maps(desired_class=class_names.index("SNIa"), num_maps=40)
