@@ -1,31 +1,16 @@
-import argparse
-import joblib
 import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import shutil
-import sys
 import seaborn as sns
 import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import seaborn as sns
 
-from itertools import cycle
-from numpy import interp
 from matplotlib import rcParams
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
-from pathlib import Path
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve, auc
-from tensorflow import keras
 
 from astronet.constants import astronet_working_directory as asnwd
-from astronet.metrics import WeightedLogLoss
-from astronet.preprocess import one_hot_encode
 from astronet.t2.model import T2Model
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 from astronet.visualise_results import (
@@ -53,7 +38,7 @@ plt.rcParams.update({
     "font.serif": ["Computer Modern Roman"]})
 
 plt.rcParams["figure.figsize"] = (20,3)
-mpl.rc('axes', labelsize=14)
+# mpl.rc('axes', labelsize=14)
 mpl.rc('xtick', labelsize=28)
 mpl.rc('ytick', labelsize=28)
 
@@ -241,37 +226,54 @@ print("class activation map shape ", cam.shape)
 cam_all = np.dot(features, gap_weights)
 print("all class activation map shape ", cam_all.shape)
 
-from scipy.special import softmax
+# from scipy.special import softmax
 np.set_printoptions(precision=15)
 pd.options.display.float_format = '{:.15f}'.format
 
-cam_all_softmax = softmax(cam_all, axis=1)
-print(cam_all_softmax.shape)
+from sklearn.preprocessing import minmax_scale, normalize
 
 (num_objects, num_cam_features, num_classes) = cam_all.shape
 
-import numpy.testing as npt
+df = pd.DataFrame(data=cam_all.reshape((num_objects * num_classes), num_cam_features))
+data = pd.DataFrame(columns=df.columns)
+
+for i in range(num_classes):
+
+    mm = minmax_scale(cam_all[:, :, i], feature_range=(0,1), axis=1)
+    norm = normalize(mm, norm='l1')
+    ddf = pd.DataFrame(data=norm)
+    ddf["class"] = class_names[i]
+
+    data = pd.concat([data, ddf])
+
+assert data.shape == ((num_objects * num_classes), (num_cam_features + 1))  # Plus one for the added class column
+
+# print(cam_all.max())
+# print(cam_all.min())
+# print(cam_all.shape)
+
+# import numpy.testing as npt
 # npt.assert_almost_equal((cam_all.shape[0] * cam_all.shape[2]), cam_all_softmax.sum(), decimal=1)
-npt.assert_almost_equal((num_objects * num_classes), cam_all_softmax.sum(axis=1).sum(), decimal=1)
+# npt.assert_almost_equal((num_objects * num_classes), data.sum(axis=1).sum(), decimal=1)
 
 # camr = cam_all_softmax[:,100:102,:]
-camr = cam_all_softmax[:,:,:]
+# camr = cam_all_softmax[:,:,:]
 
 # df = pd.DataFrame(data=camr.reshape(27468,2), columns=["redshift", "redshift_error"])
-df = pd.DataFrame(data=camr.reshape((num_objects * num_classes), num_cam_features))
+# df = pd.DataFrame(data=cam_all.reshape((num_objects * num_classes), num_cam_features))
 
-data = pd.DataFrame(columns=df.columns)
-for i, chunk in enumerate(np.array_split(df, 14)):
-#     print(chunk.shape, i+1)
-    chunk["class"] = class_names[i]
-#     chunk["class"] = i
-    assert len(chunk) == len(df) / 14
-    data = pd.concat([data, chunk])
+# data = pd.DataFrame(columns=df.columns)
+# for i, chunk in enumerate(np.array_split(df, 14)):
+#     # Creates new column here
+#     chunk["class"] = class_names[i]
+#     assert len(chunk) == len(df) / 14
+#     data = pd.concat([data, chunk])
 
-assert data.shape == ((num_objects * num_classes), (num_cam_features + 1))
+# assert data.shape == ((num_objects * num_classes), (num_cam_features + 1))  # Plus one for the added class column
 
 for i, chunk in enumerate(np.array_split(data, 1)):
     print(chunk.shape)
+    # Column 'class' already exists at this point, so no new column created.
     chunk["class"] = "All Classes"
     data_all = pd.concat([data, chunk])
 
@@ -281,17 +283,23 @@ data_all.rename(
 )
 # data_all = data_all.rename(columns={100: "redshift", 101: "redshift-error"})
 
-df = data_all.filter(
+dfz = data_all.filter(
     items=[
         "redshift",
         "redshift-error",
         "class",
     ]
 )
+assert "All Classes" in dfz["class"].unique()
 
-redshift_mean = df["redshift"].mean() * 100
+dfza = dfz[dfz["class"] == "All Classes"]
+assert len(dfza) == (num_objects * num_classes)
+
+print(f"DFZA SHAPE:{dfza.shape}")
+
+redshift_mean = dfza["redshift"].mean() * 100
 print(f"REDSHIFT MEAN: {redshift_mean}")
-redshift_error_mean = df["redshift-error"].mean() * 100
+redshift_error_mean = dfza["redshift-error"].mean() * 100
 print(f"REDSHIFT-ERROR MEAN: {redshift_error_mean}")
 
 # figure size in inches
@@ -302,44 +310,63 @@ rcParams.update({
     "font.serif": ["Computer Modern Roman"]})
 sns.set_theme(style="whitegrid")
 
-class_names.append("All Classes")
-print(class_names)
-
-assert len(class_names) == 15
+# class_names.append("All Classes")
+# print(class_names)
+# assert len(class_names) == 15
 ######################################################################################
-ax = sns.violinplot(x=df["class"], y=df["redshift-error"], inner="box", cut=0)
+def make_violin(dfza):
+    ax = sns.violinplot(data=dfza, palette=['lightpink', 'lightpink'])
 
-ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=28)
-ax.set_xlabel('Class', fontsize=28)
-ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
-ax.set_ylabel('Attention Weight Percentage', fontsize=28)
-ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-ax.set(ylim=(0, 0.02))
-ax.tick_params(labelsize=18)
-fig = ax.get_figure()
-plt.savefig(
-    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
-    format="pdf",
-    bbox_inches="tight",
-)
-plt.clf()
+    ax.set_title(r'Activation Weight Distriubtion ', fontsize=28)
+    ax.set_xlabel('All Classes', fontsize=28)
+    ax.set_xticklabels([r"Redshift", r"Redshift Error"], fontsize=18)
+    ax.set_ylabel('Activation Weight Percentage', fontsize=28)
+    ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+    ax.set(ylim=(0, 0.02))
+    ax.tick_params(labelsize=18)
+    fig = ax.get_figure()
+    plt.savefig(
+        f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-all-classes.pdf",
+        format="pdf",
+        bbox_inches="tight",
+    )
+    plt.clf()
+
+# make_violin(dfza)
 ######################################################################################
-ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box", cut=0)
+# ax = sns.violinplot(x=df["class"], y=df["redshift-error"], inner="box", cut=0)
 
-ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=28)
-ax.set_xlabel('Class', fontsize=28)
-ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
-ax.set_ylabel('Attention Weight Percentage', fontsize=28)
-ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
-ax.set(ylim=(0, 0.02))
-ax.tick_params(labelsize=18)
-fig = ax.get_figure()
-plt.savefig(
-    f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
-    format="pdf",
-    bbox_inches="tight",
-)
-plt.clf()
+# ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift Error', fontsize=28)
+# ax.set_xlabel('Class', fontsize=28)
+# ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
+# ax.set_ylabel('Attention Weight Percentage', fontsize=28)
+# ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+# ax.set(ylim=(0, 0.02))
+# ax.tick_params(labelsize=18)
+# fig = ax.get_figure()
+# plt.savefig(
+#     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-error-per-class.pdf",
+#     format="pdf",
+#     bbox_inches="tight",
+# )
+# plt.clf()
+######################################################################################
+# ax = sns.violinplot(x=df["class"], y=df['redshift'], inner="box", cut=0)
+
+# ax.set_title(r'Attention Weight Distriubtion Per Class - Redshift', fontsize=28)
+# ax.set_xlabel('Class', fontsize=28)
+# ax.set_xticklabels(class_names, fontsize=18, rotation=-45)
+# ax.set_ylabel('Attention Weight Percentage', fontsize=28)
+# ax.yaxis.set_major_formatter(ticker.PercentFormatter(1.0))
+# ax.set(ylim=(0, 0.02))
+# ax.tick_params(labelsize=18)
+# fig = ax.get_figure()
+# plt.savefig(
+#     f"{asnwd}/astronet/t2/plots/plasticc/cams/cam-violin-redshift-per-class.pdf",
+#     format="pdf",
+#     bbox_inches="tight",
+# )
+# plt.clf()
 ######################################################################################
 # ax = sns.violinplot(data=data["redshift"], inner="box", cut=0)
 
@@ -493,7 +520,11 @@ def show_cam(image_index, desired_class, counter):
   # display the image
     fig.suptitle(rf"Predicted Class: {class_names[desired_class]} with Probability = {results[image_index][prediction]:.3f}", fontsize=36)
     fig.tight_layout()
-    plt.savefig(f"{asnwd}/notebooks/cams/CAM-{class_names[desired_class]}-{counter}")
+    plt.savefig(
+        f"{asnwd}/astronet/t2/plots/plasticc/cams/CAM-{class_names[desired_class]}-{counter}.pdf",
+        format="pdf",
+        bbox_inches="tight",
+    )
     plt.show()
     plt.clf()
 
