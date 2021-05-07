@@ -400,10 +400,16 @@ def show_cam(image_index, desired_class, counter):
     cam_output = np.expand_dims(cam_output, axis=0)
     print('Predicted Class = ' +str(prediction)+ ', Probability = ' + str(results[image_index][prediction]))
 
-    cam_output_softmax = softmax(cam_output)
-    print(cam_output_softmax.sum(axis=1))
-    cam_output_L = cam_output_softmax[:,:100]
-    cam_output_z = cam_output_softmax[:,100:102]
+    from sklearn.preprocessing import minmax_scale, normalize
+    cam_output = minmax_scale(cam_output, feature_range=(0,1), axis=1)
+    cam_output = normalize(cam_output, norm='l1')
+
+#     cam_output_softmax = softmax(cam_output)
+    # cam_output_softmax = cam_output
+
+    print(cam_output.sum(axis=1))
+    cam_output_L = cam_output[:,:100]
+    cam_output_z = cam_output[:,100:102]
     print(cam_output_L.shape, cam_output_z.shape)
 
     if (results[image_index][prediction] < 0.90):
@@ -412,22 +418,26 @@ def show_cam(image_index, desired_class, counter):
     dfz = pd.DataFrame(data=cam_output_z, columns=["redshift", "redshift-error"])
 
     my_cmap = sns.light_palette("Navy", as_cmap=True)
-    fig, axs = plt.subplots(1, 2, figsize=(22, 8), gridspec_kw={'width_ratios': [3, 1]})
+    fig, axs = plt.subplots(1, 2, figsize=(26, 8), gridspec_kw={'width_ratios': [3, 1]})
 #     fig, ax = plt.subplots(figsize=(20, 8))
 
     dfz.plot(kind="bar", ax=axs[1], width=0.1, color=plt.cm.seismic(np.linspace(0, 1, 2))) #plt.cm.BuPu(np.linspace(0, 0.5, 2)))
     axs[1].yaxis.set_label_position("right")
     axs[1].yaxis.tick_right()
-    axs[1].set_xlabel(r'Additional Features, $k$', fontsize=28)
-    axs[1].set_ylabel(r'Attention Weight Percentage', fontsize=28)
+    axs[1].set_xlabel(r'Additional Features, $R$', fontsize=28)
+    axs[1].set_ylabel(r'Activation Weight Percentage', fontsize=28)
     axs[1].set_xticklabels([])
     axs[1].legend(["Redshift", "Redshift Error"], fontsize=18, loc='best')
-    axs[1].yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0, decimals=1))
+    axs[1].yaxis.set_major_formatter(ticker.PercentFormatter(xmax=cam_output.sum(), decimals=1))
 #     axs[1].yaxis.set_minor_formatter(ticker.ScalarFormatter())
 #     axs[1].ticklabel_format(style='sci', axis='y', scilimits=(-10,2))
     print(dfz.head())
 
     ax = axs[0]
+
+    formatter = ticker.PercentFormatter(xmax=cam_output.sum(), decimals=None)
+#     formatter.set_scientific(True)
+#     formatter.set_powerlimits((-2, 2))
 
     hm = sns.heatmap(cam_output_L,
                         cmap=my_cmap,
@@ -435,18 +445,29 @@ def show_cam(image_index, desired_class, counter):
                         robust=False,
                         ax=ax,
                         annot=False,
-#                         cbar_kws={'format': '%.0f%%', 'ticks': [0, 50, 100]},
-                        vmax=1,
-                        vmin=0) # vmin=v.min(), vmax=v.max()
+                        cbar_kws={"format": formatter},
+                        vmax=cam_output.max(),
+                        vmin=cam_output.min()) # vmin=v.min(), vmax=v.max()
 
+    print("MAX L:", cam_output_L.max(), np.argmax(cam_output_L))
+    print("SUM L:", cam_output_L.sum())
+    print("SUM z:", cam_output_z.sum())
+    print("SUM CAM:", cam_output.sum())
+    print("MIN CAM:", cam_output.min())
 #     hm.collections[0].colorbar.set_label(r'Attention Weight Percentage', fontsize=28)
-
-    hm.collections[0].colorbar.set_ticks([0, .25, .75, 1])
-    hm.collections[0].colorbar.set_ticklabels([r'0\%', r'25\%', r'75\%', r'100\%'])
+#     cb.ax.yaxis.set_major_formatter(plt.FuncFormatter(myfmt))
+#     hm.collections[0].colorbar.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1.0, decimals=1))
+#     hm.collections[0].colorbar.set_ticks([0, .25, 0.50, .75, 1])
+#     hm.collections[0].colorbar.set_ticklabels([r'0\%', r'25\%', r'50\%', r'75\%', r'100\%'])
 
     ax2 = ax.twinx()
 
-    ax2.plot(X_test[image_index], lw=5)
+    lc = ax2.plot(X_test[image_index], lw=5)
+#     from cycler import cycler
+#     cy = cycler('color', ['#984ea3', '#4daf4a', '#e41a1c', '#377eb8', '#ff7f00', 'black']) #'#e3c530'])
+#     ax2.set_prop_cycle(cy)
+    ax2.legend(lc, [r'$g$', r'$i$', r'$r$', r'$u$', r'$y$', r'$z$'], loc="center left", markerfirst=False, bbox_to_anchor=(-0.15, 0.75), fontsize=26)
+
 
     ax2.grid(False)
     ax2.get_yaxis().set_visible(True)
@@ -454,7 +475,9 @@ def show_cam(image_index, desired_class, counter):
     ax2.set_yticklabels([])
 
     ax.set_xlabel(r'Sequence Length, $L$', fontsize=28)
-    ax2.set_ylabel(r'Attention Weight Percentage', fontsize=28)
+#     ax.set_title(r'')
+
+    ax2.set_ylabel(r'Activation Weight Percentage', fontsize=28)
 
     ax.tick_params(which='minor', width=1.25)
     ax.tick_params(which='minor', length=3.5)
@@ -502,4 +525,14 @@ def show_maps(desired_class, num_maps):
                 counter += 1
 
 
+def make_cams(num_maps=40):
+
+    for i in range(len(class_names)):
+        show_maps(desired_class=i, num_maps=num_maps)
+
+
+# Attempt to show 40 examples of SNIa
 show_maps(desired_class=class_names.index("SNIa"), num_maps=40)
+
+# Make CAMs for all classes with x num_maps attempts
+# make_cams(40)
