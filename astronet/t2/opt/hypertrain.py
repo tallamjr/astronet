@@ -77,18 +77,20 @@ class Objective(object):
 
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
-                dataset, redshift=self.redshift, augmented=self.augmented,
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
                 avocado=self.avocado, testset=self.testset
             )
-        else:
-            X_train, y_train, _, _, loss = load_dataset(dataset, augmented=self.augmented)
 
-        # Generate random boolean mask the length of data
-        # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-        mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
-        X_train = X_train[mask]
-        y_train = y_train[mask]
-        ZX_train = ZX_train[mask]
+            # If redshift true, implies using PLAsTiCC data. PLAsTiCC data is large so we will only
+            # work with 10% instead.
+            # Generate random boolean mask the length of data
+            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+            mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+            X_train = X_train[mask]
+            y_train = y_train[mask]
+            ZX_train = ZX_train[mask]
+        else:
+            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented)
 
         num_classes = y_train.shape[1]
 
