@@ -86,11 +86,11 @@ class Training(object):
                     key=lambda ev: ev["objective_score"],
                 )
             else:
-                event = min(
-                    (item for item in events["optuna_result"] if item["balanced_classes"] is None),
-                    key=lambda ev: ev["objective_score"],
-                )
-                # event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
+                # event = min(
+                #     (item for item in events["optuna_result"] if item["balanced_classes"] is None),
+                #     key=lambda ev: ev["objective_score"],
+                # )
+                event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
 
         embed_dim = event['embed_dim']  # --> Embedding size for each token
         num_heads = event['num_heads']  # --> Number of attention heads
