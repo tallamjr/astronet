@@ -180,9 +180,9 @@ class Objective(object):
                 validation_batch_size=VALIDATION_BATCH_SIZE,
                 verbose=False,
                 callbacks=[
-                    DetectOverfittingCallback(
-                        threshold=2
-                    ),
+                    # DetectOverfittingCallback(
+                    #     threshold=2
+                    # ),
                     EarlyStopping(
                         min_delta=0.001,
                         mode="min",
@@ -291,6 +291,7 @@ if __name__ == "__main__":
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
         show_progress_bar=False,
+        gc_after_trial=True,
     )
 
     log.warn("""show_progress_bar: Flag to show progress bars \n
