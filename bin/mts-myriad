@@ -17,11 +17,15 @@
 # https://www.rc.ucl.ac.uk/docs/Job_Results/#qsub-emailing
 #$ -m base
 
+# Set up the job array.  In this instance we have requested 12 tasks
+# numbered 1 to 12 for the 12 different MTS datasets.
+#$ -t 1-12
+
 # Request a number of GPU cards, in this case 2 (the maximum)
 #$ -l gpu=1
 
 # Request a V100 node only
-## #$ -ac allow=EF
+#$ -ac allow=EF
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
 #$ -l h_rt=47:10:0
@@ -38,7 +42,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N mts-t2-GPU-hypertrain
+#$ -N mts-t2-GPU-train
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -96,12 +100,12 @@ declare -a arr=(
                 "WalkvsRun"
             )
 
-echo "${arr[PBS_ARRAY_INDEX -1]}"
-dataset="${arr[PBS_ARRAY_INDEX -1]}"
+echo "${arr[SGE_TASK_ID-1]}"
+dataset="${arr[SGE_TASK_ID-1]}"
 # Hyperparameter Optimisation
-python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50
+# python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50
 # Train
-# python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
+python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
