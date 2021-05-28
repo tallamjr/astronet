@@ -79,12 +79,12 @@ class Training(object):
             events = json.load(f)
             if self.model is not None:
                 # Get params for model chosen with cli args
-                event = next(item for item in events['optuna_result'] if item["name"] == self.model)
-            elif self.balance is not None:
-                event = min(
-                    (item for item in events["optuna_result"] if item["balanced_classes"] is not None),
-                    key=lambda ev: ev["objective_score"],
-                )
+#                event = next(item for item in events['optuna_result'] if item["name"] == self.model)
+#            elif self.balance is not None:
+#                event = min(
+#                    (item for item in events["optuna_result"] if item["balanced_classes"] is not None),
+#                    key=lambda ev: ev["objective_score"],
+#                )
             else:
                 # event = min(
                 #     (item for item in events["optuna_result"] if item["balanced_classes"] is None),
