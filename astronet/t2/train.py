@@ -341,6 +341,8 @@ if __name__ == "__main__":
     if dataset == "WalkvsRun":
         # WalkvsRun causes OOM errors on GPU, run on CPU instead
         with tf.device("/cpu:0"):
+            print("Running on CPU...")
             training()
     else:
+        print("Running on GPU...")
         training()
