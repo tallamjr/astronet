@@ -6,6 +6,8 @@
             "lr": 0.012542612099317329,
             "name": "1610386112-1d1776c",
             "num_heads": 16,
+            "num_layers": 1,
+            "droprate": 0.1,
             "objective_score": 0.2603161737322807
         },
         {
@@ -14,6 +16,8 @@
             "lr": 0.010042542549316285,
             "name": "1610415728-3351af1",
             "num_heads": 16,
+            "num_layers": 1,
+            "droprate": 0.1,
             "objective_score": 0.27988028824329375
         },
         {
@@ -22,6 +26,8 @@
             "lr": 0.02188320958248928,
             "name": "1610742947-c295e0f",
             "num_heads": 8,
+            "num_layers": 1,
+            "droprate": 0.1,
             "objective_score": 2.1982179641723634
         },
         {
@@ -30,6 +36,8 @@
             "lr": 0.010610985053667822,
             "name": "1610999412-1405947",
             "num_heads": 4,
+            "num_layers": 1,
+            "droprate": 0.1,
             "objective_score": 0.14173704087734224
         }
     ]
