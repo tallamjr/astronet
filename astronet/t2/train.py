@@ -174,9 +174,9 @@ class Training(object):
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
-                DetectOverfittingCallback(
-                    threshold=2
-                ),
+#                DetectOverfittingCallback(
+#                    threshold=2
+#                ),
                 CSVLogger(
                     csv_logger_file,
                     separator=',',
