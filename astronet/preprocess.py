@@ -1,4 +1,4 @@
-import george
+# import george
 import numpy as np
 import scipy.optimize as op
 import tensorflow as tf
