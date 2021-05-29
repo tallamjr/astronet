@@ -338,10 +338,10 @@ if __name__ == "__main__":
         epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
         augmented=augmented, avocado=avocado, testset=testset
     )
-    if dataset == "WalkvsRun":
-        # WalkvsRun causes OOM errors on GPU, run on CPU instead
+    if dataset in ["WalkvsRun", "NetFlow"]:
+        # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead
         with tf.device("/cpu:0"):
-            print("Running on CPU...")
+            print(f"{dataset} causes OOM errors on GPU. Running on CPU...")
             training()
     else:
         print("Running on GPU...")
