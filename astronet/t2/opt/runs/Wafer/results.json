@@ -1,54 +1,68 @@
 {
     "optuna_result": [
         {
+            "droprate": 0.1,
             "embed_dim": 32,
             "ff_dim": 32,
             "lr": 0.016247654082537775,
             "name": "1608309753-aefde0d",
             "num_heads": 4,
             "num_layers": 1,
-            "droprate": 0.1,
             "objective_score": 0.34165319204330447
         },
         {
+            "droprate": 0.1,
             "embed_dim": 128,
             "ff_dim": 128,
             "lr": 0.06351427080950735,
             "name": "1610386112-1d1776c",
             "num_heads": 8,
             "num_layers": 1,
-            "droprate": 0.1,
             "objective_score": 0.3410631835460663
         },
         {
+            "droprate": 0.1,
             "embed_dim": 512,
             "ff_dim": 128,
             "lr": 0.01170689102059714,
             "name": "1610415728-3351af1",
             "num_heads": 16,
             "num_layers": 1,
-            "droprate": 0.1,
             "objective_score": 0.3411350131034851
         },
         {
+            "droprate": 0.1,
             "embed_dim": 32,
             "ff_dim": 512,
             "lr": 0.08168883425668469,
             "name": "1610742947-c295e0f",
             "num_heads": 8,
             "num_layers": 1,
-            "droprate": 0.1,
             "objective_score": 0.3409736633300781
         },
         {
+            "droprate": 0.1,
             "embed_dim": 64,
             "ff_dim": 128,
             "lr": 0.010508797694862258,
             "name": "1610999412-1405947",
             "num_heads": 16,
             "num_layers": 1,
-            "droprate": 0.1,
             "objective_score": 0.3399625062942505
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "droprate": 0.4,
+            "embed_dim": 128,
+            "ff_dim": 64,
+            "lr": 0.02212481001891181,
+            "name": "1622254859-0.1.dev837+g8e10b0d.d20210528",
+            "num_heads": 16,
+            "num_layers": 4,
+            "objective_score": 1.135490894317627,
+            "testset": null,
+            "z-redshift": null
         }
     ]
 }
