@@ -185,8 +185,8 @@ class Objective(object):
                     # ),
                     EarlyStopping(
                         min_delta=0.001,
-                        mode="min",
-                        monitor="val_loss",
+                        mode="max",
+                        monitor="val_acc",
                         patience=10,
                         restore_best_weights=True,
                         verbose=1,
@@ -194,8 +194,8 @@ class Objective(object):
                     ReduceLROnPlateau(
                         cooldown=5,
                         factor=0.1,
-                        mode="min",
-                        monitor="val_loss",
+                        mode="max",
+                        monitor="val_acc",
                         patience=5,
                         verbose=1,
                     ),
@@ -204,11 +204,11 @@ class Objective(object):
             log.info("Partially complete fit done...")
 
             # Evaluate the model accuracy on the validation set.
-            # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
-            wloss = WeightedLogLoss()
-            y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
-            loss = wloss(y_val_cv, y_preds).numpy()
-            scores.append(loss)
+            loss, acc = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
+            # wloss = WeightedLogLoss()
+            # y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
+            # loss = wloss(y_val_cv, y_preds).numpy()
+            scores.append(acc)
 
         model.summary(print_fn=logging.info)
         return np.mean(scores)
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 
     N_TRIALS = int(args.num_trials)
 
-    study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
+    study = optuna.create_study(study_name=f"{unixtimestamp}", direction="maximize")
 
     study.optimize(
         Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
