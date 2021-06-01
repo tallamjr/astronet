@@ -53,6 +53,20 @@
             "objective_score": 2.7093907833099364,
             "testset": null,
             "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "droprate": 0.2,
+            "embed_dim": 128,
+            "ff_dim": 32,
+            "lr": 0.020786619987882247,
+            "name": "1622435094-0.1.dev847+g6a9543d.d20210530",
+            "num_heads": 4,
+            "num_layers": 2,
+            "objective_score": 0.1277777820825577,
+            "testset": null,
+            "z-redshift": null
         }
     ]
 }
