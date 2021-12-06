@@ -1,11 +1,11 @@
 import tensorflow as tf
 
-from astronet.snX.layers import EntryFlow, MiddleFlow, ExitFlow
+from astronet.atx.layers import EntryFlow, MiddleFlow, ExitFlow
 
 
-class SNXModel(tf.keras.Model):
+class ATXModel(tf.keras.Model):
     def __init__(self, num_classes, kernel_size, pool_size):
-        super(SNXModel, self).__init__()
+        super(ATXModel, self).__init__()
         '''
         '''
         self.num_classes = num_classes

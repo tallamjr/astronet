@@ -23,13 +23,13 @@ from tensorflow.keras.callbacks import (
 from astronet.constants import astronet_working_directory as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
 from astronet.metrics import WeightedLogLoss
-from astronet.snX.model import SNXModel
+from astronet.atx.model import ATXModel
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
 try:
     print(os.environ['ASNWD'])
-    log_filename = str(os.environ['ASNWD']) + "/astronet/snX/opt/studies.log"
+    log_filename = str(os.environ['ASNWD']) + "/astronet/atx/opt/studies.log"
 except KeyError:
     print("Please set the environment ASNWD in 'conf/astronet.conf'")
     sys.exit(1)
@@ -54,7 +54,7 @@ try:
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
     print("Seems you are running from a notebook...")
-    __file__ = f"{Path().resolve().parent}/astronet/snX/opt/hypertrain.py"
+    __file__ = f"{Path().resolve().parent}/astronet/atx/opt/hypertrain.py"
 
 RANDOM_SEED = 42
 
@@ -84,7 +84,7 @@ class Objective(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
-        model = SNXModel(
+        model = ATXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
             pool_size=pool_size,
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/results.json") as jf:
+    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json") as jf:
         data = json.load(jf)
         print(data)
 
@@ -239,8 +239,8 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/results.json", "w") as rf:
+    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json", "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
         joblib.dump(study, sf)

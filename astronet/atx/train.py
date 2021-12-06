@@ -19,7 +19,7 @@ from tensorflow.keras.callbacks import (
 from astronet.constants import astronet_working_directory as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
 from astronet.metrics import WeightedLogLoss
-from astronet.snX.model import SNXModel
+from astronet.atx.model import ATXModel
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
@@ -30,7 +30,7 @@ try:
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except:
     print("Seems you are running from a notebook...")
-    __file__ = f"{Path().resolve().parent}/astronet/snX/train.py"
+    __file__ = f"{Path().resolve().parent}/astronet/atx/train.py"
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
@@ -54,7 +54,7 @@ class Training(object):
 
         log.info(print(X_train.shape, y_train.shape))
 
-        with open(f"{asnwd}/astronet/snX/opt/runs/{dataset}/results.json") as f:
+        with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json") as f:
             events = json.load(f)
             if self.model is not None:
                 # Get params for model chosen with cli args
@@ -71,7 +71,7 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
-        model = SNXModel(
+        model = ATXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
             pool_size=pool_size,
@@ -90,7 +90,7 @@ class Training(object):
 
         unixtimestamp = int(time.time())
         label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
-        checkpoint_path = f"{asnwd}/astronet/snX/models/{dataset}/model-{unixtimestamp}-{label}"
+        checkpoint_path = f"{asnwd}/astronet/atx/models/{dataset}/model-{unixtimestamp}-{label}"
 
         history = model.fit(
             X_train,
@@ -142,7 +142,7 @@ class Training(object):
 
         del model_params['lr']
 
-        with open(f"{asnwd}/astronet/snX/models/{dataset}/results.json") as jf:
+        with open(f"{asnwd}/astronet/atx/models/{dataset}/results.json") as jf:
             data = json.load(jf)
             # print(data)
 
@@ -153,11 +153,11 @@ class Training(object):
             # print(previous_results)
             # print(data)
 
-        with open(f"{asnwd}/astronet/snX/models/{dataset}/results.json", "w") as rf:
+        with open(f"{asnwd}/astronet/atx/models/{dataset}/results.json", "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
-        model.save(f"{asnwd}/astronet/snX/models/{dataset}/model-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/snX/models/{dataset}/weights-{unixtimestamp}-{label}")
+        model.save(f"{asnwd}/astronet/atx/models/{dataset}/model-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/atx/models/{dataset}/weights-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
