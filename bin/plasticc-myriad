@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N atxGPU-TF2.6
+#$ -N atxGPU-TF2.4
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
