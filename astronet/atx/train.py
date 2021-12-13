@@ -2,6 +2,8 @@ import argparse
 import json
 import logging
 import numpy as np
+import os
+import psutil
 import shutil
 import subprocess
 import sys
@@ -11,6 +13,7 @@ import time
 from pathlib import Path
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
+    CSVLogger,
     EarlyStopping,
     ModelCheckpoint,
     ReduceLROnPlateau,
@@ -31,30 +34,48 @@ try:
 except:
     print("Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/atx/train.py"
+    log = astronet_logger(__file__)
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model):
-        self.epochs = EPOCHS
+    def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset):
+        self.epochs = epochs
         self.dataset = dataset
         self.model = model
+        self.redshift = redshift
+        self.augmented = augmented
+        self.avocado = avocado
+        self.testset = testset
 
     def __call__(self):
 
-        X_train, y_train, X_test, y_test, loss = load_dataset(dataset)
+        if self.redshift is not None:
+            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
+                dataset=self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
+            hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{self.dataset}/results_with_z.json"
+            num_aux_feats = ZX_train.shape[1]
+        else:
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
+            hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
+            num_aux_feats = 0
 
         num_classes = y_train.shape[1]
 
         log.info(print(X_train.shape, y_train.shape))
 
-        with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json") as f:
+        with open(hyper_results_file) as f:
             events = json.load(f)
             if self.model is not None:
                 # Get params for model chosen with cli args
@@ -71,13 +92,16 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         print(f"input_shape:{input_shape}")
 
+        VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
+        print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+
         model = ATXModel(
             num_classes=num_classes,
             kernel_size=kernel_size,
             pool_size=pool_size,
         )
 
-        # We compile our model with a sampled learning rate.
+        # We compile our model with a sampled learning rate and any custom metrics
         lr = event['lr']
         model.compile(
             loss=loss,
@@ -86,21 +110,51 @@ class Training(object):
             run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
         )
 
-        model.build_graph(input_shape)
+        if self.redshift is not None:
+            input_shapes = [input_shape, ZX_train.shape]
+            model.build_graph(input_shapes)
+
+            train_input = [X_train, ZX_train]
+            test_input = [X_test, ZX_test]
+            # if avocado is not None:
+                # Generate random boolean mask the length of data
+                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                # test_input = [X_test[mask], ZX_test[mask]]
+                # y_test = y_test[mask]
+        else:
+            model.build_graph(input_shape)
+
+            train_input = X_train
+            test_input = X_test
 
         unixtimestamp = int(time.time())
-        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
-        checkpoint_path = f"{asnwd}/astronet/atx/models/{dataset}/model-{unixtimestamp}-{label}"
+        try:
+            label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        except Exception:
+            from astronet import __version__ as current_version
+            label = current_version
+        checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}"
+        csv_logger_file = f"{asnwd}/logs/training-{os.environ.get('SLURM_JOB_ID')}-{unixtimestamp}-{label}.log"
 
         history = model.fit(
-            X_train,
+            train_input,
             y_train,
             batch_size=BATCH_SIZE,
-            epochs=EPOCHS,
-            validation_data=(X_test, y_test),
+            epochs=self.epochs,
+            shuffle=True,
+            validation_data=(test_input, y_test),
+            validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
-                # DetectOverfittingCallback(threshold=1.5),
+#                DetectOverfittingCallback(
+#                    threshold=2
+#                ),
+                CSVLogger(
+                    csv_logger_file,
+                    separator=',',
+                    append=False,
+                ),
                 EarlyStopping(
                     min_delta=0.001,
                     mode="min",
@@ -128,13 +182,49 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        print(model.evaluate(X_test, y_test))
+        model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{unixtimestamp}-{label}")
+
+        log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
+        log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
+
+#        with tf.device("/cpu:0"):
+#            try:
+#                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
+#            except Exception:
+#                print(f"Preventing possible OOM...")
+
+        print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}")
+        print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}")
+
+        wloss = WeightedLogLoss()
+        y_preds = model.predict(test_input)
+        print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
+
+        if (X_test.shape[0] < 10000):
+            batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
+        else:
+            # Otherwise potential OOM Error may occur loading too many into memory at once
+            batch_size = VALIDATION_BATCH_SIZE
 
         model_params = {}
         model_params['name'] = str(unixtimestamp) + "-" + label
         model_params['hypername'] = event['name']
-        model_params['model_evaluate_on_test_acc'] = model.evaluate(X_test, y_test)[1]
-        model_params['model_evaluate_on_test_loss'] = model.evaluate(X_test, y_test)[0]
+        model_params['kernel_size'] = event['kernel_size']
+        model_params['pool_size'] = event['pool_size']
+
+        model_params['z-redshift'] = self.redshift
+        model_params['augmented'] = self.augmented
+        model_params['avocado'] = self.avocado
+        model_params['testset'] = self.testset
+        model_params['num_classes'] = num_classes
+        model_params["model_evaluate_on_test_acc"] = model.evaluate(
+            test_input, y_test, verbose=0, batch_size=batch_size
+        )[1]
+        model_params["model_evaluate_on_test_loss"] = model.evaluate(
+            test_input, y_test, verbose=0, batch_size=batch_size
+        )[0]
+        model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
@@ -142,7 +232,12 @@ class Training(object):
 
         del model_params['lr']
 
-        with open(f"{asnwd}/astronet/atx/models/{dataset}/results.json") as jf:
+        if self.redshift is not None:
+            train_results_file = f"{asnwd}/astronet/atx/models/{self.dataset}/results_with_z.json"
+        else:
+            train_results_file = f"{asnwd}/astronet/atx/models/{self.dataset}/results.json"
+
+        with open(train_results_file) as jf:
             data = json.load(jf)
             # print(data)
 
@@ -153,11 +248,8 @@ class Training(object):
             # print(previous_results)
             # print(data)
 
-        with open(f"{asnwd}/astronet/atx/models/{dataset}/results.json", "w") as rf:
+        with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
-
-        model.save(f"{asnwd}/astronet/atx/models/{dataset}/model-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/atx/models/{dataset}/weights-{unixtimestamp}-{label}")
 
 
 if __name__ == "__main__":
@@ -173,6 +265,18 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--model', default=None,
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to include redshift features or not")
+
+    parser.add_argument('-a', '--augment', default=None,
+            help='Train using augmented plasticc data')
+
+    parser.add_argument('-A', '--avocado', default=None,
+            help='Train using avocado augmented plasticc data')
+
+    parser.add_argument('-t', '--testset', default=None,
+            help='Train using PLAsTiCC test data for representative test')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -184,5 +288,31 @@ if __name__ == "__main__":
     EPOCHS = int(args.epochs)
     model = args.model
 
-    training = Training(epochs=EPOCHS, dataset=dataset, model=model)
-    training()
+    augmented = args.augment
+    if augmented is not None:
+        augmented = True
+
+    avocado = args.avocado
+    if avocado is not None:
+        avocado = True
+
+    testset = args.testset
+    if testset is not None:
+        testset = True
+
+    redshift = args.redshift
+    if redshift is not None:
+        redshift = True
+
+    training = Training(
+        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
+        augmented=augmented, avocado=avocado, testset=testset
+    )
+    if dataset in ["WalkvsRun", "NetFlow"]:
+        # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead
+        with tf.device("/cpu:0"):
+            print(f"{dataset} causes OOM errors on GPU. Running on CPU...")
+            training()
+    else:
+        print("Running on GPU...")
+        training()

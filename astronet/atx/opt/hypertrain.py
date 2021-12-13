@@ -63,15 +63,34 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset):
         self.epochs = EPOCHS
         self.dataset = dataset
+        self.redshift = redshift
+        self.augmented = augmented
+        self.avocado = avocado
+        self.testset = testset
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
         clear_session()
 
-        X_train, y_train, _, _, loss = load_dataset(dataset)
+        if self.redshift is not None:
+            X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
+
+            # If redshift true, implies using PLAsTiCC data. PLAsTiCC data is large so we will only
+            # work with 10% instead.
+            # Generate random boolean mask the length of data
+            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+            mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+            X_train = X_train[mask]
+            y_train = y_train[mask]
+            ZX_train = ZX_train[mask]
+        else:
+            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented)
 
         num_classes = y_train.shape[1]
 
@@ -101,10 +120,18 @@ class Objective(object):
             run_eagerly=True,
         )
 
-        model.build_graph(input_shape)
-
         scores = []
-        skf = StratifiedKFold(n_splits=5, random_state=RANDOM_SEED)
+        # 'random_state' has no effect since shuffle is False. You should leave random_state to its default
+        # (None), or set shuffle=True.'
+        skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
+
+        if self.redshift is not None:
+            num_z_samples, num_z_features = ZX_train.shape
+            z_input_shape = (BATCH_SIZE, num_z_features)
+            input_shapes = [input_shape, z_input_shape]
+            model.build_graph(input_shapes)
+        else:
+            model.build_graph(input_shape)
 
         print(type(y_train))
         if tf.is_tensor(y_train):
@@ -120,15 +147,29 @@ class Objective(object):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
 
+            inputs_train_cv = X_train_cv
+            inputs_val_cv = X_val_cv
+
+            if self.redshift is not None:
+                Z_train_cv, Z_val_cv = ZX_train[train_index], ZX_train[val_index]
+                inputs_train_cv = [X_train_cv, Z_train_cv]
+                inputs_val_cv = [X_val_cv, Z_val_cv]
+
+            VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_val_cv.shape[0])
+            print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+
             _ = model.fit(
-                X_train_cv,
+                inputs_train_cv,
                 y_train_cv,
                 batch_size=BATCH_SIZE,
                 epochs=EPOCHS,
-                validation_data=(X_val_cv, y_val_cv),
+                validation_data=(inputs_val_cv, y_val_cv),
+                validation_batch_size=VALIDATION_BATCH_SIZE,
                 verbose=False,
                 callbacks=[
-                    # DetectOverfittingCallback(threshold=1.5),
+                    # DetectOverfittingCallback(
+                    #     threshold=2
+                    # ),
                     EarlyStopping(
                         min_delta=0.001,
                         mode="min",
@@ -147,9 +188,13 @@ class Objective(object):
                     ),
                 ],
             )
+            log.info("Partially complete fit done...")
 
             # Evaluate the model accuracy on the validation set.
-            loss, _ = model.evaluate(X_val_cv, y_val_cv, verbose=0)
+            # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
+            wloss = WeightedLogLoss()
+            y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
+            loss = wloss(y_val_cv, y_preds).numpy()
             scores.append(loss)
 
         model.summary(print_fn=logging.info)
@@ -168,7 +213,11 @@ if __name__ == "__main__":
 
     import time
     unixtimestamp = int(time.time())
-    label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    try:
+        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+    except Exception:
+        from astronet import __version__ as current_version
+        label = current_version
 
     parser = argparse.ArgumentParser(description='Optimising hyperparameters')
 
@@ -178,8 +227,20 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--epochs", default=10,
             help="How many epochs to run training for")
 
-    parser.add_argument("-n", "--num-trials", default=10,
+    parser.add_argument("-n", "--num-trials", default=15,
             help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
+
+    parser.add_argument("-z", "--redshift", default=None,
+            help="Whether to include redshift features or not")
+
+    parser.add_argument('-a', '--augment', default=None,
+            help='Train using augmented plasticc data')
+
+    parser.add_argument('-A', '--avocado', default=None,
+            help='Train using avocado augmented plasticc data')
+
+    parser.add_argument('-t', '--testset', default=None,
+            help='Train using PLAsTiCC test data for representative test')
 
     try:
         args = parser.parse_args()
@@ -190,16 +251,34 @@ if __name__ == "__main__":
 
     dataset = args.dataset
     EPOCHS = int(args.epochs)
+
+    redshift = args.redshift
+    if redshift is not None:
+        redshift = True
+
+    augmented = args.augment
+    if augmented is not None:
+        augmented = True
+
+    avocado = args.avocado
+    if avocado is not None:
+        avocado = True
+
+    testset = args.testset
+    if testset is not None:
+        testset = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
         n_trials=N_TRIALS,
-        timeout=170000,     # Break out of optimisation after ~ 47 hrs
+        timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
         show_progress_bar=False,
+        gc_after_trial=True,
     )
 
     log.warn("""show_progress_bar: Flag to show progress bars \n
@@ -220,6 +299,11 @@ if __name__ == "__main__":
     print("  Value: {}".format(trial.value))
     best_result['objective_score'] = trial.value
 
+    best_result['z-redshift'] = redshift
+    best_result['augmented'] = augmented
+    best_result['avocado'] = avocado
+    best_result['testset'] = testset
+
     print("  Params: ")
     for key, value in trial.params.items():
         print("    {}: {}".format(key, value))
@@ -228,7 +312,12 @@ if __name__ == "__main__":
     best_result.update(study.best_params)
     print(best_result)
 
-    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json") as jf:
+    if redshift:
+        hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results_with_z.json"
+    else:
+        hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
+
+    with open(hyper_results_file) as jf:
         data = json.load(jf)
         print(data)
 
@@ -239,7 +328,7 @@ if __name__ == "__main__":
         print(previous_results)
         print(data)
 
-    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json", "w") as rf:
+    with open(hyper_results_file, "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
     with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
