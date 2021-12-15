@@ -90,7 +90,10 @@ class Objective(object):
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
         else:
-            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented)
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
 
         num_classes = y_train.shape[1]
 
