@@ -62,13 +62,16 @@ module load cudnn/7.4.2.24/cuda-10.0
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source /home/zcicg57/Scratch/astronet/conf/astronet.conf
 
-export PATH="/miniconda3/envs/astronet/bin:$PATH"
+export PATH="$HOME/miniconda3/envs/astronet/bin:$PATH"
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issue-1047548284
 export CUDA_VISIBLE_DEVICES=0,1 # https://stackoverflow.com/a/48079860/4521950
+export TF_CPP_MIN_VLOG_LEVEL=3 # https://stackoverflow.com/q/66118532/4521950
+export TF_CPP_MIN_LOG_LEVEL=0
+export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/tensorflow/issues/46479
 conda activate astronet
 which python
 which pip
-pip install -r $ASNWD/requirements.txt
+pip install --no-cache-dir --ignore-installed -r $ASNWD/requirements.txt
 export PYTHONHASHSEED=0
 # conda install -c anaconda tensorflow-gpu==2.4.1 # https://stackoverflow.com/a/67913264/4521950
 # Print the contents of this file to stdout from line 15 onwards

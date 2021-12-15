@@ -1,4 +1,6 @@
+absl-py
 astropy>=1.1.2
+gast==0.3.3
 george==0.3.1
 imageio==2.9.0
 imbalanced-learn==0.7.0
@@ -13,6 +15,8 @@ numpy==1.19.2
 optuna==2.3.0
 pandas==1.1.4
 plotly==4.12.0
+# protobuf==3.19.1
+google-pasta==0.2.0
 pyarrow==2.0.0
 pybind11==2.6.1
 requests

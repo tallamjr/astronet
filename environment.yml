@@ -9,6 +9,11 @@ channels:
 dependencies:
   - pip
   - python=3.7
+  - absl-py
+  - google-pasta==0.2.0
+  - cudatoolkit=11
+  - cudnn=8.1
+  - cupti=11
   - sncosmo
 
   - pip:
@@ -18,4 +23,4 @@ dependencies:
     - pytest-subtests
     - pep517
     - twine
-    - -r file:requirements.txt
+    - -r requirements.txt
