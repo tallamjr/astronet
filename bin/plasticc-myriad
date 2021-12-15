@@ -53,19 +53,26 @@ module unload compilers mpi
 module load compilers/gnu/4.9.2
 module load python/3.7.4
 module load cuda/10.0.130/gnu-4.9.2
-module load cudnn/6.0/cuda-8.0
-module load tensorflow/2.0.0/gpu-py37
+# module load cuda/8.0.61-patch2/gnu-4.9.2
+module load cudnn/7.4.2.24/cuda-10.0
+# module load tensorflow/2.0.0/gpu-py37
 # export LD_LIBRAY_PATH="/shared/ucl/apps/modulefiles/development/cuda/10.0.130/gnu-4.9.2:$LD_LIBRAY_PATH"
 
 # Run the application
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source /home/zcicg57/Scratch/astronet/conf/astronet.conf
 
-export PATH="/miniconda3/envs/astronet/bin:$PATH"
+export PATH="$HOME/miniconda3/envs/astronet/bin:$PATH"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issue-1047548284
+export CUDA_VISIBLE_DEVICES=0,1 # https://stackoverflow.com/a/48079860/4521950
+export TF_CPP_MIN_VLOG_LEVEL=3 # https://stackoverflow.com/q/66118532/4521950
+export TF_CPP_MIN_LOG_LEVEL=0
+export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/tensorflow/issues/46479
 conda activate astronet
 which python
+which pip
+pip install --no-cache-dir --ignore-installed -r $ASNWD/requirements.txt
 export PYTHONHASHSEED=0
-conda install -c anaconda tensorflow-gpu
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/bin/plasticc-myriad
 date
