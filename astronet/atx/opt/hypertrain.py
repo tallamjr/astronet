@@ -89,6 +89,20 @@ class Objective(object):
             X_train = X_train[mask]
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
+
+        elif self.dataset == "plasticc":
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset
+            )
+            # Again, if using PLAsTiCC data, the PLAsTiCC data is large so we will only
+            # work with 10% instead.
+            # Generate random boolean mask the length of data
+            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+            mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+            X_train = X_train[mask]
+            y_train = y_train[mask]
+
         else:
             X_train, y_train, _, _, loss = load_dataset(
                 self.dataset, redshift=self.redshift, augmented=self.augmented,
