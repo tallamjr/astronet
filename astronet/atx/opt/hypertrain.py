@@ -89,6 +89,7 @@ class Objective(object):
             X_train = X_train[mask]
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
+            log.info("Dataset downsampled by 90% for cross-validation steps..")
 
         elif self.dataset == "plasticc":
             X_train, y_train, _, _, loss = load_dataset(
@@ -102,6 +103,7 @@ class Objective(object):
             mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
             X_train = X_train[mask]
             y_train = y_train[mask]
+            log.info("Dataset downsampled by 90% for cross-validation steps..")
 
         else:
             X_train, y_train, _, _, loss = load_dataset(
