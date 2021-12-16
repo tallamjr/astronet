@@ -142,7 +142,8 @@ class Objective(object):
         scores = []
         # 'random_state' has no effect since shuffle is False. You should leave random_state to its default
         # (None), or set shuffle=True.'
-        skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
+        k_folds = 5
+        skf = StratifiedKFold(n_splits=k_folds, shuffle=False, random_state=None)
 
         if self.redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
@@ -162,6 +163,7 @@ class Objective(object):
             y_train_split = y_train.argmax(1)
             print(y_train_split)
 
+        kth_fold = 1
         for train_index, val_index in skf.split(X_train, y_train_split):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
@@ -207,7 +209,8 @@ class Objective(object):
                     ),
                 ],
             )
-            log.info("Partially complete fit done...")
+            log.info(f"{kth_fold} of {k_folds} k-folds complete")
+            kth_fold += 1
 
             # Evaluate the model accuracy on the validation set.
             # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
