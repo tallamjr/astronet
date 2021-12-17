@@ -219,6 +219,8 @@ class Objective(object):
             loss = wloss(y_val_cv, y_preds).numpy()
             scores.append(loss)
 
+            log.info(f"Intermediate loss score: {loss}")
+
         model.summary(print_fn=logging.info)
         return np.mean(scores)
 
