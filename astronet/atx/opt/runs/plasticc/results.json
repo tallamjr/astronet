@@ -27,6 +27,17 @@
             "name": "1611831593-3cdc4dc",
             "objective_score": 0.9715866208076477,
             "pool_size": 3
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 32,
+            "lr": 0.010778648170304373,
+            "name": "1639647575-0.1.dev861+g3f6699a",
+            "objective_score": 2.6453248262405396,
+            "pool_size": 96,
+            "testset": true,
+            "z-redshift": null
         }
     ]
 }
