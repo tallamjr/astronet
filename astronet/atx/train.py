@@ -135,7 +135,7 @@ class Training(object):
             from astronet import __version__ as current_version
             label = current_version
         checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}"
-        csv_logger_file = f"{asnwd}/logs/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
+        csv_logger_file = f"{asnwd}/logs/atx/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         history = model.fit(
             train_input,
