@@ -116,23 +116,23 @@ class Training(object):
                 run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
             )
 
-        if self.redshift is not None:
-            input_shapes = [input_shape, ZX_train.shape]
-            model.build_graph(input_shapes)
+            if self.redshift is not None:
+                input_shapes = [input_shape, ZX_train.shape]
+                model.build_graph(input_shapes)
 
-            train_input = [X_train, ZX_train]
-            test_input = [X_test, ZX_test]
-            # if avocado is not None:
-                # Generate random boolean mask the length of data
-                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
-                # test_input = [X_test[mask], ZX_test[mask]]
-                # y_test = y_test[mask]
-        else:
-            model.build_graph(input_shape)
+                train_input = [X_train, ZX_train]
+                test_input = [X_test, ZX_test]
+                # if avocado is not None:
+                    # Generate random boolean mask the length of data
+                    # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                    # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                    # test_input = [X_test[mask], ZX_test[mask]]
+                    # y_test = y_test[mask]
+            else:
+                model.build_graph(input_shape)
 
-            train_input = X_train
-            test_input = X_test
+                train_input = X_train
+                test_input = X_test
 
         unixtimestamp = int(time.time())
         try:
