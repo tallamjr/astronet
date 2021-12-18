@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 import tensorflow as tf
+import jax.numpy as jnp
 
 from tensorflow import keras
 
@@ -85,9 +86,7 @@ class WeightedLogLoss(keras.losses.Loss):
         Where:
         wtable - is a numpy 1d array with (the number of times class y_true occur in the data set)/(size of data set)
         """
-        import tensorflow.experimental.numpy as tnp
-
-        wtable = tnp.sum(y_true, axis=0) / y_true.shape[0]
+        wtable = jnp.sum(y_true, axis=0) / y_true.shape[0]
 
         yc = tf.clip_by_value(y_pred, 1e-15, 1 - 1e-15)
 
