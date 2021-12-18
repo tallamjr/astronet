@@ -140,7 +140,7 @@ class Training(object):
         except Exception:
             from astronet import __version__ as current_version
             label = current_version
-        checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}"
+        checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
         csv_logger_file = f"{asnwd}/logs/atx/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         time_callback = TimeHistoryCallback()
@@ -191,8 +191,8 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{unixtimestamp}-{label}")
+        model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
+        model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
 
         log.info(f"PER EPOCH TIMING: {time_callback.times}")
         log.info(f"AVERAGE EPOCH TIMING: {np.array(time_callback.times).mean()}")
