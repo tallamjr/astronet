@@ -3,6 +3,7 @@ import io
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+import time
 
 from IPython.display import Image as IPyImage
 from PIL import Image
@@ -14,6 +15,17 @@ plt.rc('figure', figsize=(15, 3))
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
+
+class TimeHistoryCallback(tf.keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, epoch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
 
 
 class DetectOverfittingCallback(tf.keras.callbacks.Callback):

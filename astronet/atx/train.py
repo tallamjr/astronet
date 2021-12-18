@@ -20,7 +20,7 @@ from tensorflow.keras.callbacks import (
 )
 
 from astronet.constants import astronet_working_directory as asnwd
-from astronet.custom_callbacks import DetectOverfittingCallback
+from astronet.custom_callbacks import DetectOverfittingCallback, TimeHistoryCallback
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
@@ -137,6 +137,8 @@ class Training(object):
         checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}"
         csv_logger_file = f"{asnwd}/logs/atx/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
+        time_callback = TimeHistoryCallback()
+
         history = model.fit(
             train_input,
             y_train,
@@ -147,6 +149,7 @@ class Training(object):
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
+                time_callback,
 #                DetectOverfittingCallback(
 #                    threshold=2
 #                ),
@@ -184,6 +187,9 @@ class Training(object):
 
         model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{unixtimestamp}-{label}")
         model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{unixtimestamp}-{label}")
+
+        log.info(f"PER EPOCH TIMING: {time_callback.times}")
+        log.info(f"AVERAGE EPOCH TIMING: {np.array(time_callback.times).mean()}")
 
         log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
         log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
