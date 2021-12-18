@@ -11,7 +11,7 @@ jupyter-core>=4.6.1
 jupyter>=1.0.0
 matplotlib==3.3.2
 mkdocs
-numpy==1.21.4
+numpy==1.19.2
 optuna==2.3.0
 pandas==1.1.4
 plotly==4.12.0
