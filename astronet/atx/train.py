@@ -101,14 +101,19 @@ class Training(object):
             pool_size=pool_size,
         )
 
-        # We compile our model with a sampled learning rate and any custom metrics
-        lr = event['lr']
-        model.compile(
-            loss=loss,
-            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
-            metrics=["acc"],
-            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
-        )
+        # Create a MirroredStrategy.
+        strategy = tf.distribute.MirroredStrategy()
+        print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+        # Open a strategy scope.
+        with strategy.scope():
+            # We compile our model with a sampled learning rate and any custom metrics
+            lr = event['lr']
+            model.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+            )
 
         if self.redshift is not None:
             input_shapes = [input_shape, ZX_train.shape]
