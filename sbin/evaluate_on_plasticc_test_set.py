@@ -187,6 +187,7 @@ print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 print("Plotting figures...")
 cmap = sns.light_palette("Navy", as_cmap=True)
 plot_confusion_matrix(
+    architecture,
     dataset,
     model_name,
     y_test,
@@ -197,11 +198,11 @@ plot_confusion_matrix(
     cmap=cmap
 )
 
-plot_acc_history(dataset, model_name, event, save=True)
-plot_loss_history(dataset, model_name, event, save=True)
+plot_acc_history(architecture, dataset, model_name, event, save=True)
+plot_loss_history(architecture, dataset, model_name, event, save=True)
 
-plot_multiROC(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
-plot_multiPR(dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
+plot_multiROC(architecture, dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
+plot_multiPR(architecture, dataset, model_name, model, [X_test, Z_test], y_test, class_names, save=True)
 
 # from pathlib import Path
 # for filename in Path(f"{asnwd}/logs").rglob(f"training-*-{model_name}.log"):
