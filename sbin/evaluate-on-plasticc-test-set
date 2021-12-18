@@ -35,6 +35,12 @@ which python
 export PATH="/home/tallam/texlive/2020/bin/x86_64-linux:$PATH"
 # Test Imports
 python -c "import astronet as asn; print(asn.__version__)"
-python $ASNWD/sbin/evaluate_on_plasticc_test_set.py
+
+python $ASNWD/sbin/evaluate_on_plasticc_test_set.py \
+    --architecture $architecture \
+    --dataset $dataset \
+    --model $model
+    # --redshift "" # With or without redshift. Remove argument if without
+
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
