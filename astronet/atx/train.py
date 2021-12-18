@@ -20,7 +20,7 @@ from tensorflow.keras.callbacks import (
 )
 
 from astronet.constants import astronet_working_directory as asnwd
-from astronet.custom_callbacks import DetectOverfittingCallback, TimeHistoryCallback
+from astronet.custom_callbacks import DetectOverfittingCallback, TimeHistoryCallback, SGEBreakoutCallback
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
@@ -150,9 +150,9 @@ class Training(object):
             verbose=False,
             callbacks=[
                 time_callback,
-#                DetectOverfittingCallback(
-#                    threshold=2
-#                ),
+                SGEBreakoutCallback(
+                    threshold=24     # Stop training if running for more than 24hrs
+                ),
                 CSVLogger(
                     csv_logger_file,
                     separator=',',

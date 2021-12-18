@@ -2,6 +2,7 @@ import imageio
 import io
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import tensorflow as tf
 import time
 
@@ -15,6 +16,19 @@ plt.rc('figure', figsize=(15, 3))
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
+
+class SGEBreakoutCallback(tf.keras.callbacks.Callback):
+    def __init__(self, threshold=24):
+        super(SGEBreakoutCallback, self).__init__()
+        self.threshold = threshold
+
+    def on_epoch_end(self, epoch, logs={}):
+        hrs = os.system(f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F  ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'")
+
+        if hrs > self.threshold:
+            print("Stopping training...")
+            self.model.stop_training = True
 
 
 class TimeHistoryCallback(tf.keras.callbacks.Callback):
