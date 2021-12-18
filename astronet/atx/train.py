@@ -95,17 +95,18 @@ class Training(object):
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
-        model = ATXModel(
-            num_classes=num_classes,
-            kernel_size=kernel_size,
-            pool_size=pool_size,
-        )
-
         # Create a MirroredStrategy.
         strategy = tf.distribute.MirroredStrategy()
         print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
         # Open a strategy scope.
         with strategy.scope():
+
+            model = ATXModel(
+                num_classes=num_classes,
+                kernel_size=kernel_size,
+                pool_size=pool_size,
+            )
+
             # We compile our model with a sampled learning rate and any custom metrics
             lr = event['lr']
             model.compile(
