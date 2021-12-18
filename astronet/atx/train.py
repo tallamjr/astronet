@@ -95,12 +95,7 @@ class Training(object):
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
-        # Create a MirroredStrategy.
-        strategy = tf.distribute.MirroredStrategy()
-        print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
-        # Open a strategy scope.
-        with strategy.scope():
-
+        def get_compiled_model():
             model = ATXModel(
                 num_classes=num_classes,
                 kernel_size=kernel_size,
@@ -113,7 +108,7 @@ class Training(object):
                 loss=loss,
                 optimizer=optimizers.Adam(lr=lr, clipnorm=1),
                 metrics=["acc"],
-                run_eagerly=False,  # Show values when debugging. Also required for use with custom_log_loss
+                run_eagerly=False,  # True for values when debugging. Also required for use with custom_log_loss
             )
 
             if self.redshift is not None:
@@ -123,16 +118,28 @@ class Training(object):
                 train_input = [X_train, ZX_train]
                 test_input = [X_test, ZX_test]
                 # if avocado is not None:
-                    # Generate random boolean mask the length of data
-                    # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-                    # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
-                    # test_input = [X_test[mask], ZX_test[mask]]
-                    # y_test = y_test[mask]
+                # Generate random boolean mask the length of data
+                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                # test_input = [X_test[mask], ZX_test[mask]]
+                # y_test = y_test[mask]
             else:
                 model.build_graph(input_shape)
 
                 train_input = X_train
                 test_input = X_test
+
+            return model, train_input, test_input
+
+        if len(tf.config.list_physical_devices('GPU')) == 2:
+            # Create a MirroredStrategy.
+            strategy = tf.distribute.MirroredStrategy()
+            print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+            # Open a strategy scope.
+            with strategy.scope():
+                model, train_input, test_input = get_compiled_model()
+        else:
+            model, train_input, test_input = get_compiled_model()
 
         unixtimestamp = int(time.time())
         try:
