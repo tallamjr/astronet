@@ -113,7 +113,7 @@ class Training(object):
                 loss=loss,
                 optimizer=optimizers.Adam(lr=lr, clipnorm=1),
                 metrics=["acc"],
-                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+                run_eagerly=False,  # Show values when debugging. Also required for use with custom_log_loss
             )
 
             if self.redshift is not None:
