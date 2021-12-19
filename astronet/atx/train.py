@@ -108,7 +108,11 @@ class Training(object):
                 loss=loss,
                 optimizer=optimizers.Adam(lr=lr, clipnorm=1),
                 metrics=["acc"],
-                run_eagerly=False,  # True for values when debugging. Also required for use with custom_log_loss
+                run_eagerly=True,
+                # True for values when debugging. Also required for use with custom_log_loss
+                # Also prevents NotImplementedError: Cannot convert a symbolic Tensor
+                # (cond_2/Identity_1:0) to a numpy array. This error may indicate that you're trying
+                # to pass a Tensor to a NumPy call, which is not supported
             )
 
             if self.redshift is not None:

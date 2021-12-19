@@ -18,7 +18,7 @@
 #$ -m base
 
 # Request a number of GPU cards, in this case 2 (the maximum)
-#$ -l gpu=2
+#$ -l gpu=1
 
 # Request a V100 node only
 #$ -ac allow=EF
