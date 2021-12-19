@@ -92,7 +92,7 @@ dataset="plasticc"
 # python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 40 -n 5 -z "" -t ""
 # python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 40 -n 5 -t ""
 # Train
-# python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -z "" -t "" --model "1613517996-0a72904"
+# python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -z "" -t "" --model "1613517996-0a72904"  # t2 main model
 python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400 -t ""
 date
 duration=$SECONDS
