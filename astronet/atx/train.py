@@ -168,7 +168,7 @@ class Training(object):
             callbacks=[
                 time_callback,
                 SGEBreakoutCallback(
-                    threshold=24     # Stop training if running for more than 24hrs
+                    threshold=44     # Stop training if running for more than threshold number of hours
                 ),
                 CSVLogger(
                     csv_logger_file,
