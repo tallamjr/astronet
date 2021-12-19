@@ -241,7 +241,7 @@ class Training(object):
             batch_size = VALIDATION_BATCH_SIZE
 
         model_params = {}
-        model_params['name'] = str(unixtimestamp) + "-" + label
+        model_params['name'] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
         model_params['hypername'] = event['name']
         model_params['embed_dim'] = event['embed_dim']
         model_params['ff_dim'] = event['ff_dim']

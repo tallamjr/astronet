@@ -76,7 +76,7 @@ class Plots(object):
             results_filename = f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
         else:
             inputs = X_test
-            results_filename = f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
+            results_filename = f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json"
 
         with open(results_filename) as f:
             events = json.load(f)
