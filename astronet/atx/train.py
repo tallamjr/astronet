@@ -135,7 +135,7 @@ class Training(object):
 
             return model, train_input, test_input
 
-        if len(tf.config.list_physical_devices('GPU')) == 2:
+        if len(tf.config.list_physical_devices('GPU')) > 1:
             # Create a MirroredStrategy.
             strategy = tf.distribute.MirroredStrategy()
             print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
