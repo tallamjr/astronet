@@ -240,8 +240,7 @@ class ExitFlow(tf.keras.layers.Layer):
             # Concatenate redshift information to 2048 vector --> 2050
             x = tf.keras.layers.Concatenate(axis=1)([x, z])
             # >>> x.shape
-            # TensorShape([None, 2050]) <-- check this on myriad
-            # import pdb;pdb.set_trace()
+            # TensorShape([None, 2050])
 
             x = self.dense(x)
 
