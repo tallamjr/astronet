@@ -10,6 +10,6 @@
             "pool_size": 3,
             "testset": false,
             "z-redshift": true
-        },
+        }
     ]
 }
