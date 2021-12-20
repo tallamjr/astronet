@@ -192,22 +192,57 @@ class ExitFlow(tf.keras.layers.Layer):
         self.dense = Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs):
-        tensor = inputs
-        x = self.relu(tensor)
-        x = self.sep_conv_batchnorm_exit_1(x)
-        x = self.relu(x)
-        x = self.sep_conv_batchnorm_exit_2(x)
-        x = self.maxpool(x)
+        # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
+        if tf.is_tensor(inputs):
+            tensor = inputs
+            x = self.relu(tensor)
+            x = self.sep_conv_batchnorm_exit_1(x)
+            x = self.relu(x)
+            x = self.sep_conv_batchnorm_exit_2(x)
+            x = self.maxpool(x)
 
-        tensor = self.conv_batchnorm_exit_1(tensor)
+            tensor = self.conv_batchnorm_exit_1(tensor)
 
-        x = Add()([tensor, x])
+            x = Add()([tensor, x])
 
-        x = self.sep_conv_batchnorm_exit_3(x)
-        x = self.relu(x)
-        x = self.sep_conv_batchnorm_exit_4(x)
-        x = self.relu(x)
-        x = self.gap(x)
-        x = self.dense(x)
+            x = self.sep_conv_batchnorm_exit_3(x)
+            x = self.relu(x)
+            x = self.sep_conv_batchnorm_exit_4(x)
+            x = self.relu(x)
+            x = self.gap(x)
+            x = self.dense(x)
+        # Else this implies input is a list; a list of tensors, i.e. multiple inputs
+        else:
+            # X in L x M
+            x = inputs[0]
+            # Additional Z features
+            z = inputs[1]
+            # >>> z.shape
+            # TensorShape([None, 2])
+
+            tensor = x
+            x = self.relu(tensor)
+            x = self.sep_conv_batchnorm_exit_1(x)
+            x = self.relu(x)
+            x = self.sep_conv_batchnorm_exit_2(x)
+            x = self.maxpool(x)
+
+            tensor = self.conv_batchnorm_exit_1(tensor)
+
+            x = Add()([tensor, x])
+
+            x = self.sep_conv_batchnorm_exit_3(x)
+            x = self.relu(x)
+            x = self.sep_conv_batchnorm_exit_4(x)
+            x = self.relu(x)
+            x = self.gap(x)
+
+            # Concatenate redshift information to 2048 vector --> 2050
+            x = tf.keras.layers.Concatenate(axis=1)([x, z])
+            # >>> x.shape
+            # TensorShape([None, 2050]) <-- check this on myriad
+            # import pdb;pdb.set_trace()
+
+            x = self.dense(x)
 
         return x
