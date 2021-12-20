@@ -40,12 +40,12 @@ class ATXModel(tf.keras.Model):
 
         return output
 
-    def build_graph(self, input_shape):
-        if isinstance(input_shape, tuple):  # A list would imply there is multiple inputs
+    def build_graph(self, input_shapes):
+        if isinstance(input_shapes, tuple):  # A list would imply there is multiple inputs
             # Code lifted from example:
             # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
-            input_shape_nobatch = input_shape[1:]
-            self.build(input_shape)
+            input_shape_nobatch = input_shapes[1:]
+            self.build(input_shapes)
             inputs = tf.keras.Input(shape=input_shape_nobatch)
         else:
             input_shape_nobatch = input_shapes[0][1:]
