@@ -1,0 +1,15 @@
+{
+    "optuna_result": [
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 3,
+            "lr": 0.05713554883124561,
+            "name": "1611243664-2334091",
+            "objective_score": 0.938190472126007,
+            "pool_size": 3,
+            "testset": false,
+            "z-redshift": true
+        }
+    ]
+}
