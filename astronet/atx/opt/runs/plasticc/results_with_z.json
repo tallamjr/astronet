@@ -4,12 +4,12 @@
             "augmented": null,
             "avocado": null,
             "kernel_size": 3,
-            "lr": 0.05713554883124561,
-            "name": "1611243664-2334091",
-            "objective_score": 0.938190472126007,
+            "lr": 0.017799108948531754,
+            "name": "1611492211-84ab4bf",
+            "objective_score": 0.9293684720993042,
             "pool_size": 3,
             "testset": false,
             "z-redshift": true
-        }
+        },
     ]
 }
