@@ -2,7 +2,7 @@ import imageio
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import subprocess
 import tensorflow as tf
 import time
 
@@ -24,9 +24,15 @@ class SGEBreakoutCallback(tf.keras.callbacks.Callback):
         self.threshold = threshold
 
     def on_epoch_end(self, epoch, logs={}):
-        hrs = os.system(f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F  ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'")
+        hrs = subprocess.run(
+                f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'",
+                check=True,
+                capture_output=True,
+                shell=True,
+                text=True,
+        ).stdout.strip()
 
-        if hrs > self.threshold:
+        if int(hrs) > self.threshold:
             print("Stopping training...")
             self.model.stop_training = True
 
