@@ -8,6 +8,7 @@
             "name": "1611243664-2334091",
             "objective_score": 0.938190472126007,
             "pool_size": 3,
+            "scaledown_factor": 1,
             "testset": false,
             "z-redshift": null
         },
@@ -19,6 +20,7 @@
             "name": "1611406085-84ab4bf",
             "objective_score": 0.9401508450508118,
             "pool_size": 48,
+            "scaledown_factor": 1,
             "testset": false,
             "z-redshift": null
         },
@@ -30,6 +32,7 @@
             "name": "1611492211-84ab4bf",
             "objective_score": 0.9293684720993042,
             "pool_size": 3,
+            "scaledown_factor": 1,
             "testset": false,
             "z-redshift": null
         },
@@ -41,6 +44,7 @@
             "name": "1611831593-3cdc4dc",
             "objective_score": 0.9715866208076477,
             "pool_size": 3,
+            "scaledown_factor": 1,
             "testset": false,
             "z-redshift": null
         },
@@ -52,6 +56,7 @@
             "name": "1639647575-0.1.dev861+g3f6699a",
             "objective_score": 2.6453248262405396,
             "pool_size": 96,
+            "scaledown_factor": 1,
             "testset": true,
             "z-redshift": null
         }
