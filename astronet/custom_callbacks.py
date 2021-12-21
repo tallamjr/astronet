@@ -2,6 +2,7 @@ import imageio
 import io
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import subprocess
 import tensorflow as tf
 import time
