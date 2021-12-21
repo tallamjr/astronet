@@ -4,18 +4,31 @@ from astronet.atx.layers import EntryFlow, MiddleFlow, ExitFlow
 
 
 class ATXModel(tf.keras.Model):
-    def __init__(self, num_classes, kernel_size, pool_size):
+    def __init__(self, num_classes, kernel_size, pool_size, scaledown_factor):
         super(ATXModel, self).__init__()
         '''
         '''
         self.num_classes = num_classes
         self.kernel_size = kernel_size
         self.pool_size = pool_size
+        self.scaledown_factor = scaledown_factor
 
-        self.entry_flow = EntryFlow(kernel_size=self.kernel_size, pool_size=self.pool_size)
-        self.middle_flow = [MiddleFlow(kernel_size=self.kernel_size) for _ in range(8)]
+        self.entry_flow = EntryFlow(
+            kernel_size=self.kernel_size,
+            pool_size=self.pool_size,
+            scaledown_factor=self.scaledown_factor,
+        )
+
+        self.middle_flow = [
+            MiddleFlow(kernel_size=self.kernel_size, scaledown_factor=self.scaledown_factor)
+            for _ in range(8)
+        ]
+
         self.exit_flow = ExitFlow(
-            num_classes=self.num_classes, kernel_size=self.kernel_size, pool_size=self.pool_size
+            num_classes=self.num_classes,
+            kernel_size=self.kernel_size,
+            pool_size=self.pool_size,
+            scascaledown_factor=self.scascaledown_factor,
         )
 
     def call(self, inputs, training=None):

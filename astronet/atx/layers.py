@@ -61,44 +61,67 @@ class SeparableConvBatchNormBlock(tf.keras.layers.Layer):
 
 
 class EntryFlow(tf.keras.layers.Layer):
-    def __init__(self, kernel_size, pool_size, **kwargs):
+    def __init__(self, kernel_size, pool_size, scaledown_factor, **kwargs):
         super(EntryFlow, self).__init__(**kwargs)
         self.kernel_size = kernel_size
         self.pool_size = pool_size
+        self.scaledown_factor = scaledown_factor
 
-        self.conv_batchnorm_1 = ConvBatchNormBlock(filters=32, kernel_size=self.kernel_size, strides=2)
+        self.conv_batchnorm_1 = ConvBatchNormBlock(
+            filters=32 / self.scaledown_factor, kernel_size=self.kernel_size, strides=2
+        )
         self.relu = ReLU()
-        self.conv_batchnorm_2 = ConvBatchNormBlock(filters=64, kernel_size=self.kernel_size)
+        self.conv_batchnorm_2 = ConvBatchNormBlock(
+            filters=64 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
 
-        self.sep_conv_batchnorm_1 = SeparableConvBatchNormBlock(filters=128, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_1 = SeparableConvBatchNormBlock(
+            filters=128 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
-        self.sep_conv_batchnorm_2 = SeparableConvBatchNormBlock(filters=128, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_2 = SeparableConvBatchNormBlock(
+            filters=128 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
         # maxpool
 
-        self.conv_batchnorm_3 = ConvBatchNormBlock(filters=128, kernel_size=1, strides=2)
+        self.conv_batchnorm_3 = ConvBatchNormBlock(
+            filters=128 / self.scaledown_factor, kernel_size=1, strides=2
+        )
 
         # add
         # relu
 
-        self.sep_conv_batchnorm_4 = SeparableConvBatchNormBlock(filters=256, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_4 = SeparableConvBatchNormBlock(
+            filters=256 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
-        self.sep_conv_batchnorm_5 = SeparableConvBatchNormBlock(filters=256, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_5 = SeparableConvBatchNormBlock(
+            filters=256 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # maxpool
 
-        self.conv_batchnorm_4 = ConvBatchNormBlock(filters=256, kernel_size=1, strides=2)
+        self.conv_batchnorm_4 = ConvBatchNormBlock(
+            filters=256 / self.scaledown_factor, kernel_size=1, strides=2
+        )
 
         # add
         # relu
 
-        self.sep_conv_batchnorm_6 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_6 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
-        self.sep_conv_batchnorm_7 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_7 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # maxpool
-        self.maxpool = MaxPool1D(pool_size=self.pool_size, strides=2, padding='same')
+        self.maxpool = MaxPool1D(pool_size=self.pool_size, strides=2, padding="same")
 
-        self.conv_batchnorm_5 = ConvBatchNormBlock(filters=728, kernel_size=1, strides=2)
+        self.conv_batchnorm_5 = ConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=1, strides=2
+        )
         # add
 
     def call(self, inputs):
@@ -141,14 +164,21 @@ class EntryFlow(tf.keras.layers.Layer):
 
 
 class MiddleFlow(tf.keras.layers.Layer):
-    def __init__(self, kernel_size, **kwargs):
+    def __init__(self, kernel_size, scaledown_factor, **kwargs):
         super(MiddleFlow, self).__init__(**kwargs)
         self.kernel_size = kernel_size
+        self.scaledown_factor = scaledown_factor
 
         self.relu = ReLU()
-        self.sep_conv_batchnorm_mid_1 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
-        self.sep_conv_batchnorm_mid_2 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
-        self.sep_conv_batchnorm_mid_3 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_mid_1 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
+        self.sep_conv_batchnorm_mid_2 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
+        self.sep_conv_batchnorm_mid_3 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
 
     def call(self, inputs):
         tensor = inputs
@@ -165,25 +195,36 @@ class MiddleFlow(tf.keras.layers.Layer):
 
 
 class ExitFlow(tf.keras.layers.Layer):
-    def __init__(self, num_classes, kernel_size, pool_size, **kwargs):
+    def __init__(self, num_classes, kernel_size, pool_size, scaledown_factor, **kwargs):
         super(ExitFlow, self).__init__(**kwargs)
         self.num_classes = num_classes
         self.kernel_size = kernel_size
         self.pool_size = pool_size
+        self.scaledown_factor = scaledown_factor
 
         self.relu = ReLU()
-        self.sep_conv_batchnorm_exit_1 = SeparableConvBatchNormBlock(filters=728, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_exit_1 = SeparableConvBatchNormBlock(
+            filters=728 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
-        self.sep_conv_batchnorm_exit_2 = SeparableConvBatchNormBlock(filters=1024, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_exit_2 = SeparableConvBatchNormBlock(
+            filters=1024 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # maxpool
         self.maxpool = MaxPool1D(pool_size=self.pool_size, strides=2, padding='same')
 
-        self.conv_batchnorm_exit_1 = ConvBatchNormBlock(filters=1024, kernel_size=1, strides=2)
+        self.conv_batchnorm_exit_1 = ConvBatchNormBlock(
+            filters=1024 / self.scaledown_factor, kernel_size=1, strides=2
+        )
 
         # add
-        self.sep_conv_batchnorm_exit_3 = SeparableConvBatchNormBlock(filters=1536, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_exit_3 = SeparableConvBatchNormBlock(
+            filters=1536 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
-        self.sep_conv_batchnorm_exit_4 = SeparableConvBatchNormBlock(filters=2048, kernel_size=self.kernel_size)
+        self.sep_conv_batchnorm_exit_4 = SeparableConvBatchNormBlock(
+            filters=2048 / self.scaledown_factor, kernel_size=self.kernel_size
+        )
         # relu
         # gap
         self.gap = GlobalAveragePooling1D()

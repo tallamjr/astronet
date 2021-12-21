@@ -113,8 +113,9 @@ class Objective(object):
 
         num_classes = y_train.shape[1]
 
-        kernel_size = trial.suggest_categorical("kernel_size", [3, 16, 32, 64, 96])     # --> Filter length
-        pool_size = trial.suggest_categorical("pool_size", [3, 16, 32, 64, 96])         # --> Pooling width
+        kernel_size = trial.suggest_categorical("kernel_size", [3, 16, 32, 48])     # --> Filter length
+        pool_size = trial.suggest_categorical("pool_size", [3, 16, 32, 48])         # --> Pooling width
+        scaledown_factor = trial.suggest_categorical("scaledown_factor", [2, 4, 8])     # --> Reduce number of filters down by given factor
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -126,6 +127,7 @@ class Objective(object):
             num_classes=num_classes,
             kernel_size=kernel_size,
             pool_size=pool_size,
+            scaledown_factor=scaledown_factor,
         )
 
         # We compile our model with a sampled learning rate.
