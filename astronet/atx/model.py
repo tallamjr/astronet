@@ -28,7 +28,7 @@ class ATXModel(tf.keras.Model):
             num_classes=self.num_classes,
             kernel_size=self.kernel_size,
             pool_size=self.pool_size,
-            scascaledown_factor=self.scascaledown_factor,
+            scaledown_factor=self.scaledown_factor,
         )
 
     def call(self, inputs, training=None):
