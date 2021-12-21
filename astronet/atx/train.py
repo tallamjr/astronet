@@ -85,6 +85,7 @@ class Training(object):
 
         kernel_size = event['kernel_size']  # --> Filter length
         pool_size = event['pool_size']      # --> Pooling width
+        scaledown_factor = event['scaledown_factor']    # --> Reduce number of filters down by given factor
 
         num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
@@ -100,6 +101,7 @@ class Training(object):
                 num_classes=num_classes,
                 kernel_size=kernel_size,
                 pool_size=pool_size,
+                scaledown_factor=scaledown_factor,
             )
 
             # We compile our model with a sampled learning rate and any custom metrics
@@ -235,6 +237,7 @@ class Training(object):
         model_params['hypername'] = event['name']
         model_params['kernel_size'] = event['kernel_size']
         model_params['pool_size'] = event['pool_size']
+        model_params['scaledown_factor'] = event['scaledown_factor']
 
         model_params['z-redshift'] = self.redshift
         model_params['augmented'] = self.augmented
