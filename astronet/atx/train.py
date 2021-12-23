@@ -73,7 +73,7 @@ class Training(object):
 
         num_classes = y_train.shape[1]
 
-        log.info(print(X_train.shape, y_train.shape))
+        log.info(f"{X_train.shape, y_train.shape}")
 
         with open(hyper_results_file) as f:
             events = json.load(f)
