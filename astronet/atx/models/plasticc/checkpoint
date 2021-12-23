@@ -1,2 +1,2 @@
-model_checkpoint_path: "model-9826439-1640013487-0.1.dev904+g124d2fc"
-all_model_checkpoint_paths: "model-9826439-1640013487-0.1.dev904+g124d2fc"
+model_checkpoint_path: "weights-9834789-1640105688-0.1.dev910+g58ef51a"
+all_model_checkpoint_paths: "weights-9834789-1640105688-0.1.dev910+g58ef51a"
