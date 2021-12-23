@@ -10,6 +10,9 @@ import time
 from IPython.display import Image as IPyImage
 from PIL import Image
 
+from astronet.utils import astronet_logger
+log = astronet_logger(__file__)
+
 # Visualization utilities
 plt.rc('font', size=20)
 plt.rc('figure', figsize=(15, 3))
@@ -34,7 +37,7 @@ class SGEBreakoutCallback(tf.keras.callbacks.Callback):
         ).stdout.strip()
 
         if int(hrs) > self.threshold:
-            print("Stopping training...")
+            log.info("Stopping training...")
             self.model.stop_training = True
 
 
