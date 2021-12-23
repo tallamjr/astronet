@@ -71,6 +71,9 @@ def astronet_logger(name, level="INFO"):
     ch.setFormatter(formatter)
     # Add ch to logger
     logger.addHandler(ch)
+    # Do not pass logs to ancestor logger as well, i.e. print once:
+    # https://docs.python.org/3/library/logging.html#logging.Logger
+    logger.propagate = False
 
     return logger
 
