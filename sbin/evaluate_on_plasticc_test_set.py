@@ -87,7 +87,7 @@ class Plots(object):
                 event = min(events['training_result'], key=lambda ev: ev['model_evaluate_on_test_loss'])
 
         model = keras.models.load_model(
-            f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{self.model}",
+            f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{self.model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
