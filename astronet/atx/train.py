@@ -77,7 +77,8 @@ class Training(object):
             dataset="plasticc", dataform="testset", y_train=y_train, y_test=y_test
         )
         log.info(f"{X_train.shape, y_train.shape}")
-        log.info(f"N-TRAIN: {y_train_count},\nN-TEST: {y_test_count}")
+        log.info(f"N-TRAIN: {y_train_count}")
+        log.info(f"N-TEST: {y_test_count}")
 
         with open(hyper_results_file) as f:
             events = json.load(f)
