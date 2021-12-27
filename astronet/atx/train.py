@@ -46,12 +46,12 @@ os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset):
+    def __init__(self, epochs, dataset, model, redshift, balance, avocado, testset):
         self.epochs = epochs
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
-        self.augmented = augmented
+        self.balance = balance
         self.avocado = avocado
         self.testset = testset
 
@@ -59,13 +59,13 @@ class Training(object):
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset=self.dataset, redshift=self.redshift, augmented=self.augmented,
+                dataset=self.dataset, redshift=self.redshift, balance=self.balance,
                 avocado=self.avocado, testset=self.testset
             )
             hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{self.dataset}/results_with_z.json"
             num_aux_feats = ZX_train.shape[1]
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented,
+            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=self.balance,
                 avocado=self.avocado, testset=self.testset
             )
             hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
@@ -240,7 +240,7 @@ class Training(object):
         model_params['scaledown_factor'] = event['scaledown_factor']
 
         model_params['z-redshift'] = self.redshift
-        model_params['augmented'] = self.augmented
+        model_params['balance'] = self.balance
         model_params['avocado'] = self.avocado
         model_params['testset'] = self.testset
         model_params['num_classes'] = num_classes
@@ -294,8 +294,8 @@ if __name__ == "__main__":
     parser.add_argument("-z", "--redshift", default=None,
             help="Whether to include redshift features or not")
 
-    parser.add_argument('-a', '--augment', default=None,
-            help='Train using augmented plasticc data')
+    parser.add_argument('-b', '--balance', default=None,
+            help='Train using balanced classes with augmented plasticc data')
 
     parser.add_argument('-A', '--avocado', default=None,
             help='Train using avocado augmented plasticc data')
@@ -314,9 +314,9 @@ if __name__ == "__main__":
     EPOCHS = int(args.epochs)
     model = args.model
 
-    augmented = args.augment
-    if augmented is not None:
-        augmented = True
+    balance = args.balance
+    if balance is not None:
+        balance = True
 
     avocado = args.avocado
     if avocado is not None:
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
     training = Training(
         epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
-        augmented=augmented, avocado=avocado, testset=testset
+        balance=balance, avocado=avocado, testset=testset
     )
     if dataset in ["WalkvsRun", "NetFlow"]:
         # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead
