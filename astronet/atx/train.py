@@ -24,7 +24,7 @@ from astronet.custom_callbacks import DetectOverfittingCallback, TimeHistoryCall
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
 from astronet.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
+from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size, get_data_count
 
 try:
     log = astronet_logger(__file__)
@@ -73,7 +73,11 @@ class Training(object):
 
         num_classes = y_train.shape[1]
 
+        y_train_count, y_test_count = get_data_count(
+            dataset="plasticc", dataform="testset", y_train=y_train, y_test=y_test
+        )
         log.info(f"{X_train.shape, y_train.shape}")
+        log.info(f"N-TRAIN: {y_train_count},\nN-TEST: {y_test_count}")
 
         with open(hyper_results_file) as f:
             events = json.load(f)
