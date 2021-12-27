@@ -728,6 +728,45 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
+def get_data_count(dataset, dataform, y_train, y_test):
+    with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
+        encoding = joblib.load(eb)
+    class_encoding = encoding.categories_[0]
+
+    if dataset == "plasticc":
+        class_mapping = {
+                90: "SNIa",
+                67: "SNIa-91bg",
+                52: "SNIax",
+                42: "SNII",
+                62: "SNIbc",
+                95: "SLSN-I",
+                15: "TDE",
+                64: "KN",
+                88: "AGN",
+                92: "RRL",
+                65: "M-dwarf",
+                16: "EB",
+                53: "Mira",
+                6: "$\mu$-Lens-Single",
+        }
+        class_encoding
+        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+    else:
+        class_names = class_encoding
+    from collections import Counter
+    from pandas.core.common import flatten
+
+    y_true_train = encoding.inverse_transform(y_train)
+    y_train_count = Counter(list(flatten(y_true_train)))
+    print("N_TRAIN:", y_train_count)
+
+    y_true_test = encoding.inverse_transform(y_test)
+    y_test_count = Counter(list(flatten(y_true_test)))
+    print("N_TEST:", y_test_count)
+
+    return y_train_count, y_test_count
+
 def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
 
     RANDOM_SEED = 42
@@ -1259,6 +1298,8 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
 
         X_train = X_resampled
         y_train = y_resampled
+
+    y_train_count, y_test_count = get_data_count(dataset, dataform, y_train, y_test)
 
     if redshift is None:
         return X_train, y_train, X_test, y_test, loss
