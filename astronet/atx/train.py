@@ -207,7 +207,7 @@ class Training(object):
             ],
         )
 
-        model.summary(print_fn=logging.info)
+        model.summary(print_fn=log.info)
 
         model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
         model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
