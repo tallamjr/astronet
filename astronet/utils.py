@@ -1284,19 +1284,10 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         from imblearn.over_sampling import SVMSMOTE
 
         # sampler = SVMSMOTE(sampling_strategy="not majority")
-        sampler = RandomUnderSampler(sampling_strategy="all")
-        # sampler = InstanceHardnessThreshold(sampling_strategy="all")
+        # sampler = InstanceHardnessThreshold(sampling_strategy="not minority")
+        sampler = RandomUnderSampler(sampling_strategy="not minority")
 
         X_resampled, y_resampled = sampler.fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
-        # Undersample with RandomState
-        # X_resampled, y_resampled = RandomUnderSampler(sampling_strategy="all").fit_resample(
-        #    X_train.reshape(X_train.shape[0], -1), y_train
-        # )
-        # Undersample with InstanceHardnessThreshold
-        # Oversample with SVMSMOTE
-        # X_resampled, y_resampled = SVMSMOTE(sampling_strategy="all").fit_resample(
-        #     X_train.reshape(X_train.shape[0], -1), y_train
-        # )
 
         # Re-shape 2D data back to 3D original shape, i.e (BATCH_SIZE, timesteps, num_features)
         X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
