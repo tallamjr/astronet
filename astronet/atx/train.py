@@ -101,6 +101,26 @@ class Training(object):
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
+        def get_saved_model():
+            model = tf.keras.models.load_model(
+                f"{asnwd}/astronet/atx/models/{dataset}/model-9874103-1640950366-0.1.dev932+g9422fe9",
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            if self.redshift is not None:
+                input_shapes = [input_shape, ZX_train.shape]
+                model.build_graph(input_shapes)
+
+                train_input = [X_train, ZX_train]
+                test_input = [X_test, ZX_test]
+            else:
+                model.build_graph(input_shape)
+
+                train_input = X_train
+                test_input = X_test
+
+            return model, train_input, test_input
+
         def get_compiled_model():
             model = ATXModel(
                 num_classes=num_classes,
@@ -150,7 +170,8 @@ class Training(object):
             with strategy.scope():
                 model, train_input, test_input = get_compiled_model()
         else:
-            model, train_input, test_input = get_compiled_model()
+            # model, train_input, test_input = get_compiled_model()
+            model, train_input, test_input = get_saved_model()
 
         unixtimestamp = int(time.time())
         try:
