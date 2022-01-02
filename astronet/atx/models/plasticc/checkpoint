@@ -1,2 +1,2 @@
-model_checkpoint_path: "weights-9871612-1640913381-0.1.dev928+ge79689f.d20211231"
-all_model_checkpoint_paths: "weights-9871612-1640913381-0.1.dev928+ge79689f.d20211231"
+model_checkpoint_path: "weights-9874103-1640950366-0.1.dev932+g9422fe9"
+all_model_checkpoint_paths: "weights-9874103-1640950366-0.1.dev932+g9422fe9"
