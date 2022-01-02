@@ -107,6 +107,20 @@ class Training(object):
                 custom_objects={"WeightedLogLoss": WeightedLogLoss()},
                 compile=False,
             )
+
+            # We compile our model with a sampled learning rate and any custom metrics
+            lr = event['lr']
+            model.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,
+                # True for values when debugging. Also required for use with custom_log_loss
+                # Also prevents NotImplementedError: Cannot convert a symbolic Tensor
+                # (cond_2/Identity_1:0) to a numpy array. This error may indicate that you're trying
+                # to pass a Tensor to a NumPy call, which is not supported
+            )
+
             if self.redshift is not None:
                 train_input = [X_train, ZX_train]
                 test_input = [X_test, ZX_test]
