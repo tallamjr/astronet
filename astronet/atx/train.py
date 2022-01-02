@@ -108,14 +108,9 @@ class Training(object):
                 compile=False,
             )
             if self.redshift is not None:
-                input_shapes = [input_shape, ZX_train.shape]
-                model.build_graph(input_shapes)
-
                 train_input = [X_train, ZX_train]
                 test_input = [X_test, ZX_test]
             else:
-                model.build_graph(input_shape)
-
                 train_input = X_train
                 test_input = X_test
 
