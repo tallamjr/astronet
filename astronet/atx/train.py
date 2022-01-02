@@ -119,6 +119,7 @@ class Training(object):
                 train_input = X_train
                 test_input = X_test
 
+            log.info("Loading from saved model...")
             return model, train_input, test_input
 
         def get_compiled_model():
@@ -160,6 +161,7 @@ class Training(object):
                 train_input = X_train
                 test_input = X_test
 
+            log.info("New atx model compiled...")
             return model, train_input, test_input
 
         if len(tf.config.list_physical_devices('GPU')) > 1:
