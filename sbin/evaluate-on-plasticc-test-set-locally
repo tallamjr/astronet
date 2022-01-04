@@ -17,9 +17,14 @@ set -o pipefail -e
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 python -c "import astronet as asn; print(asn.__version__)"
 
-architecture="atx"
+architecture=$1
 dataset="plasticc"
-model="9879033-1641148336-0.1.dev938+g1cf0a82.d20220102"
+
+if [ $architecture == "atx" ]; then
+    model="9879033-1641148336-0.1.dev938+g1cf0a82.d20220102"    # atx
+else
+    model="1619624444-0.1.dev765+g7c90cbb.d20210428"            # t2
+fi
 
 python $ASNWD/sbin/evaluate_on_plasticc_test_set.py \
     --architecture $architecture \
