@@ -32,17 +32,31 @@
 
 **Update 20201220**
 
+- ~~Timeseries Transformer [`t2`]~~
+    ~~Multi-headed attention encoder inspired by Transformers but with convolutions embedding instead~~
+- ~~snXception [`snX`]~~
+    ~~Adaptation of Xception networks with 1D Depthwise-Separable convolutions in place of the 2D~~
+    ~~version~~
+- ~~Supernova-Similarity-Search with Siamese Networks [`s3`]~~
+    ~~Utilisation of either `t2` or `snX` networks depending on performance, to achieve one-shot~~
+    ~~classification, by comparing similarity of hamming distance or Locality Sensitive Hashing (LSH)~~
+    ~~to compare similarity.~~
+
+**Update 20211209**
+
 - Timeseries Transformer [`t2`]
     Multi-headed attention encoder inspired by Transformers but with convolutions embedding instead
-- snXception [`snX`]
-    Adaptation of Xception networks with 1D Depthwise-Separable convolutions in place of the 2D
-    version
-- Supernova-Similarity-Search with Siamese Networks [`s3`]
-    Utilisation of either `t2` or `snX` networks depending on performance, to achieve one-shot
-    classification, by comparing similarity of hamming distance or Locality Sensitive Hashing (LSH)
-    to compare similarity.
+- Astronomical Transients + Xception [`atx`]
+    Adaptation of Xception networks with 1D Depthwise-Separable convolutions in place of the 2D version
+    - https://github.com/tensorflow/tensorflow/issues/36935
+- Deployment into FINK
+    Apply `t2` to real ZTF alert data.
+- [TIME PERMITTING] Extend `t2` to have probabilistic layers for distributions over weights instead
+    of point estimates.
 
 ## System Design
+
+* [Scheduling Jobs in a Super Computer Cluster Using Github Actions](https://thepaulo.medium.com/scheduling-jobs-in-a-super-computer-cluster-using-github-actions-2ee83405cb69)
 
 ## Running on `hypatia`
 

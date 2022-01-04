@@ -64,7 +64,7 @@ def _get_encoding(dataset, dataform=None):
     return encoding, class_encoding, class_names
 
 
-def plot_acc_history(dataset, model_name, event, save=True, ax=None):
+def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
     if ax is not None:
         ax = ax or plt.gca()
@@ -89,10 +89,10 @@ def plot_acc_history(dataset, model_name, event, save=True, ax=None):
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-acc-{model_name}.pdf"
+            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-acc-{model_name}.pdf"
         except Exception:
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-acc-{model_name}.pdf"
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -101,7 +101,7 @@ def plot_acc_history(dataset, model_name, event, save=True, ax=None):
         # plt.show()
 
 
-def plot_loss_history(dataset, model_name, event, save=True, ax=None):
+def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
     if ax is not None:
         ax = ax or plt.gca()
@@ -124,10 +124,10 @@ def plot_loss_history(dataset, model_name, event, save=True, ax=None):
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-loss-{model_name}.pdf"
+            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-loss-{model_name}.pdf"
         except Exception:
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-loss-{model_name}.pdf"
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -136,7 +136,7 @@ def plot_loss_history(dataset, model_name, event, save=True, ax=None):
         # plt.show()
 
 
-def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_names, cmap=None, save=True):
+def plot_confusion_matrix(architecture, dataset, model_name, y_test, y_preds, encoding, class_names, cmap=None, save=True):
     # TODO: Update docstrings
 
     y_true = encoding.inverse_transform(y_test)
@@ -184,10 +184,10 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
     plt.tight_layout()
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
+            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
         except Exception:
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-cm-{model_name}.pdf"
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-cm-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -195,7 +195,7 @@ def plot_confusion_matrix(dataset, model_name, y_test, y_preds, encoding, class_
         plt.show()
 
 
-def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.Accent.colors):
+def plot_multiROC(architecture, dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.Accent.colors):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -267,10 +267,10 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-roc-{model_name}.pdf"
+            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-roc-{model_name}.pdf"
         except Exception:
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-roc-{model_name}.pdf"
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-roc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
     else:
@@ -278,7 +278,7 @@ def plot_multiROC(dataset, model_name, model, X_test, y_test, class_names, save=
         plt.show()
 
 
-def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.tab20.colors):
+def plot_multiPR(architecture, dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.tab20.colors):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -343,10 +343,10 @@ def plot_multiPR(dataset, model_name, model, X_test, y_test, class_names, save=T
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}", exist_ok=True)
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/{model_name}/model-pr-{model_name}.pdf"
+            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-pr-{model_name}.pdf"
         except Exception:
-            fname = f"{asnwd}/astronet/t2/plots/{dataset}/model-pr-{model_name}.pdf"
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-pr-{model_name}.pdf"
         plt.savefig(fname, format='pdf', bbox_inches='tight')
         plt.clf()
     else:
@@ -363,7 +363,7 @@ if __name__ == '__main__':
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")
     except:
         print("Seems you are running from a notebook...")
-        __file__ = f"{Path().resolve().parent}/astronet/t2/visuals.py"
+        __file__ = f"{Path().resolve().parent}/astronet/visualise_results.py"
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -378,6 +378,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Process named model')
 
+    parser.add_argument('-a', '--architecture',
+            help='Choice of atx or t2 architecture')
+
     parser.add_argument('-m', '--model',
             help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
 
@@ -391,6 +394,7 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(0)
 
+    architecture = args.architecture
     dataset = args.dataset
 
     if args.dataset == "wisdm_2010":
@@ -432,7 +436,7 @@ if __name__ == '__main__':
     print(X_test.shape, y_test.shape)
 
     dataset = args.dataset
-    with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as f:
+    with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json") as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
@@ -448,7 +452,7 @@ if __name__ == '__main__':
     plot_acc_history(dataset, model_name, event)
     plot_loss_history(dataset, model_name, event)
 
-    model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{dataset}/model-{model_name}")
+    model = keras.models.load_model(f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}")
     y_pred = model.predict(X_test)
 
     plot_confusion_matrix(

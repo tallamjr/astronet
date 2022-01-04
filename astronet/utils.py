@@ -71,6 +71,9 @@ def astronet_logger(name, level="INFO"):
     ch.setFormatter(formatter)
     # Add ch to logger
     logger.addHandler(ch)
+    # Do not pass logs to ancestor logger as well, i.e. print once:
+    # https://docs.python.org/3/library/logging.html#logging.Logger
+    logger.propagate = False
 
     return logger
 
@@ -725,6 +728,45 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
+def get_data_count(dataset, dataform, y_train, y_test):
+    with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
+        encoding = joblib.load(eb)
+    class_encoding = encoding.categories_[0]
+
+    if dataset == "plasticc":
+        class_mapping = {
+                90: "SNIa",
+                67: "SNIa-91bg",
+                52: "SNIax",
+                42: "SNII",
+                62: "SNIbc",
+                95: "SLSN-I",
+                15: "TDE",
+                64: "KN",
+                88: "AGN",
+                92: "RRL",
+                65: "M-dwarf",
+                16: "EB",
+                53: "Mira",
+                6: "$\mu$-Lens-Single",
+        }
+        class_encoding
+        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+    else:
+        class_names = class_encoding
+    from collections import Counter
+    from pandas.core.common import flatten
+
+    y_true_train = encoding.inverse_transform(y_train)
+    y_train_count = Counter(list(flatten(y_true_train)))
+    print("N_TRAIN:", y_train_count)
+
+    y_true_test = encoding.inverse_transform(y_test)
+    y_test_count = Counter(list(flatten(y_true_test)))
+    print("N_TEST:", y_test_count)
+
+    return y_train_count, y_test_count
+
 def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
 
     RANDOM_SEED = 42
@@ -1202,11 +1244,11 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
                 X_train, y_train, X_test, y_test = load_full_plasticc_test_from_numpy(redshift=redshift)
             else:
                 X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly, avocado=avocado)
-        else:
+        else:  # With redshift
             if testset is not None:
                 X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_plasticc_test_from_numpy(redshift=redshift)
-            # if avocado is not None:
-            #     X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+            elif avocado is not None:
+                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
             else:
                 X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
                     redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
@@ -1238,24 +1280,29 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         np.random.seed(RANDOM_SEED)
         # random_state: if None, the random number generator is the RandomState instance used by np.random.
 
-        from imblearn.under_sampling import RandomUnderSampler
-        X_resampled, y_resampled = RandomUnderSampler(sampling_strategy="not minority").fit_resample(
-            X_train.reshape(X_train.shape[0], -1), y_train
-        )
+        from imblearn.under_sampling import RandomUnderSampler, InstanceHardnessThreshold
+        from imblearn.over_sampling import SVMSMOTE
+
+        # sampler = SVMSMOTE(sampling_strategy="not majority")
+        # sampler = InstanceHardnessThreshold(sampling_strategy="not minority")
+        sampler = RandomUnderSampler(sampling_strategy="not minority")
+
+        X_resampled, y_resampled = sampler.fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
+
         # Re-shape 2D data back to 3D original shape, i.e (BATCH_SIZE, timesteps, num_features)
         X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
 
         if redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
-            Z_resampled, _ = RandomUnderSampler(sampling_strategy="not minority").fit_resample(
-                ZX_train, y_train
-            )
+            Z_resampled, _ = sampler.fit_resample(ZX_train, y_train)
             Z_resampled = np.reshape(Z_resampled, (Z_resampled.shape[0], num_z_features))
 
             ZX_train = Z_resampled
 
         X_train = X_resampled
         y_train = y_resampled
+
+    y_train_count, y_test_count = get_data_count(dataset, dataform, y_train, y_test)
 
     if redshift is None:
         return X_train, y_train, X_test, y_test, loss

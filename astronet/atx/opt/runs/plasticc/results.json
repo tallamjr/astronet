@@ -1,0 +1,64 @@
+{
+    "optuna_result": [
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 3,
+            "lr": 0.05713554883124561,
+            "name": "1611243664-2334091",
+            "objective_score": 0.938190472126007,
+            "pool_size": 3,
+            "scaledown_factor": 1,
+            "testset": false,
+            "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 48,
+            "lr": 0.020351760130345845,
+            "name": "1611406085-84ab4bf",
+            "objective_score": 0.9401508450508118,
+            "pool_size": 48,
+            "scaledown_factor": 1,
+            "testset": false,
+            "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 3,
+            "lr": 0.017799108948531754,
+            "name": "1611492211-84ab4bf",
+            "objective_score": 0.9293684720993042,
+            "pool_size": 3,
+            "scaledown_factor": 1,
+            "testset": false,
+            "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 16,
+            "lr": 0.016320951905728586,
+            "name": "1611831593-3cdc4dc",
+            "objective_score": 0.9715866208076477,
+            "pool_size": 3,
+            "scaledown_factor": 1,
+            "testset": false,
+            "z-redshift": null
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 32,
+            "lr": 0.010778648170304373,
+            "name": "1639647575-0.1.dev861+g3f6699a",
+            "objective_score": 2.6453248262405396,
+            "pool_size": 96,
+            "scaledown_factor": 1,
+            "testset": true,
+            "z-redshift": null
+        }
+    ]
+}

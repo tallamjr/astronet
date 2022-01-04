@@ -1,9 +1,10 @@
 # Notebook renders
 *.html
 
-# snX Models
-astronet/snX/models/*/model*
-!astronet/snX/models/*/*.json
+# atx Models
+astronet/atx/models/*/model*
+astronet/atx/models/*/weights*
+!astronet/atx/models/*/*.json
 
 # Data
 data/WISDM_ar_v1.1/*

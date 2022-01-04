@@ -101,6 +101,7 @@ class WeightedLogLoss(keras.losses.Loss):
 
         return loss
 
+
 class WeightedLogLossTF(keras.losses.Loss):
     # initialize instance attributes
     def __init__(self, name="weighted_log_loss"):

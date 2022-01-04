@@ -2,10 +2,16 @@ import imageio
 import io
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import subprocess
 import tensorflow as tf
+import time
 
 from IPython.display import Image as IPyImage
 from PIL import Image
+
+from astronet.utils import astronet_logger
+log = astronet_logger(__file__)
 
 # Visualization utilities
 plt.rc('font', size=20)
@@ -14,6 +20,36 @@ plt.rc('figure', figsize=(15, 3))
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
+
+class SGEBreakoutCallback(tf.keras.callbacks.Callback):
+    def __init__(self, threshold=24):
+        super(SGEBreakoutCallback, self).__init__()
+        self.threshold = threshold
+
+    def on_epoch_end(self, epoch, logs={}):
+        hrs = subprocess.run(
+                f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'",
+                check=True,
+                capture_output=True,
+                shell=True,
+                text=True,
+        ).stdout.strip()
+
+        if int(hrs) > self.threshold:
+            log.info("Stopping training...")
+            self.model.stop_training = True
+
+
+class TimeHistoryCallback(tf.keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, epoch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
 
 
 class DetectOverfittingCallback(tf.keras.callbacks.Callback):
