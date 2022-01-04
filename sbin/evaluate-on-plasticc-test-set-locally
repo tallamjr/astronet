@@ -19,7 +19,7 @@ python -c "import astronet as asn; print(asn.__version__)"
 
 architecture="atx"
 dataset="plasticc"
-model="9874103-1640950366-0.1.dev932+g9422fe9"
+model="9879033-1641148336-0.1.dev938+g1cf0a82.d20220102"
 
 python $ASNWD/sbin/evaluate_on_plasticc_test_set.py \
     --architecture $architecture \
