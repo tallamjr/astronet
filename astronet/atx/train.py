@@ -181,8 +181,8 @@ class Training(object):
             with strategy.scope():
                 model, train_input, test_input = get_compiled_model()
         else:
-            # model, train_input, test_input = get_compiled_model()
-            model, train_input, test_input = get_saved_model()
+            model, train_input, test_input = get_compiled_model()
+            # model, train_input, test_input = get_saved_model()
 
         unixtimestamp = int(time.time())
         try:
