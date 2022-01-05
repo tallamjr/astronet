@@ -21,7 +21,7 @@ class ATXModel(tf.keras.Model):
 
         self.middle_flow = [
             MiddleFlow(kernel_size=self.kernel_size, scaledown_factor=self.scaledown_factor)
-            for _ in range(8)
+            for _ in range(1)
         ]
 
         self.exit_flow = ExitFlow(
