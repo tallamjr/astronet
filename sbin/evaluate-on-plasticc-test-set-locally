@@ -21,7 +21,7 @@ architecture=$1
 dataset="plasticc"
 
 if [ $architecture == "atx" ]; then
-    model="9879033-1641148336-0.1.dev938+g1cf0a82.d20220102"    # atx
+    model="9887359-1641295475-0.1.dev943+gc9bafac.d20220104"    # atx
 else
     model="1619624444-0.1.dev765+g7c90cbb.d20210428"            # t2
 fi
