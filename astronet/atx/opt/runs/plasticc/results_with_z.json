@@ -47,6 +47,18 @@
             "scaledown_factor": 8,
             "testset": false,
             "z-redshift": true
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 3,
+            "lr": 0.04710261202974034,
+            "name": "1641420402-0.1.dev945+ga9a9aec.d20220105",
+            "objective_score": 1.3845395565032959,
+            "pool_size": 32,
+            "scaledown_factor": 4,
+            "testset": true,
+            "z-redshift": true
         }
     ]
 }
