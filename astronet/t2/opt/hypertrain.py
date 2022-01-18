@@ -63,13 +63,14 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset, fink):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
         self.augmented = augmented
         self.avocado = avocado
         self.testset = testset
+        self.fink = fink
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -90,7 +91,7 @@ class Objective(object):
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
         else:
-            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented)
+            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented, fink=self.fink)
 
         num_classes = y_train.shape[1]
 
@@ -255,6 +256,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--testset', default=None,
             help='Train using PLAsTiCC test data for representative test')
 
+    parser.add_argument('-f', '--fink', default=None,
+            help='Train using PLAsTiCC but only g and r bands for FINK')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -281,12 +285,17 @@ if __name__ == "__main__":
     if testset is not None:
         testset = True
 
+    fink = args.fink
+    if fink is not None:
+        fink = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented,
+            avocado=avocado, testset=testset, fink=fink),
         n_trials=N_TRIALS,
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
@@ -316,6 +325,7 @@ if __name__ == "__main__":
     best_result['augmented'] = augmented
     best_result['avocado'] = avocado
     best_result['testset'] = testset
+    best_result['fink'] = fink
 
     print("  Params: ")
     for key, value in trial.params.items():

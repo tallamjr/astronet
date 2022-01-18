@@ -1173,7 +1173,7 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         return Xs, ys, np.array(ZX)
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None, fink=None):
     if dataset == "wisdm_2010":
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
@@ -1305,6 +1305,10 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
     y_train_count, y_test_count = get_data_count(dataset, dataform, y_train, y_test)
 
     if redshift is None:
+        if fink is not None:
+            X_train = X_train[:, :, 0:3:2]
+            X_test = X_test[:, :, 0:3:2]
+            return X_train, y_train, X_test, y_test, loss
         return X_train, y_train, X_test, y_test, loss
     else:
         return X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test
