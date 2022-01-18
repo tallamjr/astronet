@@ -91,7 +91,10 @@ class Objective(object):
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
         elif self.dataset == "plasticc":
-            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented, fink=self.fink)
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset, fink=self.fink,
+            )
             # Again, if using PLAsTiCC data, the PLAsTiCC data is large so we will only
             # work with 10% instead.
             # Generate random boolean mask the length of data
@@ -101,8 +104,10 @@ class Objective(object):
             y_train = y_train[mask]
             log.info("Dataset downsampled by 90% for cross-validation steps..")
         else:
-            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented, fink=self.fink)
-
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset, fink=self.fink,
+            )
 
         num_classes = y_train.shape[1]
 
