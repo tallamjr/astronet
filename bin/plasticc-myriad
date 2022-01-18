@@ -94,7 +94,7 @@ dataset="plasticc"
 if [ $architecture == "atx" ]; then
     if [ $operation == "hyper" ]; then
         # Hyperparameter Optimisation
-        python $ASNWD/astronet/$ARCH/opt/hypertrain.py \
+        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
             --dataset $dataset \
             --epochs 40 \
             --num-trials 5 \
@@ -114,7 +114,7 @@ if [ $architecture == "atx" ]; then
 elif [ $architecture == "t2" ]; then
     if [ $operation == "hyper" ]; then
         # Hyperparameter Optimisation
-        python $ASNWD/astronet/$ARCH/opt/hypertrain.py \
+        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
             --dataset $dataset \
             --epochs 40 \
             --num-trials 5 \
@@ -123,10 +123,12 @@ elif [ $architecture == "t2" ]; then
             # --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
+        model="1613517996-0a72904" # t2 main model, all passbands
+        # model="1613517996-0a72904" # t2 fink model, g & r bands only
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
             --epochs 400 \
-            --model "1613517996-0a72904" \        # t2 main model
+            --model $model
             --testset "" \
             --fink "" \
             # --redshift "" # With or without redshift. Remove argument if without
