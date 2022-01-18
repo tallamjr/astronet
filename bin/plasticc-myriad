@@ -119,7 +119,7 @@ elif [ $architecture == "t2" ]; then
             --epochs 40 \
             --num-trials 5 \
             --testset "" \
-            --fink "" \
+            --fink ""
             # --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
@@ -128,9 +128,9 @@ elif [ $architecture == "t2" ]; then
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
             --epochs 400 \
-            --model $model
+            --model $model \
             --testset "" \
-            --fink "" \
+            --fink ""
             # --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
