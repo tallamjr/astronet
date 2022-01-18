@@ -278,7 +278,7 @@ if __name__ == "__main__":
     try:
         args = parser.parse_args()
         argsdict = vars(args)
-
+        log.info(argsdict)
     except KeyError:
         parser.print_help()
         sys.exit(0)
