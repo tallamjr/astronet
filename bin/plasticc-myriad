@@ -98,7 +98,7 @@ if [ $architecture == "atx" ]; then
             --dataset $dataset \
             --epochs 40 \
             --num-trials 5 \
-            -testset "" \
+            --testset "" \
             --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
@@ -106,7 +106,7 @@ if [ $architecture == "atx" ]; then
             --dataset $dataset \
             --epochs 400 \
             --model "scaledown-by-4" \    # atx main model
-            -testset "" \
+            --testset "" \
             --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
@@ -118,7 +118,7 @@ elif [ $architecture == "t2" ]; then
             --dataset $dataset \
             --epochs 40 \
             --num-trials 5 \
-            -testset "" \
+            --testset "" \
             --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
@@ -126,7 +126,7 @@ elif [ $architecture == "t2" ]; then
             --dataset $dataset \
             --epochs 400 \
             --model "1613517996-0a72904" \        # t2 main model
-            -testset "" \
+            --testset "" \
             --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
