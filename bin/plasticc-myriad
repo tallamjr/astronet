@@ -97,17 +97,17 @@ if [ $architecture == "atx" ]; then
         python $ASNWD/astronet/$ARCH/opt/hypertrain.py \
             --dataset $dataset \
             --epochs 40 \
-            -n 5 \
-            -t "" \
-            -z ""
+            --num-trials 5 \
+            -testset "" \
+            --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
             --epochs 400 \
             --model "scaledown-by-4" \    # atx main model
-            -t "" \
-            -z ""
+            -testset "" \
+            --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
     fi
@@ -117,17 +117,17 @@ elif [ $architecture == "t2" ]; then
         python $ASNWD/astronet/$ARCH/opt/hypertrain.py \
             --dataset $dataset \
             --epochs 40 \
-            -n 5 \
-            -t "" \
-            -z ""
+            --num-trials 5 \
+            -testset "" \
+            --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
             --epochs 400 \
             --model "1613517996-0a72904" \        # t2 main model
-            -t "" \
-            -z ""
+            -testset "" \
+            --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
     fi
