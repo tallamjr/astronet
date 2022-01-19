@@ -4,12 +4,10 @@ import pandas as pd
 
 from pylab import rcParams
 
-from astronet.constants import LSST_PB_COLORS, ZTF_PB_COLORS
-
 rcParams["figure.figsize"] = 12, 8
 
 
-def plot_wisdm_activity(activity, df, cols):
+def plot_wisdm_activity(activity: str, df: pd.DataFrame, cols: list) -> None:
     # TODO: Update docstrings
     data = df[df["activity"] == activity][cols][:400]
     axis = data.plot(subplots=True, figsize=(16, 12), title=activity)
@@ -17,7 +15,9 @@ def plot_wisdm_activity(activity, df, cols):
         ax.legend(loc="lower left", bbox_to_anchor=(1.0, 0.5))
 
 
-def plot_plasticc_object(object_name, df, filters, pb_colors):
+def plot_event(
+    object_name: str, df: pd.DataFrame, filters: list, pb_colors: dict
+) -> None:
     # TODO: Update docstrings
     for passband in filters:
         data = df[df["object_id"] == object_name]
@@ -32,7 +32,7 @@ def plot_plasticc_object(object_name, df, filters, pb_colors):
         )
 
 
-def plot_plasticc_single_object_gp_mean(df, object_id):
+def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
     # TODO: Update docstrings
     df = df[df["object_id"] == object_id]
     print(object_id, df["target"].values[0])
@@ -42,14 +42,14 @@ def plot_plasticc_single_object_gp_mean(df, object_id):
     gp_mean_data.set_index("mjd").plot()
 
 
-def plot_plasticc_real_data_and_model(
+def plot_event_data_with_model(
     obj_data,
     obj_model=None,
-    number_col=2,
-    show_title=False,
-    show_legend=True,
-    pb_colors=None,
-):
+    number_col: int = 2,
+    show_title: bool = False,
+    show_legend: bool = True,
+    pb_colors: dict = {},
+) -> None:
     # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
 
