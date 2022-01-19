@@ -1,9 +1,20 @@
 import os
 
-from pathlib import Path
+ASTRONET_WORKING_DIRECTORY = f"{os.environ['ASNWD']}"
+
+# LSST
+
+LSST_FILTER_MAP = {
+    0: "lsstu",
+    1: "lsstg",
+    2: "lsstr",
+    3: "lssti",
+    4: "lsstz",
+    5: "lssty",
+}
 
 # Central passbands wavelengths
-pb_wavelengths = {
+LSST_PB_WAVELENGTHS = {
     "lsstu": 3685.0,
     "lsstg": 4802.0,
     "lsstr": 6231.0,
@@ -12,8 +23,7 @@ pb_wavelengths = {
     "lssty": 9736.0,
 }
 
-# Colours for the plotting light curves
-pb_colors = {
+LSST_PB_COLORS = {
     "lsstu": "#984ea3",  # Purple: https://www.color-hex.com/color/984ea3
     "lsstg": "#4daf4a",  # Green: https://www.color-hex.com/color/4daf4a
     "lsstr": "#e41a1c",  # Red: https://www.color-hex.com/color/e41a1c
@@ -22,10 +32,24 @@ pb_colors = {
     "lssty": "#e3c530",  # Yellow: https://www.color-hex.com/color/e3c530
 }
 
-#astronet_working_directory = f"{Path(__file__).absolute().parent.parent}"
-astronet_working_directory = f"{os.environ['ASNWD']}"
+# ZTF
 
-plasticc_weights_dict = {
+ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
+
+ZTF_PB_WAVELENGTHS = {
+    "ztfg": 4804.79,
+    "ztfr": 6436.92,
+    "ztfi": 7968.22,
+}
+
+ZTF_PB_COLORS = {
+    "ztfg": "#4daf4a",  # Green: https://www.color-hex.com/color/4daf4a
+    "ztfr": "#e41a1c",  # Red: https://www.color-hex.com/color/e41a1c
+    "ztfi": "#377eb8",  # Blue: https://www.color-hex.com/color/377eb8
+}
+
+# PLASTICC
+PLASTICC_WEIGHTS_DICT = {
     6: 1 / 18,
     15: 1 / 9,
     16: 1 / 18,
