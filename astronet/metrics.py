@@ -53,7 +53,9 @@ class ClassWeightedLogLoss(keras.losses.Loss):
 
         loss = -(
             tf.reduce_mean(
-                tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+                tf.math.divide_no_nan(
+                    tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable
+                )
             )
         )
 
@@ -95,7 +97,9 @@ class WeightedLogLoss(keras.losses.Loss):
 
         loss = -(
             tf.reduce_mean(
-                tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+                tf.math.divide_no_nan(
+                    tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable
+                )
             )
         )
 
@@ -139,7 +143,9 @@ class WeightedLogLossTF(keras.losses.Loss):
 
         loss = -(
             tf.reduce_mean(
-                tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+                tf.math.divide_no_nan(
+                    tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable
+                )
             )
         )
 
@@ -185,7 +191,9 @@ class FlatWeightedLogLoss(keras.losses.Loss):
 
         loss = -(
             tf.reduce_mean(
-                tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+                tf.math.divide_no_nan(
+                    tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable
+                )
             )
         )
 
@@ -221,7 +229,9 @@ def custom_log_loss(y_true, y_pred):
 
     loss = -(
         tf.reduce_mean(
-            tf.math.divide_no_nan(tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable)
+            tf.math.divide_no_nan(
+                tf.reduce_mean(y_true * tf.math.log(yc), axis=0), wtable
+            )
         )
     )
 
@@ -265,9 +275,7 @@ def plasticc_log_loss(y_true, probs):
     class_logloss, weights = [], []  # initialize the classes logloss and weights
     for i in range(np.shape(predictions)[1]):  # run for each class
         current_label = labels[i]
-        result = np.average(
-            predictions[y_true.ravel() == current_label, i]
-        )
+        result = np.average(predictions[y_true.ravel() == current_label, i])
         # works like a boolean mask to provide results for current class. ravel() required to fix
         # IndexError: result = np.average(predictions[y_true==current_label, i]) # only those
         # events are from that class IndexError: too many indices for array: array is 2-dimensional,
@@ -292,15 +300,15 @@ def custom_tensorflow_plasticc_loss(y_true, y_pred, flip):
         sys.float_info.epsilon
     )  # this is machine dependent but essentially prevents log(0)
     predictions = tf.experimental.numpy.clip(predictions, epsilon, 1.0 - epsilon)
-    predictions = predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+    predictions = (
+        predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+    )
     predictions = tf.math.log(predictions)  # logarithm because we want a log loss
 
     class_logloss, weights = [], []  # initialize the classes logloss and weights
     for i in range(np.shape(predictions)[1]):  # run for each class
         current_label = labels[i]
-        result = tf.experimental.numpy.average(
-            predictions[flip == current_label, i]
-        )
+        result = tf.experimental.numpy.average(predictions[flip == current_label, i])
         # works like a boolean mask to provide results for current class. ravel() required to fix
         # IndexError: result = np.average(predictions[y_true==current_label, i]) # only those
         # events are from that class IndexError: too many indices for array: array is 2-dimensional,
@@ -332,7 +340,9 @@ class CustomLogLoss(keras.losses.Loss):
             sys.float_info.epsilon
         )  # this is machine dependent but essentially prevents log(0)
         predictions = tf.experimental.numpy.clip(predictions, epsilon, 1.0 - epsilon)
-        predictions = predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+        predictions = (
+            predictions / tf.experimental.numpy.sum(predictions, axis=1)[:, tf.newaxis]
+        )
         predictions = tf.math.log(predictions)  # logarithm because we want a log loss
 
         class_logloss, weights = [], []  # initialize the classes logloss and weights
