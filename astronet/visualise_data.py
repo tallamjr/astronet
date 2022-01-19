@@ -4,7 +4,7 @@ import pandas as pd
 
 from pylab import rcParams
 
-from astronet.constants import pb_colors
+from astronet.constants import LSST_PB_COLORS, ZTF_PB_COLORS
 
 rcParams['figure.figsize'] = 12, 8
 
@@ -17,7 +17,7 @@ def plot_wisdm_activity(activity, df, cols):
         ax.legend(loc="lower left", bbox_to_anchor=(1.0, 0.5))
 
 
-def plot_plasticc_object(object_name, df, filters):
+def plot_plasticc_object(object_name, df, filters, pb_colors):
     # TODO: Update docstrings
     for passband in filters:
         data = df[df["object_id"] == object_name]
@@ -40,7 +40,7 @@ def plot_plasticc_single_object_gp_mean(df, object_id):
     gp_mean_data.set_index('mjd').plot()
 
 
-def plot_plasticc_real_data_and_model(obj_data, obj_model=None, number_col=2, show_title=False, show_legend=True):
+def plot_plasticc_real_data_and_model(obj_data, obj_model=None, number_col=2, show_title=False, show_legend=True, pb_colors=None):
     # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
 
