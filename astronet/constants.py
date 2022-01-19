@@ -36,6 +36,12 @@ LSST_PB_COLORS = {
 
 ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
 
+ZTF_FILTER_MAP_COLORS = {
+    1: "#4daf4a",  # Green: https://www.color-hex.com/color/4daf4a
+    2: "#e41a1c",  # Red: https://www.color-hex.com/color/e41a1c
+    3: "#377eb8",  # Blue: https://www.color-hex.com/color/377eb8
+}
+
 ZTF_PB_WAVELENGTHS = {
     "ztfg": 4804.79,
     "ztfr": 6436.92,
