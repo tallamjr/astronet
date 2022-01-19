@@ -11,8 +11,10 @@ from scipy import stats
 from sklearn import model_selection
 
 from astronet.constants import (
-    pb_wavelengths,
-    astronet_working_directory as asnwd,
+    LSST_FILTER_MAP,
+    ZTF_FILTER_MAP,
+    PB_WAVELENGTHS,
+    ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
@@ -27,7 +29,7 @@ from astronet.preprocess import (
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
-def astronet_logger(name, level="INFO"):
+def astronet_logger(name: str, level: str="INFO") -> logging.Logger:
     """ Initialise python logger.
 
     Parameters
@@ -78,7 +80,7 @@ def astronet_logger(name, level="INFO"):
     return logger
 
 
-def find_optimal_batch_size(training_set_length):
+def find_optimal_batch_size(training_set_length: int) -> int:
 
     if (training_set_length < 10000):
         batch_size_list = [16, 32, 64]
@@ -261,17 +263,17 @@ def load_mts(dataset):
     return X_train, y_train, X_test, y_test
 
 
-def __remap_filters(df):
-    """Function to remap integer filters to the corresponding lsst filters and
-    also to set filter name syntax to what snmachine already recognizes
+def remap_filters(df: pd.DataFrame, filter_map: dict) -> pd.DataFrame:
+    """Function to remap integer filters to the corresponding filters.
 
-    df: pandas.dataframe
+    df: pd.DataFrame
         Dataframe of lightcurve observations
+    filter_map: dict
+        Corresponding map for filters used. Current options are found in astronet.constants:
+        {LSST_FILTER_MAP, ZTF_FILTER_MAP}
     """
     df.rename({'passband': 'filter'}, axis='columns', inplace=True)
-    filter_replace = {0: 'lsstu', 1: 'lsstg', 2: 'lsstr', 3: 'lssti',
-                      4: 'lsstz', 5: 'lssty'}
-    df['filter'].replace(to_replace=filter_replace, inplace=True)
+    df['filter'].replace(to_replace=filter_map, inplace=True)
     return df
 
 
@@ -320,8 +322,8 @@ def __generate_gp_all_objects(object_list, obs_transient, timesteps):
 
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
-    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
-    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+    gp_wavelengths = np.vectorize(PB_WAVELENGTHS.get)(filters)
+    inverse_pb_wavelengths = {v: k for k, v in PB_WAVELENGTHS.items()}
 
     for object_id in object_list:
         print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
@@ -351,7 +353,7 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
         f"{asnwd}/data/plasticc/training_set.csv",
         sep=",",
     )
-    data = __remap_filters(df=data)
+    data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
     data.rename(
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
@@ -431,7 +433,7 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
         f"{asnwd}/data/plasticc/test_set/{batch_filename}.csv",
         sep=",",
     )
-    data = __remap_filters(df=data)
+    data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
     data.rename(
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
