@@ -9,7 +9,9 @@ from functools import partial
 from astronet.constants import LSST_PB_WAVELENGTHS
 
 
-def fit_2d_gp(obj_data, return_kernel=False, pb_wavelengths=LSST_PB_WAVELENGTHS, **kwargs):
+def fit_2d_gp(
+    obj_data, return_kernel=False, pb_wavelengths=LSST_PB_WAVELENGTHS, **kwargs
+):
     """Fit a 2D Gaussian process.
 
     If required, predict the GP at evenly spaced points along a light curve.
