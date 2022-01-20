@@ -7,8 +7,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import (
-    plasticc_weights_dict,
-    astronet_working_directory as asnwd,
+    PLASTICC_WEIGHTS_DICT,
+    ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
@@ -282,7 +282,7 @@ def plasticc_log_loss(y_true, probs):
         # but 3 were indexed
 
         class_logloss.append(result)
-        weights.append(plasticc_weights_dict[current_label])
+        weights.append(PLASTICC_WEIGHTS_DICT[current_label])
 
     return -1 * np.average(class_logloss, weights=weights)
 
@@ -315,7 +315,7 @@ def custom_tensorflow_plasticc_loss(y_true, y_pred, flip):
         # but 3 were indexed
 
         class_logloss.append(result)
-        weights.append(plasticc_weights_dict[current_label])
+        weights.append(PLASTICC_WEIGHTS_DICT[current_label])
 
     return -1 * tf.experimental.numpy.average(class_logloss, weights=weights)
 
@@ -357,6 +357,6 @@ class CustomLogLoss(keras.losses.Loss):
             # but 3 were indexed
 
             class_logloss.append(result)
-            weights.append(plasticc_weights_dict[current_label])
+            weights.append(PLASTICC_WEIGHTS_DICT[current_label])
 
         return -1 * tf.experimental.numpy.average(class_logloss, weights=weights)
