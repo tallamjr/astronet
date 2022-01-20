@@ -42,6 +42,8 @@ ZTF_FILTER_MAP_COLORS = {
     3: "#377eb8",  # Blue: https://www.color-hex.com/color/377eb8
 }
 
+# Central passbands wavelengths --> λmean
+# http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Palomar&gname2=ZTF&asttype=
 ZTF_PB_WAVELENGTHS = {
     "ztfg": 4804.79,
     "ztfr": 6436.92,

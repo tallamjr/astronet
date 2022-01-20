@@ -1,4 +1,4 @@
-# import george
+import george
 import numpy as np
 import scipy.optimize as op
 import tensorflow as tf
@@ -6,10 +6,10 @@ import tensorflow as tf
 from astropy.table import Table, vstack
 from functools import partial
 
-from astronet.constants import pb_wavelengths
+from astronet.constants import LSST_PB_WAVELENGTHS
 
 
-def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
+def fit_2d_gp(obj_data, return_kernel=False, pb_wavelengths=LSST_PB_WAVELENGTHS, **kwargs):
     """Fit a 2D Gaussian process.
 
     If required, predict the GP at evenly spaced points along a light curve.
