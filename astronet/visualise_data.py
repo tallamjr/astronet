@@ -53,8 +53,8 @@ def plot_event_data_with_model(
     # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
 
-    passbands = np.unique(obj_data["filter"])
-    passbands = ["lsstu", "lsstg", "lsstr", "lssti", "lsstz", "lssty"]
+    passbands = list(np.unique(obj_data["filter"]))
+    # passbands = ["lsstu", "lsstg", "lsstr", "lssti", "lsstz", "lssty"]
     for pb in passbands:
         obj_data_pb = obj_data[obj_data["filter"] == pb]  # obj LC in that passband
         if obj_model is not None:
