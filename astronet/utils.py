@@ -6,6 +6,8 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 
+from typing import List, Dict
+
 from pathlib import Path
 from scipy import stats
 from sklearn import model_selection
@@ -263,7 +265,7 @@ def load_mts(dataset):
     return X_train, y_train, X_test, y_test
 
 
-def remap_filters(df: pd.DataFrame, filter_map: dict) -> pd.DataFrame:
+def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
     """Function to remap integer filters to the corresponding filters.
 
     df: pd.DataFrame
@@ -284,7 +286,7 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
     return filtered_dataframe
 
 
-def __transient_trim(object_list: list[str], df: pd.DataFrame) -> (pd.DataFrame, list[np.array]):
+def __transient_trim(object_list: List[str], df: pd.DataFrame) -> (pd.DataFrame, List[np.array]):
     adf = pd.DataFrame(data=[], columns=df.columns)
     good_object_list = []
     for obj in object_list:
@@ -325,7 +327,7 @@ def text_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
     return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode(encoding, errors) or '\0'
 
 
-def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
     """ Intermediate helper function useful for visualisation of the original data with the mean of
     the Gaussian Process interpolation as well as the uncertainity.
 
@@ -374,7 +376,7 @@ def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int 
     return obj_gps
 
 
-def generate_gp_all_objects(object_list: list[str], obs_transient: pd.DataFrame, timesteps: int = 100, pb_wavelengths: dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+def generate_gp_all_objects(object_list: List[str], obs_transient: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
 
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
