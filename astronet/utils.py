@@ -284,7 +284,7 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
     return filtered_dataframe
 
 
-def __transient_trim(object_list, df):
+def __transient_trim(object_list: list[str], df: pd.DataFrame) -> (pd.DataFrame, list[np.array]):
     adf = pd.DataFrame(data=[], columns=df.columns)
     good_object_list = []
     for obj in object_list:
