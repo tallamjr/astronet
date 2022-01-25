@@ -314,27 +314,87 @@ def __transient_trim(object_list: list[str], df: pd.DataFrame) -> (pd.DataFrame,
     return obs_transient, list(new_filtered_object_list)
 
 
-def __generate_gp_all_objects(object_list, obs_transient, timesteps):
-    adf = pd.DataFrame(
-        data=[],
-        columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
-    )
+def text_to_bits(text, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(int.from_bytes(text.encode(encoding, errors), 'big'))[2:]
+    return int(bits.zfill(8 * ((len(bits) + 7) // 8)), 2)
+
+
+def text_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(bits)
+    n = int(bits, 2)
+    return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode(encoding, errors) or '\0'
+
+
+def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+    """ Intermediate helper function useful for visualisation of the original data with the mean of
+    the Gaussian Process interpolation as well as the uncertainity.
+
+    Additional steps required to build full dataframe for classification found in
+    `generate_gp_all_objects`, namely:
+
+        ...
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
+        obj_gps = obj_gps.reset_index()
+        obj_gps["object_id"] = object_id
+        ...
+
+    To allow a transformation from:
+
+        mjd	        flux	    flux_error	filter
+    0	0.000000	19.109279	0.176179	ztfg
+    1	0.282785	19.111843	0.173419	ztfg
+    2	0.565571	19.114406	0.170670	ztfg
+
+    to ...
+
+    filter	mjd	        ztfg    ztfr	object_id
+    0	    0	        19.1093	19.2713	27955532126447639664866058596
+    1	    0.282785	19.1118	19.2723	27955532126447639664866058596
+    2	    0.565571	19.1144	19.2733	27955532126447639664866058596
+
+    Examples
+    --------
+    >>> _obj_gps = generate_gp_single_event(object_list, data)
+    >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
+    """
+
+    filters = df['filter']
+    filters = list(np.unique(filters))
+
+    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+
+    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+
+    number_gp = timesteps
+    gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+    obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
+    obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+
+    return obj_gps
+
+
+def generate_gp_all_objects(object_list: list[str], obs_transient: pd.DataFrame, timesteps: int = 100, pb_wavelengths: dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
 
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
-    gp_wavelengths = np.vectorize(PB_WAVELENGTHS.get)(filters)
-    inverse_pb_wavelengths = {v: k for k, v in PB_WAVELENGTHS.items()}
+
+    columns = []
+    columns.append('mjd')
+    for filt in filters:
+        columns.append(filt)
+    columns.append('object_id')
+
+    adf = pd.DataFrame(
+        data=[],
+        columns=columns,
+    )
 
     for object_id in object_list:
         print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
         df = obs_transient[obs_transient["object_id"] == object_id]
 
-        gp_predict = fit_2d_gp(df)
-
-        number_gp = timesteps
-        gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
-        obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
-        obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+        obj_gps = generate_gp_single_event(object_id, df, timesteps)
 
         obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
@@ -371,7 +431,8 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     object_list = list(np.unique(df['object_id']))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -454,7 +515,8 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     object_list = list(np.unique(df['object_id']))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -537,7 +599,8 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
     object_list = list(np.unique(df['object_id']))
 
     obs_transient, object_list = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -670,7 +733,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     print(len(object_list))
 
     # obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, df, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, df, timesteps, LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
