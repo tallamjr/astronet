@@ -13,7 +13,7 @@ from sklearn import model_selection
 from astronet.constants import (
     LSST_FILTER_MAP,
     ZTF_FILTER_MAP,
-    PB_WAVELENGTHS,
+    LSST_PB_WAVELENGTHS,
     ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 from astronet.metrics import WeightedLogLoss
