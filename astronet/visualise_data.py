@@ -4,10 +4,12 @@ import pandas as pd
 
 from pylab import rcParams
 
+from typing import List, Dict
+
 rcParams["figure.figsize"] = 12, 8
 
 
-def plot_wisdm_activity(activity: str, df: pd.DataFrame, cols: list) -> None:
+def plot_wisdm_activity(activity: str, df: pd.DataFrame, cols: List) -> None:
     # TODO: Update docstrings
     data = df[df["activity"] == activity][cols][:400]
     axis = data.plot(subplots=True, figsize=(16, 12), title=activity)
@@ -16,13 +18,14 @@ def plot_wisdm_activity(activity: str, df: pd.DataFrame, cols: list) -> None:
 
 
 def plot_event(
-    object_name: str, df: pd.DataFrame, filters: list, pb_colors: dict
+    object_name: str, df: pd.DataFrame, filters: List, pb_colors: Dict
 ) -> None:
     # TODO: Update docstrings
+    f, ax = plt.subplots()
     for passband in filters:
         data = df[df["object_id"] == object_name]
         data = data[data["filter"] == passband]
-        plt.errorbar(
+        ax.errorbar(
             x=data["mjd"],
             y=data["flux"],
             yerr=data["flux_error"],
@@ -30,6 +33,8 @@ def plot_event(
             marker="o",
             color=pb_colors[passband],
         )
+
+    return f, ax
 
 
 def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
@@ -48,7 +53,7 @@ def plot_event_data_with_model(
     number_col: int = 2,
     show_title: bool = False,
     show_legend: bool = True,
-    pb_colors: dict = {},
+    pb_colors: Dict = {},
 ) -> None:
     # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
