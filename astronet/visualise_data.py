@@ -37,16 +37,6 @@ def plot_event(
     return f, ax
 
 
-def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
-    # TODO: Update docstrings
-    df = df[df["object_id"] == object_id]
-    print(object_id, df["target"].values[0])
-    gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(
-        columns=["object_id", "target"]
-    )
-    gp_mean_data.set_index("mjd").plot()
-
-
 def plot_event_data_with_model(
     obj_data,
     obj_model=None,
@@ -59,7 +49,6 @@ def plot_event_data_with_model(
     """Plots real data and model fluxes at the corresponding mjd"""
 
     passbands = list(np.unique(obj_data["filter"]))
-    # passbands = ["lsstu", "lsstg", "lsstr", "lssti", "lsstz", "lssty"]
     for pb in passbands:
         obj_data_pb = obj_data[obj_data["filter"] == pb]  # obj LC in that passband
         if obj_model is not None:
@@ -109,3 +98,15 @@ def plot_event_data_with_model(
             borderpad=0.3,
             columnspacing=0.4,
         )
+
+
+def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
+    # TODO: Update docstrings
+    df = df[df["object_id"] == object_id]
+    print(object_id, df["target"].values[0])
+    gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(
+        columns=["object_id", "target"]
+    )
+    gp_mean_data.set_index("mjd").plot()
+
+
