@@ -327,7 +327,7 @@ def text_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
     return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode(encoding, errors) or '\0'
 
 
-def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+def generate_gp_single_event(df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
     """ Intermediate helper function useful for visualisation of the original data with the mean of
     the Gaussian Process interpolation as well as the uncertainity.
 
@@ -356,7 +356,7 @@ def generate_gp_single_event(object_name: str, df: pd.DataFrame, timesteps: int 
 
     Examples
     --------
-    >>> _obj_gps = generate_gp_single_event(object_list, data)
+    >>> _obj_gps = generate_gp_single_event(data)
     >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
     """
 
