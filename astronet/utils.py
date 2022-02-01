@@ -396,7 +396,7 @@ def generate_gp_all_objects(object_list: List[str], obs_transient: pd.DataFrame,
         print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
         df = obs_transient[obs_transient["object_id"] == object_id]
 
-        obj_gps = generate_gp_single_event(object_id, df, timesteps, pb_wavelengths)
+        obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
 
         obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
