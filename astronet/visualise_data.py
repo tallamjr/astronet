@@ -104,13 +104,19 @@ def plot_event_data_with_model(
     return f, ax
 
 
-def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
+def plot_event_gp_mean(df: pd.DataFrame, object_id: Union[int, str], pb_colors: Dict) -> None:
     # TODO: Update docstrings
+
     df = df[df["object_id"] == object_id]
-    print(object_id, df["target"].values[0])
+
+    drop_columns = ["object_id"]
+    if "target" in df.columns:
+        print(object_id, df["target"].values[0])
+        drop_columns.append("target")
     gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(
-        columns=["object_id", "target"]
+        columns=drop_columns
     )
-    gp_mean_data.set_index("mjd").plot()
+    ax = gp_mean_data.set_index('mjd').plot(linewidth=2.0, color=pb_colors, marker='o')
+    f = ax.get_figure()
 
-
+    return f, ax
