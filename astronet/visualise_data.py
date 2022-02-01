@@ -4,7 +4,7 @@ import pandas as pd
 
 from pylab import rcParams
 
-from typing import List, Dict
+from typing import List, Dict, Union
 
 rcParams["figure.figsize"] = 12, 8
 
@@ -48,13 +48,15 @@ def plot_event_data_with_model(
     # TODO: Update docstrings
     """Plots real data and model fluxes at the corresponding mjd"""
 
+    f, ax = plt.subplots()
+
     passbands = list(np.unique(obj_data["filter"]))
     for pb in passbands:
         obj_data_pb = obj_data[obj_data["filter"] == pb]  # obj LC in that passband
         if obj_model is not None:
             obj_model_pb = obj_model[obj_model["filter"] == pb]
             model_flux = obj_model_pb["flux"]
-            plt.plot(
+            ax.plot(
                 obj_model_pb["mjd"],
                 model_flux,
                 color=pb_colors[pb],
@@ -63,7 +65,7 @@ def plot_event_data_with_model(
             )
             try:
                 model_flux_error = obj_model_pb["flux_error"]
-                plt.fill_between(
+                ax.fill_between(
                     x=obj_model_pb["mjd"],
                     y1=model_flux - model_flux_error,
                     y2=model_flux + model_flux_error,
@@ -73,7 +75,7 @@ def plot_event_data_with_model(
                 )
             except:
                 pass
-        plt.errorbar(
+        ax.errorbar(
             obj_data_pb["mjd"],
             obj_data_pb["flux"],
             obj_data_pb["flux_error"],
@@ -81,16 +83,16 @@ def plot_event_data_with_model(
             color=pb_colors[pb],
             label=pb[-1],
         )
-    plt.xlabel("Time (days)")
-    plt.ylabel("Flux units")
+    ax.set_xlabel("Time (days)")
+    ax.set_ylabel("Flux units")
     if show_title:
-        plt.title(
+        ax.title(
             "Object ID: {}\nPhoto-z = {:.3f}".format(
                 obj_data.meta["name"], obj_data.meta["z"]
             )
         )
     if show_legend:
-        plt.legend(
+        ax.legend(
             ncol=number_col,
             handletextpad=0.3,
             borderaxespad=0.3,
@@ -98,6 +100,8 @@ def plot_event_data_with_model(
             borderpad=0.3,
             columnspacing=0.4,
         )
+
+    return f, ax
 
 
 def plot_event_gp_mean(df: pd.DataFrame, object_id: str) -> None:
