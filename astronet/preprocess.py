@@ -1,16 +1,21 @@
 import george
+import pandas as pd
 import numpy as np
 import scipy.optimize as op
 import tensorflow as tf
 
 from astropy.table import Table, vstack
 from functools import partial
+from typing import Dict
 
 from astronet.constants import LSST_PB_WAVELENGTHS
 
 
 def fit_2d_gp(
-    obj_data, return_kernel=False, pb_wavelengths=LSST_PB_WAVELENGTHS, **kwargs
+    obj_data: pd.DataFrame,
+    return_kernel: bool = False,
+    pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
+    **kwargs
 ):
     """Fit a 2D Gaussian process.
 
@@ -18,10 +23,12 @@ def fit_2d_gp(
 
     Parameters
     ----------
-    obj_data : pandas.core.frame.DataFrame or astropy.table.Table
+    obj_data : pd.DataFrame
         Time, flux and flux error of the data (specific filter of an object).
-    return_kernel : Bool, default = False
+    return_kernel : bool, default = False
         Whether to return the used kernel.
+    pb_wavelengths: dict
+        Mapping of the passband wavelengths for each filter used.
     kwargs : dict
         Additional keyword arguments that are ignored at the moment. We allow
         additional keyword arguments so that the various functions that
