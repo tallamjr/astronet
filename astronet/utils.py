@@ -1011,7 +1011,7 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
         class_99_index = []
         for i in range(len(y_full_test.flatten())):
             if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
-                pass
+                continue
             else:
                 class_99_index.append(i)
 
