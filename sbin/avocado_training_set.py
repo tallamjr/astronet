@@ -37,10 +37,16 @@ class ProcessTrainingSet(object):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process Avocado Augmented Training Set')
+    parser = argparse.ArgumentParser(
+        description="Process Avocado Augmented Training Set"
+    )
 
-    parser.add_argument("-f", "--file", default="avo_aug_1_chunk_0",
-            help="Choose which dataset to process")
+    parser.add_argument(
+        "-f",
+        "--file",
+        default="avo_aug_1_chunk_0",
+        help="Choose which dataset to process",
+    )
 
     try:
         args = parser.parse_args()
@@ -51,7 +57,5 @@ if __name__ == "__main__":
 
     filename = args.file
 
-    process_training_set = ProcessTrainingSet(
-        filename=filename
-    )
+    process_training_set = ProcessTrainingSet(filename=filename)
     process_training_set()
