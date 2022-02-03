@@ -138,7 +138,10 @@ def test_training_pipeline_plasticc():
     # wloss = custom_log_loss
 
     model.compile(
-        loss=wloss, optimizer="adam", metrics=["acc"], run_eagerly=True,
+        loss=wloss,
+        optimizer="adam",
+        metrics=["acc"],
+        run_eagerly=True,
     )
 
     _ = model.fit(
@@ -210,7 +213,10 @@ def test_training_pipeline_full_plasticc():
     # wloss = custom_log_loss
 
     model.compile(
-        loss=wloss, optimizer="adam", metrics=["acc"], run_eagerly=True,
+        loss=wloss,
+        optimizer="adam",
+        metrics=["acc"],
+        run_eagerly=True,
     )
 
     _ = model.fit(
