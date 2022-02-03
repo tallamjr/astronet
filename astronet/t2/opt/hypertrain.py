@@ -63,13 +63,14 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class Objective(object):
-    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset):
+    def __init__(self, epochs, dataset, redshift, augmented, avocado, testset, fink):
         self.epochs = EPOCHS
         self.dataset = dataset
         self.redshift = redshift
         self.augmented = augmented
         self.avocado = avocado
         self.testset = testset
+        self.fink = fink
 
     def __call__(self, trial):
         # Clear clutter from previous Keras session graphs.
@@ -89,8 +90,24 @@ class Objective(object):
             X_train = X_train[mask]
             y_train = y_train[mask]
             ZX_train = ZX_train[mask]
+        elif self.dataset == "plasticc":
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset, fink=self.fink,
+            )
+            # Again, if using PLAsTiCC data, the PLAsTiCC data is large so we will only
+            # work with 10% instead.
+            # Generate random boolean mask the length of data
+            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+            mask = np.random.choice([False, True], len(X_train), p=[0.90, 0.10])
+            X_train = X_train[mask]
+            y_train = y_train[mask]
+            log.info("Dataset downsampled by 90% for cross-validation steps..")
         else:
-            X_train, y_train, _, _, loss = load_dataset(self.dataset, augmented=self.augmented)
+            X_train, y_train, _, _, loss = load_dataset(
+                self.dataset, redshift=self.redshift, augmented=self.augmented,
+                avocado=self.avocado, testset=self.testset, fink=self.fink,
+            )
 
         num_classes = y_train.shape[1]
 
@@ -136,7 +153,8 @@ class Objective(object):
         scores = []
         # 'random_state' has no effect since shuffle is False. You should leave random_state to its default
         # (None), or set shuffle=True.'
-        skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=None)
+        k_folds = 5
+        skf = StratifiedKFold(n_splits=k_folds, shuffle=False, random_state=None)
 
         if self.redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
@@ -156,6 +174,7 @@ class Objective(object):
             y_train_split = y_train.argmax(1)
             print(y_train_split)
 
+        kth_fold = 1
         for train_index, val_index in skf.split(X_train, y_train_split):
             X_train_cv, X_val_cv = X_train[train_index], X_train[val_index]
             y_train_cv, y_val_cv = y_train[train_index], y_train[val_index]
@@ -201,7 +220,8 @@ class Objective(object):
                     ),
                 ],
             )
-            log.info("Partially complete fit done...")
+            log.info(f"{kth_fold} of {k_folds} k-folds complete")
+            kth_fold += 1
 
             # Evaluate the model accuracy on the validation set.
             # loss, _ = model.evaluate(inputs_val_cv, y_val_cv, verbose=0, batch_size=VALIDATION_BATCH_SIZE)
@@ -209,6 +229,8 @@ class Objective(object):
             y_preds = model.predict(inputs_val_cv, batch_size=VALIDATION_BATCH_SIZE)
             loss = wloss(y_val_cv, y_preds).numpy()
             scores.append(loss)
+
+            log.info(f"Intermediate loss score: {loss}")
 
         model.summary(print_fn=logging.info)
         return np.mean(scores)
@@ -255,9 +277,13 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--testset', default=None,
             help='Train using PLAsTiCC test data for representative test')
 
+    parser.add_argument('-f', '--fink', default=None,
+            help='Train using PLAsTiCC but only g and r bands for FINK')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
+        log.info(argsdict)
     except KeyError:
         parser.print_help()
         sys.exit(0)
@@ -281,12 +307,17 @@ if __name__ == "__main__":
     if testset is not None:
         testset = True
 
+    fink = args.fink
+    if fink is not None:
+        fink = True
+
     N_TRIALS = int(args.num_trials)
 
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
+        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented,
+            avocado=avocado, testset=testset, fink=fink),
         n_trials=N_TRIALS,
         timeout=86400,     # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
@@ -316,6 +347,7 @@ if __name__ == "__main__":
     best_result['augmented'] = augmented
     best_result['avocado'] = avocado
     best_result['testset'] = testset
+    best_result['fink'] = fink
 
     print("  Params: ")
     for key, value in trial.params.items():

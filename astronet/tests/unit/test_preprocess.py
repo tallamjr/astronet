@@ -5,9 +5,17 @@ import pytest
 
 from pathlib import Path
 
-from astronet.constants import pb_wavelengths, astronet_working_directory as asnwd
+from astronet.constants import (
+    LSST_PB_WAVELENGTHS,
+    LSST_FILTER_MAP,
+    ASTRONET_WORKING_DIRECTORY as asnwd,
+)
 from astronet.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
-from astronet.utils import __transient_trim, __filter_dataframe_only_supernova, __remap_filters
+from astronet.utils import (
+    __transient_trim,
+    __filter_dataframe_only_supernova,
+    remap_filters,
+)
 from astronet.utils import load_wisdm_2010, load_wisdm_2019
 
 
@@ -26,7 +34,9 @@ def test_one_hot_encode():
     del enc, X_train, y_train, X_test, y_test
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large 'phone.df' file")
+@pytest.mark.skipif(
+    os.getenv("CI") is not None, reason="Requires large 'phone.df' file"
+)
 def test_one_hot_encode_local():
 
     X_train, y_train, X_test, y_test = load_wisdm_2019()
@@ -42,19 +52,21 @@ def test_plasticc_fit_2d_gp():
     pass
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally.")
+@pytest.mark.skipif(
+    os.getenv("CI") is not None, reason="Unable to find file on CI. Test locally."
+)
 def test_plasticc_predict_2d_gp():
 
     data = pd.read_csv(
         f"{Path(__file__).absolute().parent.parent.parent.parent}/data/plasticc/training_set.csv",
         sep=",",
     )
-    data = __remap_filters(df=data)
+    data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
     data.rename(
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
 
-    filters = data['filter']
+    filters = data["filter"]
     filters = list(np.unique(filters))
 
     df = __filter_dataframe_only_supernova(
@@ -62,19 +74,21 @@ def test_plasticc_predict_2d_gp():
         data,
     )
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
     object_list = object_list[2:3]
     assert object_list == [1124]
 
     obs_transient_single, _ = __transient_trim(object_list, df)
     gp_predict = fit_2d_gp(obs_transient_single)
     number_gp = 100
-    gp_times = np.linspace(min(obs_transient_single['mjd']), max(obs_transient_single['mjd']), number_gp)
-    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    gp_times = np.linspace(
+        min(obs_transient_single["mjd"]), max(obs_transient_single["mjd"]), number_gp
+    )
+    gp_wavelengths = np.vectorize(LSST_PB_WAVELENGTHS.get)(filters)
 
     obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
-    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
-    obj_gps['filter'] = obj_gps['filter'].map(inverse_pb_wavelengths)
+    inverse_pb_wavelengths = {v: k for k, v in LSST_PB_WAVELENGTHS.items()}
+    obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
 
     gp_head_values_truth = np.array(
         [
@@ -85,4 +99,6 @@ def test_plasticc_predict_2d_gp():
             [3.74378163, 2.74487713],
         ]
     )
-    assert np.allclose(obj_gps[['flux', 'flux_error']].head().values, gp_head_values_truth)
+    assert np.allclose(
+        obj_gps[["flux", "flux_error"]].head().values, gp_head_values_truth
+    )

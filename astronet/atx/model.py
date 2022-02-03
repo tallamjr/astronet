@@ -6,8 +6,8 @@ from astronet.atx.layers import EntryFlow, MiddleFlow, ExitFlow
 class ATXModel(tf.keras.Model):
     def __init__(self, num_classes, kernel_size, pool_size, scaledown_factor):
         super(ATXModel, self).__init__()
-        '''
-        '''
+        """
+        """
         self.num_classes = num_classes
         self.kernel_size = kernel_size
         self.pool_size = pool_size
@@ -20,7 +20,9 @@ class ATXModel(tf.keras.Model):
         )
 
         self.middle_flow = [
-            MiddleFlow(kernel_size=self.kernel_size, scaledown_factor=self.scaledown_factor)
+            MiddleFlow(
+                kernel_size=self.kernel_size, scaledown_factor=self.scaledown_factor
+            )
             for _ in range(1)
         ]
 
@@ -54,7 +56,9 @@ class ATXModel(tf.keras.Model):
         return output
 
     def build_graph(self, input_shapes):
-        if isinstance(input_shapes, tuple):  # A list would imply there is multiple inputs
+        if isinstance(
+            input_shapes, tuple
+        ):  # A list would imply there is multiple inputs
             # Code lifted from example:
             # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
             input_shape_nobatch = input_shapes[1:]
@@ -68,7 +72,7 @@ class ATXModel(tf.keras.Model):
                 tf.keras.Input(shape=Z_input_shape_nobatch),
             ]
 
-        if not hasattr(self, 'call'):
+        if not hasattr(self, "call"):
             raise AttributeError("User should define 'call' method in sub-class model!")
 
         _ = self.call(inputs)

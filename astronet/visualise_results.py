@@ -68,13 +68,8 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
     # TODO: Update docstrings
     if ax is not None:
         ax = ax or plt.gca()
-        # plt.figure(figsize=(16, 9))
         ax.plot(event['acc'], label='train')
         ax.plot(event['val_acc'], label='validation')
-        # plt.xlabel("Epoch")
-        # # plt.xticks(np.arange(len(event['acc'])))
-        # plt.ylabel("Accuracy")
-        # plt.legend()
         ax.set_title(fr'{dataset}')
 
     else:
@@ -95,10 +90,6 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-acc-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
-    else:
-        pass
-        # print(model_name)
-        # plt.show()
 
 
 def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=None):
@@ -107,17 +98,12 @@ def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=No
         ax = ax or plt.gca()
         ax.plot(event['loss'], label='train')
         ax.plot(event['val_loss'], label='validation')
-        # plt.xlabel("Epoch")
-        # # plt.xticks(np.arange(len(event['acc'])))
-        # plt.ylabel("Loss")
-        # plt.legend()
         ax.set_title(fr'{dataset}')
     else:
         plt.figure(figsize=(16, 9))
         plt.plot(event['loss'], label='train')
         plt.plot(event['val_loss'], label='validation')
         plt.xlabel("Epoch")
-        # plt.xticks(np.arange(len(event['acc'])))
         plt.ylabel("Loss")
         plt.legend()
         plt.title(r'Training vs. Validation per Epoch')
@@ -130,10 +116,6 @@ def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=No
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format='pdf')
         plt.clf()
-    else:
-        pass
-        # print(model_name)
-        # plt.show()
 
 
 def plot_confusion_matrix(architecture, dataset, model_name, y_test, y_preds, encoding, class_names, cmap=None, save=True):
@@ -251,13 +233,7 @@ def plot_multiROC(architecture, dataset, model_name, model, X_test, y_test, clas
         plt.plot(fpr[i], tpr[i], lw=lw,
                  label='ROC: {0} (area = {1:0.2f})'
                  ''.format(class_names[i], roc_auc[i]))
-    # colors = plt.cycle(['aqua', 'darkorange', 'cornflowerblue'])
-    # for i, color in zip(range(n_classes), colors):
-    #     plt.plot(fpr[i], tpr[i], color=color, lw=lw,
-    #              label='ROC: {0} (area = {1:0.2f})'
-    #              ''.format(class_names[i], roc_auc[i]))
 
-    # plt.plot([0, 1], [0, 1], 'k--', lw=lw)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
@@ -300,17 +276,8 @@ def plot_multiPR(architecture, dataset, model_name, model, X_test, y_test, class
     precision["micro"], recall["micro"], _ = precision_recall_curve(y_test.ravel(), y_score.ravel())
     average_precision["micro"] = average_precision_score(y_test, y_score,
                                                          average="micro")
-    # f_scores = np.linspace(0.2, 0.8, num=4)
     lines = []
     labels = []
-    # for f_score in f_scores:
-    #     x = np.linspace(0.01, 1)
-    #     y = f_score * x / (2 * x - f_score)
-    #     l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
-    #     plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
-
-    # lines.append(l)
-    # labels.append('iso-f1 curves')
     l, = plt.plot(recall["micro"], precision["micro"], color='deeppink',
             linestyle=':', lw=lw)
     lines.append(l)
@@ -464,8 +431,3 @@ if __name__ == '__main__':
     )
 
     plot_multiROC(dataset, model_name, model, X_test, y_test, class_names)
-
-
-# Class Activation Maps
-
-

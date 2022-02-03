@@ -211,7 +211,7 @@ class ExitFlow(tf.keras.layers.Layer):
             filters=1024 / self.scaledown_factor, kernel_size=self.kernel_size
         )
         # maxpool
-        self.maxpool = MaxPool1D(pool_size=self.pool_size, strides=2, padding='same')
+        self.maxpool = MaxPool1D(pool_size=self.pool_size, strides=2, padding="same")
 
         self.conv_batchnorm_exit_1 = ConvBatchNormBlock(
             filters=1024 / self.scaledown_factor, kernel_size=1, strides=2

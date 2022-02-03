@@ -1,25 +1,34 @@
-# import george
+import george
+import pandas as pd
 import numpy as np
 import scipy.optimize as op
 import tensorflow as tf
 
 from astropy.table import Table, vstack
 from functools import partial
+from typing import Dict
 
-from astronet.constants import pb_wavelengths
+from astronet.constants import LSST_PB_WAVELENGTHS
 
 
-def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
+def fit_2d_gp(
+    obj_data: pd.DataFrame,
+    return_kernel: bool = False,
+    pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
+    **kwargs
+):
     """Fit a 2D Gaussian process.
 
     If required, predict the GP at evenly spaced points along a light curve.
 
     Parameters
     ----------
-    obj_data : pandas.core.frame.DataFrame or astropy.table.Table
+    obj_data : pd.DataFrame
         Time, flux and flux error of the data (specific filter of an object).
-    return_kernel : Bool, default = False
+    return_kernel : bool, default = False
         Whether to return the used kernel.
+    pb_wavelengths: dict
+        Mapping of the passband wavelengths for each filter used.
     kwargs : dict
         Additional keyword arguments that are ignored at the moment. We allow
         additional keyword arguments so that the various functions that
@@ -37,7 +46,7 @@ def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
     obj_times = obj_data.mjd.astype(float)
     obj_flux = obj_data.flux.astype(float)
     obj_flux_error = obj_data.flux_error.astype(float)
-    obj_wavelengths = obj_data['filter'].map(pb_wavelengths)
+    obj_wavelengths = obj_data["filter"].map(pb_wavelengths)
 
     def neg_log_like(p):  # Objective function: negative log-likelihood
         gp.set_parameter_vector(p)
@@ -56,8 +65,9 @@ def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
     )
     scale = np.abs(obj_flux[signal_to_noises.idxmax()])
 
-    kernel = (0.5 * scale) ** 2 * george.kernels.Matern32Kernel([
-        guess_length_scale ** 2, 6000 ** 2], ndim=2)
+    kernel = (0.5 * scale) ** 2 * george.kernels.Matern32Kernel(
+        [guess_length_scale ** 2, 6000 ** 2], ndim=2
+    )
     kernel.freeze_parameter("k2:metric:log_M_1_1")
 
     gp = george.GP(kernel)
@@ -67,16 +77,21 @@ def fit_2d_gp(obj_data, return_kernel=False, **kwargs):
 
     bounds = [(0, np.log(1000 ** 2))]
     bounds = [(default_gp_param[0] - 10, default_gp_param[0] + 10)] + bounds
-    results = op.minimize(neg_log_like, gp.get_parameter_vector(),
-                          jac=grad_neg_log_like, method="L-BFGS-B",
-                          bounds=bounds, tol=1e-6)
+    results = op.minimize(
+        neg_log_like,
+        gp.get_parameter_vector(),
+        jac=grad_neg_log_like,
+        method="L-BFGS-B",
+        bounds=bounds,
+        tol=1e-6,
+    )
 
     if results.success:
         gp.set_parameter_vector(results.x)
     else:
         # Fit failed. Print out a warning, and use the initial guesses for fit
         # parameters.
-        obj = obj_data['object_id'][0]
+        obj = obj_data["object_id"][0]
         print("GP fit failed for {}! Using guessed GP parameters.".format(obj))
         gp.set_parameter_vector(default_gp_param)
 
@@ -140,9 +155,7 @@ def robust_scale(df, scale_columns):
 
     scaler = scaler.fit(df[scale_columns])
 
-    df.loc[:, scale_columns] = scaler.transform(
-        df[scale_columns].to_numpy()
-    )
+    df.loc[:, scale_columns] = scaler.transform(df[scale_columns].to_numpy())
     # df_val.loc[:, scale_columns] = scaler.transform(
     #     df_val[scale_columns].to_numpy()
     # )

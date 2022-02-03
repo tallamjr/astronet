@@ -6,13 +6,17 @@ import pandas as pd
 import pickle
 import tensorflow as tf
 
+from typing import List, Dict
+
 from pathlib import Path
 from scipy import stats
 from sklearn import model_selection
 
 from astronet.constants import (
-    pb_wavelengths,
-    astronet_working_directory as asnwd,
+    LSST_FILTER_MAP,
+    ZTF_FILTER_MAP,
+    LSST_PB_WAVELENGTHS,
+    ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
@@ -27,7 +31,7 @@ from astronet.preprocess import (
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
-def astronet_logger(name, level="INFO"):
+def astronet_logger(name: str, level: str="INFO") -> logging.Logger:
     """ Initialise python logger.
 
     Parameters
@@ -78,7 +82,7 @@ def astronet_logger(name, level="INFO"):
     return logger
 
 
-def find_optimal_batch_size(training_set_length):
+def find_optimal_batch_size(training_set_length: int) -> int:
 
     if (training_set_length < 10000):
         batch_size_list = [16, 32, 64]
@@ -261,17 +265,17 @@ def load_mts(dataset):
     return X_train, y_train, X_test, y_test
 
 
-def __remap_filters(df):
-    """Function to remap integer filters to the corresponding lsst filters and
-    also to set filter name syntax to what snmachine already recognizes
+def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
+    """Function to remap integer filters to the corresponding filters.
 
-    df: pandas.dataframe
+    df: pd.DataFrame
         Dataframe of lightcurve observations
+    filter_map: dict
+        Corresponding map for filters used. Current options are found in astronet.constants:
+        {LSST_FILTER_MAP, ZTF_FILTER_MAP}
     """
     df.rename({'passband': 'filter'}, axis='columns', inplace=True)
-    filter_replace = {0: 'lsstu', 1: 'lsstg', 2: 'lsstr', 3: 'lssti',
-                      4: 'lsstz', 5: 'lssty'}
-    df['filter'].replace(to_replace=filter_replace, inplace=True)
+    df['filter'].replace(to_replace=filter_map, inplace=True)
     return df
 
 
@@ -282,7 +286,7 @@ def __filter_dataframe_only_supernova(object_list_filename, dataframe):
     return filtered_dataframe
 
 
-def __transient_trim(object_list, df):
+def __transient_trim(object_list: List[str], df: pd.DataFrame) -> (pd.DataFrame, List[np.array]):
     adf = pd.DataFrame(data=[], columns=df.columns)
     good_object_list = []
     for obj in object_list:
@@ -312,27 +316,87 @@ def __transient_trim(object_list, df):
     return obs_transient, list(new_filtered_object_list)
 
 
-def __generate_gp_all_objects(object_list, obs_transient, timesteps):
-    adf = pd.DataFrame(
-        data=[],
-        columns=["mjd", "lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz", "object_id"],
-    )
+def text_to_bits(text, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(int.from_bytes(text.encode(encoding, errors), 'big'))[2:]
+    return int(bits.zfill(8 * ((len(bits) + 7) // 8)), 2)
+
+
+def text_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
+    bits = bin(bits)
+    n = int(bits, 2)
+    return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode(encoding, errors) or '\0'
+
+
+def generate_gp_single_event(df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+    """ Intermediate helper function useful for visualisation of the original data with the mean of
+    the Gaussian Process interpolation as well as the uncertainity.
+
+    Additional steps required to build full dataframe for classification found in
+    `generate_gp_all_objects`, namely:
+
+        ...
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
+        obj_gps = obj_gps.reset_index()
+        obj_gps["object_id"] = object_id
+        ...
+
+    To allow a transformation from:
+
+        mjd	        flux	    flux_error	filter
+    0	0.000000	19.109279	0.176179	ztfg
+    1	0.282785	19.111843	0.173419	ztfg
+    2	0.565571	19.114406	0.170670	ztfg
+
+    to ...
+
+    filter	mjd	        ztfg    ztfr	object_id
+    0	    0	        19.1093	19.2713	27955532126447639664866058596
+    1	    0.282785	19.1118	19.2723	27955532126447639664866058596
+    2	    0.565571	19.1144	19.2733	27955532126447639664866058596
+
+    Examples
+    --------
+    >>> _obj_gps = generate_gp_single_event(data)
+    >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
+    """
+
+    filters = df['filter']
+    filters = list(np.unique(filters))
+
+    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+
+    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+
+    number_gp = timesteps
+    gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+    obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
+    obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+
+    return obj_gps
+
+
+def generate_gp_all_objects(object_list: List[str], obs_transient: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
 
     filters = obs_transient['filter']
     filters = list(np.unique(filters))
-    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
-    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+
+    columns = []
+    columns.append('mjd')
+    for filt in filters:
+        columns.append(filt)
+    columns.append('object_id')
+
+    adf = pd.DataFrame(
+        data=[],
+        columns=columns,
+    )
 
     for object_id in object_list:
         print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
         df = obs_transient[obs_transient["object_id"] == object_id]
 
-        gp_predict = fit_2d_gp(df)
-
-        number_gp = timesteps
-        gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
-        obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
-        obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+        obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
 
         obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
@@ -351,7 +415,7 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
         f"{asnwd}/data/plasticc/training_set.csv",
         sep=",",
     )
-    data = __remap_filters(df=data)
+    data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
     data.rename(
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
@@ -369,7 +433,8 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     object_list = list(np.unique(df['object_id']))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -431,7 +496,7 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
         f"{asnwd}/data/plasticc/test_set/{batch_filename}.csv",
         sep=",",
     )
-    data = __remap_filters(df=data)
+    data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
     data.rename(
         {"flux_err": "flux_error"}, axis="columns", inplace=True
     )  # snmachine and PLAsTiCC uses a different denomination
@@ -452,7 +517,8 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     object_list = list(np.unique(df['object_id']))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -535,7 +601,8 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
     object_list = list(np.unique(df['object_id']))
 
     obs_transient, object_list = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, obs_transient, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
+            LSST_PB_WAVELENGTHS)
     # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -668,7 +735,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     print(len(object_list))
 
     # obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = __generate_gp_all_objects(object_list, df, timesteps)
+    generated_gp_dataset = generate_gp_all_objects(object_list, df, timesteps, LSST_PB_WAVELENGTHS)
     generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -728,32 +795,14 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     return df
 
 
-def get_data_count(dataset, dataform, y_train, y_test):
+def get_data_count(dataset, y_train, y_test, dataform=None):
+
+    if dataform is None:
+        print("Using WISDM data")
+        return
     with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
         encoding = joblib.load(eb)
-    class_encoding = encoding.categories_[0]
 
-    if dataset == "plasticc":
-        class_mapping = {
-                90: "SNIa",
-                67: "SNIa-91bg",
-                52: "SNIax",
-                42: "SNII",
-                62: "SNIbc",
-                95: "SLSN-I",
-                15: "TDE",
-                64: "KN",
-                88: "AGN",
-                92: "RRL",
-                65: "M-dwarf",
-                16: "EB",
-                53: "Mira",
-                6: "$\mu$-Lens-Single",
-        }
-        class_encoding
-        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-    else:
-        class_names = class_encoding
     from collections import Counter
     from pandas.core.common import flatten
 
@@ -766,6 +815,7 @@ def get_data_count(dataset, dataform, y_train, y_test):
     print("N_TEST:", y_test_count)
 
     return y_train_count, y_test_count
+
 
 def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
 
@@ -961,7 +1011,7 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
         class_99_index = []
         for i in range(len(y_full_test.flatten())):
             if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
-                pass
+                continue
             else:
                 class_99_index.append(i)
 
@@ -1173,8 +1223,9 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         return Xs, ys, np.array(ZX)
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None):
+def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None, fink=None):
     if dataset == "wisdm_2010":
+        dataform = None
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2010()
         # One hot encode y
@@ -1187,6 +1238,7 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         loss = "categorical_crossentropy"
 
     elif dataset == "wisdm_2019":
+        dataform = None
         # Load data
         X_train, y_train, X_test, y_test = load_wisdm_2019()
         # One hot encode y
@@ -1212,6 +1264,7 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         "Wafer",
         "WalkvsRun",
     ]:
+        dataform = None
         # Load data
         X_train, y_train, X_test, y_test = load_mts(dataset)
         # transform the labels from integers to one hot vectors
@@ -1302,9 +1355,14 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         X_train = X_resampled
         y_train = y_resampled
 
-    y_train_count, y_test_count = get_data_count(dataset, dataform, y_train, y_test)
+    if dataform is not None:
+        y_train_count, y_test_count = get_data_count(dataset, y_train, y_test, dataform=dataform)
 
     if redshift is None:
+        if fink is not None:
+            X_train = X_train[:, :, 0:3:2]
+            X_test = X_test[:, :, 0:3:2]
+            return X_train, y_train, X_test, y_test, loss
         return X_train, y_train, X_test, y_test, loss
     else:
         return X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test

@@ -1,8 +1,9 @@
-cff-version: 1.1.0
-message: If you use this software, please cite it as below.
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
 authors:
-  - family-names: Druskat
-    given-names: Stephan
-title: My Research Tool
-version: 1.0.4
-date-released: 2017-12-18
+  - family-names: Allam Jr.
+    given-names: Tarek
+    orcid: https://orcid.org/0000-0002-8117-9254
+title: "astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning"
+version: 1.0.0
+date-released: 2022-02-02

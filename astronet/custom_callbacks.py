@@ -11,11 +11,12 @@ from IPython.display import Image as IPyImage
 from PIL import Image
 
 from astronet.utils import astronet_logger
+
 log = astronet_logger(__file__)
 
 # Visualization utilities
-plt.rc('font', size=20)
-plt.rc('figure', figsize=(15, 3))
+plt.rc("font", size=20)
+plt.rc("figure", figsize=(15, 3))
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -29,11 +30,11 @@ class SGEBreakoutCallback(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         hrs = subprocess.run(
-                f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'",
-                check=True,
-                capture_output=True,
-                shell=True,
-                text=True,
+            f"qstat -j {os.environ.get('JOB_ID')} | grep 'cpu' | awk '{{print $3}}' | awk -F ':' '{{print $1}}' | awk -F  '=' '{{print $2}}'",
+            check=True,
+            capture_output=True,
+            shell=True,
+            text=True,
         ).stdout.strip()
 
         if int(hrs) > self.threshold:
@@ -106,7 +107,7 @@ class VisCallback(tf.keras.callbacks.Callback):
 
         # Save the figure
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format="png")
         buf.seek(0)
         image = Image.open(buf)
         self.images.append(np.array(image))
@@ -116,5 +117,5 @@ class VisCallback(tf.keras.callbacks.Callback):
             plt.show()
 
     def on_train_end(self, logs=None):
-        GIF_PATH = './animation.gif'
+        GIF_PATH = "./animation.gif"
         imageio.mimsave(GIF_PATH, self.images, fps=1)

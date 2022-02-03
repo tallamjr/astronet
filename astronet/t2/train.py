@@ -46,7 +46,7 @@ os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
 class Training(object):
     # TODO: Update docstrings
-    def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset):
+    def __init__(self, epochs, dataset, model, redshift, augmented, avocado, testset, fink):
         self.epochs = epochs
         self.dataset = dataset
         self.model = model
@@ -54,6 +54,7 @@ class Training(object):
         self.augmented = augmented
         self.avocado = avocado
         self.testset = testset
+        self.fink = fink
 
     def __call__(self):
 
@@ -66,7 +67,7 @@ class Training(object):
             num_aux_feats = ZX_train.shape[1]
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(dataset, augmented=self.augmented,
-                avocado=self.avocado, testset=self.testset
+                avocado=self.avocado, testset=self.testset, fink=self.fink,
             )
             hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
             num_aux_feats = 0
@@ -253,6 +254,7 @@ class Training(object):
         model_params['augmented'] = self.augmented
         model_params['avocado'] = self.avocado
         model_params['testset'] = self.testset
+        model_params['fink'] = self.fink
         model_params['num_classes'] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
             test_input, y_test, verbose=0, batch_size=batch_size
@@ -313,6 +315,9 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--testset', default=None,
             help='Train using PLAsTiCC test data for representative test')
 
+    parser.add_argument('-f', '--fink', default=None,
+            help='Train using PLAsTiCC but only g and r bands for FINK')
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -340,9 +345,13 @@ if __name__ == "__main__":
     if redshift is not None:
         redshift = True
 
+    fink = args.fink
+    if fink is not None:
+        fink = True
+
     training = Training(
         epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
-        augmented=augmented, avocado=avocado, testset=testset
+        augmented=augmented, avocado=avocado, testset=testset, fink=fink,
     )
     if dataset in ["WalkvsRun", "NetFlow"]:
         # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead
