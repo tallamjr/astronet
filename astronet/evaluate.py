@@ -39,13 +39,22 @@ tf.random.set_seed(RANDOM_SEED)
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 
-parser = argparse.ArgumentParser(description='Evaluate best performing model for a given dataset')
+parser = argparse.ArgumentParser(
+    description="Evaluate best performing model for a given dataset"
+)
 
-parser.add_argument('-m', '--model',
-        help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+parser.add_argument(
+    "-m",
+    "--model",
+    help="Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>",
+)
 
-parser.add_argument("-d", "--dataset", default="wisdm_2010",
-        help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+parser.add_argument(
+    "-d",
+    "--dataset",
+    default="wisdm_2010",
+    help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'",
+)
 
 try:
     args = parser.parse_args()
@@ -97,16 +106,22 @@ with open(f"{asnwd}/astronet/t2/models/{dataset}/results.json") as f:
     events = json.load(f)
     if args.model:
         # Get params for model chosen with cli args
-        event = next(item for item in events['training_result'] if item["name"] == args.model)
+        event = next(
+            item for item in events["training_result"] if item["name"] == args.model
+        )
         # print(event)
     else:
         # Get params for best model with highest test accuracy
-        event = min(events['training_result'], key=lambda ev: ev['model_evaluate_on_test_loss'])
+        event = min(
+            events["training_result"], key=lambda ev: ev["model_evaluate_on_test_loss"]
+        )
         print(event)
 
-model_name = event['name']
+model_name = event["name"]
 
-model = keras.models.load_model(f"{asnwd}/astronet/t2/models/{args.dataset}/model-{model_name}")
+model = keras.models.load_model(
+    f"{asnwd}/astronet/t2/models/{args.dataset}/model-{model_name}"
+)
 
 model.evaluate(X_test, sk_y_test)
 model.evaluate(X_test, tf_y_test)
@@ -115,9 +130,12 @@ y_probs = model.predict(X_test)
 cm = confusion_matrix(enc.inverse_transform(sk_y_test), enc.inverse_transform(y_probs))
 print(cm / np.sum(cm, axis=1, keepdims=1))
 
-print("             Results for Test Set\n\n" +
-      classification_report(enc.inverse_transform(y_probs),
-                            enc.inverse_transform(sk_y_test)))
+print(
+    "             Results for Test Set\n\n"
+    + classification_report(
+        enc.inverse_transform(y_probs), enc.inverse_transform(sk_y_test)
+    )
+)
 
 
 closs = custom_log_loss(tf_y_test, y_probs)
