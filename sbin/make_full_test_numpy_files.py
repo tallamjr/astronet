@@ -357,7 +357,7 @@ batch_filename = [
 
 # X
 X_full_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_test_plasticc_test_lightcurves_01.npy",
+    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_test_plasticc_test_lightcurves_01.npy",
 )
 
 for file in batch_filename:
@@ -374,7 +374,7 @@ np.save(
 
 # y
 y_full_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_test_plasticc_test_lightcurves_01.npy",
+    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_test_plasticc_test_lightcurves_01.npy",
 )
 
 for file in batch_filename:
@@ -390,7 +390,7 @@ np.save(
 )
 
 Z_full_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_ZX_test_plasticc_test_lightcurves_01.npy",
+    f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_ZX_test_plasticc_test_lightcurves_01.npy",
 )
 
 for file in batch_filename:
