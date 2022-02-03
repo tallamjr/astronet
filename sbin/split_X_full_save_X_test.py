@@ -29,11 +29,14 @@ print(
 )
 
 np.save(
-    f"{asnwd}/data/plasticc/test_set/infer/X_test.npy", X_test,
+    f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
+    X_test,
 )
 np.save(
-    f"{asnwd}/data/plasticc/test_set/infer/y_test.npy", y_test,
+    f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
+    y_test,
 )
 np.save(
-    f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy", Z_test,
+    f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
+    Z_test,
 )

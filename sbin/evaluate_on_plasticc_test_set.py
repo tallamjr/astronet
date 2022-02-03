@@ -59,9 +59,15 @@ class Plots(object):
         #                                                                         avocado=None,
         #                                                                         testset=True
         #                                                         )
-        X_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",)
-        y_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",)
-        Z_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",)
+        X_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
+        )
+        y_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
+        )
+        Z_test = np.load(
+            f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
+        )
 
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
