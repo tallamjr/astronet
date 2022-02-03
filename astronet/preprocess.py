@@ -15,7 +15,7 @@ def fit_2d_gp(
     obj_data: pd.DataFrame,
     return_kernel: bool = False,
     pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
-    **kwargs
+    **kwargs,
 ):
     """Fit a 2D Gaussian process.
 
