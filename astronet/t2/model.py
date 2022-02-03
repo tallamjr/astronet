@@ -24,7 +24,6 @@ class T2Model(keras.Model):
         self.droprate       = droprate
         self.num_aux_feats  = num_aux_feats
         self.add_aux_feats_to   = add_aux_feats_to
-        # self.fc_neurons     = fc_neurons
 
         self.num_classes    = num_classes
         if self.add_aux_feats_to == "L":
@@ -120,27 +119,6 @@ class T2Model(keras.Model):
             #     x = self.dropout2(x, training=training)
 
             classifier = self.classifier(x)
-
-        #elif (isinstance(inputs, list)) and (self.add_aux_feats_to == "L"):
-            # X in L x M
-        #    x = inputs[0]
-            # Additional Z features
-        #    z = inputs[1]
-            # >>> z.shape
-            # TensorShape([None, 2])
-
-        #    x = self.embedding(x)  # Transforms X in (L + 2) x M -> X in L x d
-
-        #    x = self.pos_encoding(x) # X <- X + P, where X in L x d
-
-        #    for layer in self.encoder:
-        #        x = layer(x, training)
-
-        #    x = self.pooling(x)
-        #    if training:
-        #        x = self.dropout1(x, training=training)
-
-        #    classifier = self.classifier(x)
 
 
         return classifier
