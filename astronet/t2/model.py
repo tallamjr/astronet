@@ -2,7 +2,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from astronet.t2.transformer import ConvEmbedding, RelativePositionEmbedding, PositionalEncoding, TransformerBlock
+from astronet.t2.transformer import (
+    ConvEmbedding,
+    RelativePositionEmbedding,
+    PositionalEncoding,
+    TransformerBlock,
+)
 
 
 class T2Model(keras.Model):
@@ -12,41 +17,62 @@ class T2Model(keras.Model):
     num_heads --> Number of attention heads
     ff_dim    --> Hidden layer size in feed forward network inside transformer
     """
-    def __init__(self, input_dim, embed_dim, num_heads, ff_dim, num_filters, num_classes,
-            num_layers, droprate, num_aux_feats=0, add_aux_feats_to="M", **kwargs):
-        super(T2Model, self).__init__()
-        self.input_dim      = input_dim
-        self.embed_dim      = embed_dim
-        self.num_heads      = num_heads
-        self.ff_dim         = ff_dim
-        self.num_filters    = num_filters
-        self.num_layers     = num_layers
-        self.droprate       = droprate
-        self.num_aux_feats  = num_aux_feats
-        self.add_aux_feats_to   = add_aux_feats_to
 
-        self.num_classes    = num_classes
+    def __init__(
+        self,
+        input_dim,
+        embed_dim,
+        num_heads,
+        ff_dim,
+        num_filters,
+        num_classes,
+        num_layers,
+        droprate,
+        num_aux_feats=0,
+        add_aux_feats_to="M",
+        **kwargs
+    ):
+        super(T2Model, self).__init__()
+        self.input_dim = input_dim
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.ff_dim = ff_dim
+        self.num_filters = num_filters
+        self.num_layers = num_layers
+        self.droprate = droprate
+        self.num_aux_feats = num_aux_feats
+        self.add_aux_feats_to = add_aux_feats_to
+
+        self.num_classes = num_classes
         if self.add_aux_feats_to == "L":
             self.sequence_length = input_dim[1] + self.num_aux_feats
         else:
-            self.sequence_length = input_dim[1]   # input_dim.shape = (batch_size, input_seq_len, d_model)
+            self.sequence_length = input_dim[
+                1
+            ]  # input_dim.shape = (batch_size, input_seq_len, d_model)
 
-        self.embedding      = ConvEmbedding(num_filters=self.num_filters, input_shape=input_dim)
+        self.embedding = ConvEmbedding(
+            num_filters=self.num_filters, input_shape=input_dim
+        )
 
         # <-- Additional layers when adding Z features here -->
 
-        self.pos_encoding   = PositionalEncoding(max_steps=self.sequence_length, max_dims=self.embed_dim)
+        self.pos_encoding = PositionalEncoding(
+            max_steps=self.sequence_length, max_dims=self.embed_dim
+        )
 
-        self.encoder        = [TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
-                                for _ in range(num_layers)]
+        self.encoder = [
+            TransformerBlock(self.embed_dim, self.num_heads, self.ff_dim)
+            for _ in range(num_layers)
+        ]
 
-        self.pooling        = layers.GlobalAveragePooling1D()
-        self.dropout1       = layers.Dropout(self.droprate)
+        self.pooling = layers.GlobalAveragePooling1D()
+        self.dropout1 = layers.Dropout(self.droprate)
 
         # self.fc             = layers.Dense(self.embed_dim, activation=tf.keras.layers.LeakyReLU(alpha=0.01))
         # self.dropout2       = layers.Dropout(self.droprate)
 
-        self.classifier     = layers.Dense(self.num_classes, activation="softmax")
+        self.classifier = layers.Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs, training=None):
 
@@ -102,7 +128,7 @@ class T2Model(keras.Model):
             # transforms X in (L + 2) x M -> X in L x d if self.add_aux_feats_to == "L"
             x = self.embedding(x)
 
-            x = self.pos_encoding(x) # X <- X + P, where X in L x d
+            x = self.pos_encoding(x)  # X <- X + P, where X in L x d
 
             for layer in self.encoder:
                 x = layer(x, training)
@@ -120,11 +146,12 @@ class T2Model(keras.Model):
 
             classifier = self.classifier(x)
 
-
         return classifier
 
     def build_graph(self, input_shapes):
-        if isinstance(input_shapes, tuple):  # A list would imply there is multiple inputs
+        if isinstance(
+            input_shapes, tuple
+        ):  # A list would imply there is multiple inputs
             # Code lifted from example:
             # https://github.com/tensorflow/tensorflow/issues/29132#issuecomment-504679288
             input_shape_nobatch = input_shapes[1:]
@@ -138,7 +165,7 @@ class T2Model(keras.Model):
                 tf.keras.Input(shape=Z_input_shape_nobatch),
             ]
 
-        if not hasattr(self, 'call'):
+        if not hasattr(self, "call"):
             raise AttributeError("User should define 'call' method in sub-class model!")
 
         _ = self.call(inputs)
