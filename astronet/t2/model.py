@@ -30,7 +30,7 @@ class T2Model(keras.Model):
         droprate,
         num_aux_feats=0,
         add_aux_feats_to="M",
-        **kwargs
+        **kwargs,
     ):
         super(T2Model, self).__init__()
         self.input_dim = input_dim
