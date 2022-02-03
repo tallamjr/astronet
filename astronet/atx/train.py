@@ -54,7 +54,6 @@ os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
 class Training(object):
-    # TODO: Update docstrings
     def __init__(self, epochs, dataset, model, redshift, balance, avocado, testset):
         self.epochs = epochs
         self.dataset = dataset
@@ -65,6 +64,31 @@ class Training(object):
         self.testset = testset
 
     def __call__(self):
+        """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+        Parameters
+        ----------
+        object_list: List[str]
+            List of objects to apply the transformation to
+        df: pd.DataFrame
+            DataFrame containing the full light curve including dead points.
+
+        Returns
+        -------
+        obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+            Tuple containing the updated dataframe with only the transient section, and a list of
+            objects that the transformation was successful for. Note, some objects may cause an error
+            and hence would not be returned in the new transformed dataframe
+
+        Examples
+        --------
+        >>> object_list = list(np.unique(df["object_id"]))
+        >>> obs_transient, object_list = __transient_trim(object_list, df)
+        >>> generated_gp_dataset = generate_gp_all_objects(
+            object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+            )
+        ...
+        """
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
