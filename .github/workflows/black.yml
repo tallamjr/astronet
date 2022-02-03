@@ -17,5 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - uses: psf/black@stable
+        with:
+          version: "19.10b0"
       - name: Code Quality
         run: black . --check
