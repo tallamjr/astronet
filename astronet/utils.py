@@ -31,8 +31,8 @@ from astronet.preprocess import (
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
-def astronet_logger(name: str, level: str="INFO") -> logging.Logger:
-    """ Initialise python logger.
+def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
+    """Initialise python logger.
 
     Parameters
     ----------
@@ -84,7 +84,7 @@ def astronet_logger(name: str, level: str="INFO") -> logging.Logger:
 
 def find_optimal_batch_size(training_set_length: int) -> int:
 
-    if (training_set_length < 10000):
+    if training_set_length < 10000:
         batch_size_list = [16, 32, 64]
     else:
         batch_size_list = [96, 128, 256]
@@ -148,8 +148,8 @@ def load_wisdm_2010(timesteps=200, step=200):
     ]
 
     df = pd.read_csv(
-        str(Path(__file__).absolute().parent.parent) +
-        "/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
+        str(Path(__file__).absolute().parent.parent)
+        + "/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
         header=None,
         names=column_names,
     )
@@ -166,12 +166,7 @@ def load_wisdm_2010(timesteps=200, step=200):
     TIME_STEPS = timesteps
     STEP = step
 
-    Xs, ys = create_dataset(
-        df[cols],
-        df.activity,
-        TIME_STEPS,
-        STEP
-    )
+    Xs, ys = create_dataset(df[cols], df.activity, TIME_STEPS, STEP)
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         Xs, ys, random_state=RANDOM_SEED
@@ -218,7 +213,7 @@ def load_wisdm_2019(timesteps=200, step=200):
     # compare results with laatest attempts at applying deep learning methods to the updated WISDM
     # dataset
     with open(f"{asnwd}/data/wisdm-dataset/phone.df", "rb") as phone_dataframe:
-            df = pickle.load(phone_dataframe)
+        df = pickle.load(phone_dataframe)
 
     assert df.shape == (4780251, 9)
 
@@ -233,12 +228,7 @@ def load_wisdm_2019(timesteps=200, step=200):
     TIME_STEPS = timesteps
     STEP = step
 
-    Xs, ys = create_dataset(
-        df[cols],
-        df.activity,
-        TIME_STEPS,
-        STEP
-    )
+    Xs, ys = create_dataset(df[cols], df.activity, TIME_STEPS, STEP)
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         Xs, ys, random_state=RANDOM_SEED
@@ -249,18 +239,10 @@ def load_wisdm_2019(timesteps=200, step=200):
 
 def load_mts(dataset):
 
-    X_train = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy"
-    )
-    y_train = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy"
-    )
-    X_test = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/x_test.npy"
-    )
-    y_test = np.load(
-        f"{asnwd}/data/transformed-mtsdata/{dataset}/y_test.npy"
-    )
+    X_train = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy")
+    y_train = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy")
+    X_test = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/x_test.npy")
+    y_test = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/y_test.npy")
 
     return X_train, y_train, X_test, y_test
 
@@ -274,34 +256,67 @@ def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
         Corresponding map for filters used. Current options are found in astronet.constants:
         {LSST_FILTER_MAP, ZTF_FILTER_MAP}
     """
-    df.rename({'passband': 'filter'}, axis='columns', inplace=True)
-    df['filter'].replace(to_replace=filter_map, inplace=True)
+    df.rename({"passband": "filter"}, axis="columns", inplace=True)
+    df["filter"].replace(to_replace=filter_map, inplace=True)
     return df
 
 
 def __filter_dataframe_only_supernova(object_list_filename, dataframe):
 
-    plasticc_object_list = np.genfromtxt(object_list_filename, dtype='U')
-    filtered_dataframe = dataframe[dataframe['object_id'].isin(plasticc_object_list)]
+    plasticc_object_list = np.genfromtxt(object_list_filename, dtype="U")
+    filtered_dataframe = dataframe[dataframe["object_id"].isin(plasticc_object_list)]
     return filtered_dataframe
 
 
-def __transient_trim(object_list: List[str], df: pd.DataFrame) -> (pd.DataFrame, List[np.array]):
+def __transient_trim(
+    object_list: List[str], df: pd.DataFrame
+) -> (pd.DataFrame, List[np.array]):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     adf = pd.DataFrame(data=[], columns=df.columns)
     good_object_list = []
     for obj in object_list:
-        obs = df[df['object_id'] == obj]
-        obs_time = obs['mjd']
-        obs_detected_time = obs_time[obs['detected'] == 1]
+        obs = df[df["object_id"] == obj]
+        obs_time = obs["mjd"]
+        obs_detected_time = obs_time[obs["detected"] == 1]
         if len(obs_detected_time) == 0:
             print(f"Zero detected points for object:{object_list.index(obj)}")
             continue
-        is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (obs_time < obs_detected_time.iat[-1] + 50)
+        is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (
+            obs_time < obs_detected_time.iat[-1] + 50
+        )
         obs_transient = obs[is_obs_transient]
-        if len(obs_transient['mjd']) == 0:
-            is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (obs_time < obs_detected_time.iat[-1] + 1000)
+        if len(obs_transient["mjd"]) == 0:
+            is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (
+                obs_time < obs_detected_time.iat[-1] + 1000
+            )
             obs_transient = obs[is_obs_transient]
-        obs_transient['mjd'] -= min(obs_transient['mjd'])  # so all transients start at time 0
+        obs_transient["mjd"] -= min(
+            obs_transient["mjd"]
+        )  # so all transients start at time 0
         good_object_list.append(object_list.index(obj))
         adf = np.vstack((adf, obs_transient))
 
@@ -316,19 +331,21 @@ def __transient_trim(object_list: List[str], df: pd.DataFrame) -> (pd.DataFrame,
     return obs_transient, list(new_filtered_object_list)
 
 
-def text_to_bits(text, encoding='utf-8', errors='surrogatepass'):
-    bits = bin(int.from_bytes(text.encode(encoding, errors), 'big'))[2:]
+def text_to_bits(text, encoding="utf-8", errors="surrogatepass"):
+    bits = bin(int.from_bytes(text.encode(encoding, errors), "big"))[2:]
     return int(bits.zfill(8 * ((len(bits) + 7) // 8)), 2)
 
 
-def text_from_bits(bits, encoding='utf-8', errors='surrogatepass'):
+def text_from_bits(bits, encoding="utf-8", errors="surrogatepass"):
     bits = bin(bits)
     n = int(bits, 2)
-    return n.to_bytes((n.bit_length() + 7) // 8, 'big').decode(encoding, errors) or '\0'
+    return n.to_bytes((n.bit_length() + 7) // 8, "big").decode(encoding, errors) or "\0"
 
 
-def generate_gp_single_event(df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
-    """ Intermediate helper function useful for visualisation of the original data with the mean of
+def generate_gp_single_event(
+    df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS
+) -> pd.DataFrame:
+    """Intermediate helper function useful for visualisation of the original data with the mean of
     the Gaussian Process interpolation as well as the uncertainity.
 
     Additional steps required to build full dataframe for classification found in
@@ -360,7 +377,7 @@ def generate_gp_single_event(df: pd.DataFrame, timesteps: int = 100, pb_waveleng
     >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
     """
 
-    filters = df['filter']
+    filters = df["filter"]
     filters = list(np.unique(filters))
 
     gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
@@ -376,16 +393,21 @@ def generate_gp_single_event(df: pd.DataFrame, timesteps: int = 100, pb_waveleng
     return obj_gps
 
 
-def generate_gp_all_objects(object_list: List[str], obs_transient: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS) -> pd.DataFrame:
+def generate_gp_all_objects(
+    object_list: List[str],
+    obs_transient: pd.DataFrame,
+    timesteps: int = 100,
+    pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
+) -> pd.DataFrame:
 
-    filters = obs_transient['filter']
+    filters = obs_transient["filter"]
     filters = list(np.unique(filters))
 
     columns = []
-    columns.append('mjd')
+    columns.append("mjd")
     for filt in filters:
         columns.append(filt)
-    columns.append('object_id')
+    columns.append("object_id")
 
     adf = pd.DataFrame(
         data=[],
@@ -430,12 +452,13 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
         dataform = "full"
         df = data
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
-            LSST_PB_WAVELENGTHS)
-    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+    generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+    )
+    generated_gp_dataset["object_id"] = generated_gp_dataset["object_id"].astype(int)
 
     metadata_pd = pd.read_csv(
         f"{asnwd}/data/plasticc/training_set_metadata.csv",
@@ -444,9 +467,9 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     )
 
     metadata_pd = metadata_pd.reset_index()
-    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+    metadata_pd["object_id"] = metadata_pd["object_id"].astype(int)
 
-    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on="object_id", how="left")
 
     df = df_with_labels.filter(
         items=[
@@ -466,14 +489,16 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     print(df.dtypes)
     df.convert_dtypes()
-    df['object_id'] = df['object_id'].astype(int)
+    df["object_id"] = df["object_id"].astype(int)
     print(df.dtypes)
 
     print(df.columns)
     print(df.head())
     print(df.dtypes)
 
-    df.to_csv(f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv")
+    df.to_csv(
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.csv"
+    )
 
     # df.to_parquet(
     #     f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_with_z.parquet",
@@ -484,7 +509,9 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
     return df
 
 
-def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+def __load_plasticc_test_set_dataset_from_csv(
+    timesteps, snonly=None, batch_filename=None
+):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -514,12 +541,13 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
         dataform = "full_test"
         df = data
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
 
     obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
-            LSST_PB_WAVELENGTHS)
-    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+    generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+    )
+    generated_gp_dataset["object_id"] = generated_gp_dataset["object_id"].astype(int)
 
     metadata_pd = pd.read_csv(
         f"{asnwd}/data/plasticc/test_set/plasticc_test_metadata.csv",
@@ -528,9 +556,9 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     )
 
     metadata_pd = metadata_pd.reset_index()
-    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+    metadata_pd["object_id"] = metadata_pd["object_id"].astype(int)
 
-    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on="object_id", how="left")
 
     df = df_with_labels.filter(
         items=[
@@ -550,7 +578,7 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
 
     print(df.dtypes)
     df.convert_dtypes()
-    df['object_id'] = df['object_id'].astype(int)
+    df["object_id"] = df["object_id"].astype(int)
     print(df.dtypes)
 
     print(df.columns)
@@ -570,7 +598,9 @@ def __load_plasticc_test_set_dataset_from_csv(timesteps, snonly=None, batch_file
     return df
 
 
-def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filename=None):
+def __load_avocado_plasticc_dataset_from_csv(
+    timesteps, snonly=None, batch_filename=None
+):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -581,12 +611,8 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
         sep=",",
     )
 
-    data.rename(
-        {"band": "filter"}, axis="columns", inplace=True
-    )
-    data.rename(
-        {"time": "mjd"}, axis="columns", inplace=True
-    )
+    data.rename({"band": "filter"}, axis="columns", inplace=True)
+    data.rename({"time": "mjd"}, axis="columns", inplace=True)
 
     if snonly is not None:
         dataform = "snonly"
@@ -598,11 +624,12 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
         dataform = "avocado"
         df = data
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
 
     obs_transient, object_list = __transient_trim(object_list, df)
-    generated_gp_dataset = generate_gp_all_objects(object_list, obs_transient, timesteps,
-            LSST_PB_WAVELENGTHS)
+    generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+    )
     # generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
 
     metadata_pd = pd.read_csv(
@@ -614,11 +641,9 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
     metadata_pd = metadata_pd.reset_index()
     # metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
 
-    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on="object_id", how="left")
 
-    df_with_labels.rename(
-        {"class": "target"}, axis="columns", inplace=True
-    )
+    df_with_labels.rename({"class": "target"}, axis="columns", inplace=True)
     df_with_labels.rename(
         {"host_photoz": "hostgal_photoz"}, axis="columns", inplace=True
     )
@@ -651,7 +676,9 @@ def __load_avocado_plasticc_dataset_from_csv(timesteps, snonly=None, batch_filen
     print(df.head())
     print(df.dtypes)
 
-    df.to_csv(f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv")
+    df.to_csv(
+        f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_with_z_{batch_filename}.csv"
+    )
 
     return df
 
@@ -679,12 +706,14 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
         adf = pd.concat([adf, aug.data[object_list[i]].to_pandas()])
 
     # adf = adf.set_index('object_id')
-    adf = adf.replace({'_aug': '000'}, regex=True)
+    adf = adf.replace({"_aug": "000"}, regex=True)
     adf = adf.convert_dtypes()
     print(adf.dtypes)
     print(adf.head())
-    print(adf['object_id'].values)
-    np.savetxt(f"{asnwd}/data/plasticc/aug_object_list.txt", adf['object_id'].values, fmt='%s')
+    print(adf["object_id"].values)
+    np.savetxt(
+        f"{asnwd}/data/plasticc/aug_object_list.txt", adf["object_id"].values, fmt="%s"
+    )
 
     # try:
     #     adf.to_parquet(
@@ -713,7 +742,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
             f"{asnwd}/data/plasticc/aug_z_new_long_46k.pckl"
         )
 
-    data = data.replace({'_aug': '000'}, regex=True)
+    data = data.replace({"_aug": "000"}, regex=True)
     data = data.convert_dtypes()
 
     # data = __remap_filters(df=data)
@@ -731,12 +760,14 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     print(df.head())
     print(df.dtypes)
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
     print(len(object_list))
 
     # obs_transient = __transient_trim(object_list, df)
-    generated_gp_dataset = generate_gp_all_objects(object_list, df, timesteps, LSST_PB_WAVELENGTHS)
-    generated_gp_dataset['object_id'] = generated_gp_dataset['object_id'].astype(int)
+    generated_gp_dataset = generate_gp_all_objects(
+        object_list, df, timesteps, LSST_PB_WAVELENGTHS
+    )
+    generated_gp_dataset["object_id"] = generated_gp_dataset["object_id"].astype(int)
 
     metadata_pd = pd.read_csv(
         f"{asnwd}/data/plasticc/augmented_training_set_metadata.csv",
@@ -745,11 +776,11 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     )
 
     metadata_pd = metadata_pd.reset_index()
-    metadata_pd = metadata_pd.replace({'_aug': '000'}, regex=True)
+    metadata_pd = metadata_pd.replace({"_aug": "000"}, regex=True)
     metadata_pd = metadata_pd.convert_dtypes()
-    metadata_pd['object_id'] = metadata_pd['object_id'].astype(int)
+    metadata_pd["object_id"] = metadata_pd["object_id"].astype(int)
 
-    df_with_labels = generated_gp_dataset.merge(metadata_pd, on='object_id', how='left')
+    df_with_labels = generated_gp_dataset.merge(metadata_pd, on="object_id", how="left")
     print(df_with_labels.columns)
     print(df_with_labels.head())
     print(df_with_labels.dtypes)
@@ -772,7 +803,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
     print(df.dtypes)
     df.convert_dtypes()
-    df['object_id'] = df['object_id'].astype(int)
+    df["object_id"] = df["object_id"].astype(int)
     print(df.dtypes)
 
     print(df.columns)
@@ -780,7 +811,9 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
     print(df.dtypes)
 
     # df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z_backup.csv")
-    df.to_csv(f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv")
+    df.to_csv(
+        f"{asnwd}/data/plasticc/augmented_transformed_df_timesteps_{timesteps}_with_z.csv"
+    )
 
     # try:
     #     df.to_parquet(
@@ -817,7 +850,9 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
     return y_train_count, y_test_count
 
 
-def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None):
+def load_plasticc(
+    timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None
+):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -868,49 +903,39 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
         except IOError:
             df = __load_plasticc_dataset_from_csv(timesteps)
 
-    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
     robust_scale(df, cols)
 
-    Xs, ys = create_dataset(
-        df[cols],
-        df.target,
-        TIME_STEPS,
-        STEP
-    )
+    Xs, ys = create_dataset(df[cols], df.target, TIME_STEPS, STEP)
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         Xs, ys, random_state=RANDOM_SEED
     )
 
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_train.npy",
-            X_train,
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_train.npy",
+        X_train,
     )
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_test.npy",
-            X_test,
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_X_test.npy",
+        X_test,
     )
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_train.npy",
-            y_train,
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_train.npy",
+        y_train,
     )
     np.save(
-            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_test.npy",
-            y_test,
+        f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_y_test.npy",
+        y_test,
     )
 
     if redshift is None:
         return X_train, y_train, X_test, y_test
     else:
-        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        zcols = ["hostgal_photoz", "hostgal_photoz_err"]
         robust_scale(df, zcols)
 
-        ZXs, zys = create_dataset(
-            df[zcols],
-            df.target,
-            TIME_STEPS,
-            STEP
-        )
+        ZXs, zys = create_dataset(df[zcols], df.target, TIME_STEPS, STEP)
 
         ZX = []
         for z in range(0, len(ZXs)):
@@ -921,18 +946,20 @@ def load_plasticc(timesteps=100, step=100, redshift=None, augmented=None, snonly
         )
 
         np.save(
-                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_train.npy",
-                ZX_train,
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_train.npy",
+            ZX_train,
         )
         np.save(
-                f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
-                ZX_test,
+            f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
+            ZX_test,
         )
 
         return X_train, y_train, X_test, y_test, ZX_train, ZX_test
 
 
-def load_full_avocado_plasticc_from_numpy(timesteps=100, redshift=None, batch_filename=None):
+def load_full_avocado_plasticc_from_numpy(
+    timesteps=100, redshift=None, batch_filename=None
+):
 
     dataform = "avocado"
     try:
@@ -961,12 +988,20 @@ def load_full_avocado_plasticc_from_numpy(timesteps=100, redshift=None, batch_fi
             f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
         )
 
-
     except IOError:
-        X_train, y_train, Z_train = save_avocado_training_set(batch_filename=batch_filename)
+        X_train, y_train, Z_train = save_avocado_training_set(
+            batch_filename=batch_filename
+        )
 
     if redshift is not None:
-        return X_train, y_train, X_full_test_no_99, y_full_test_no_99, Z_train, Z_full_test_no_99
+        return (
+            X_train,
+            y_train,
+            X_full_test_no_99,
+            y_full_test_no_99,
+            Z_train,
+            Z_full_test_no_99,
+        )
     else:
         return X_train, y_train
 
@@ -1010,7 +1045,7 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
         # Get index of class 99, append index of those NOT 99 to 'keep' list
         class_99_index = []
         for i in range(len(y_full_test.flatten())):
-            if (y_full_test.flatten()[i] in [991, 992, 993, 994]):
+            if y_full_test.flatten()[i] in [991, 992, 993, 994]:
                 continue
             else:
                 class_99_index.append(i)
@@ -1026,7 +1061,6 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
         X_full_test_no_99 = np.take(array, filter_indices, axis)
         y_full_test_no_99 = np.take(arrayY, filter_indices, axis)
         Z_full_test_no_99 = np.take(arrayZ, filter_indices, axis)
-
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         X_full_test_no_99, y_full_test_no_99, train_size=0.75, random_state=RANDOM_SEED
@@ -1065,44 +1099,35 @@ def save_avocado_training_set(
         )
 
     except IOError:
-        df = __load_avocado_plasticc_dataset_from_csv(timesteps, batch_filename=batch_filename)
+        df = __load_avocado_plasticc_dataset_from_csv(
+            timesteps, batch_filename=batch_filename
+        )
 
-
-    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
     robust_scale(df, cols)
 
-    Xs, ys = create_dataset(
-        df[cols],
-        df.target,
-        TIME_STEPS,
-        STEP
-    )
+    Xs, ys = create_dataset(df[cols], df.target, TIME_STEPS, STEP)
 
     # X_train, X_test, y_train, y_test = model_selection.train_test_split(
     #     Xs, ys, random_state=RANDOM_SEED
     # )
 
     np.save(
-            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
-            Xs,
+        f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_X_train_{batch_filename}.npy",
+        Xs,
     )
     np.save(
-            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
-            ys,
+        f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_y_train_{batch_filename}.npy",
+        ys,
     )
 
     if redshift is None:
         return Xs, ys
     else:
-        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        zcols = ["hostgal_photoz", "hostgal_photoz_err"]
         robust_scale(df, zcols)
 
-        ZXs, zys = create_dataset(
-            df[zcols],
-            df.target,
-            TIME_STEPS,
-            STEP
-        )
+        ZXs, zys = create_dataset(df[zcols], df.target, TIME_STEPS, STEP)
 
         ZX = []
         for z in range(0, len(ZXs)):
@@ -1113,8 +1138,8 @@ def save_avocado_training_set(
         # )
 
         np.save(
-                f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
-                np.array(ZX),
+            f"{asnwd}/data/plasticc/avocado/{dataform}_transformed_df_timesteps_{timesteps}_Z_train_{batch_filename}.npy",
+            np.array(ZX),
         )
         # np.save(
         #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
@@ -1124,8 +1149,14 @@ def save_avocado_training_set(
         return Xs, ys, np.array(ZX)
 
 
-def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=None, snonly=None,
-        batch_filename=None):
+def save_plasticc_test_set(
+    timesteps=100,
+    step=100,
+    redshift=None,
+    augmented=None,
+    snonly=None,
+    batch_filename=None,
+):
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -1165,43 +1196,35 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
             )
 
         except IOError:
-            df = __load_plasticc_test_set_dataset_from_csv(timesteps, batch_filename=batch_filename)
+            df = __load_plasticc_test_set_dataset_from_csv(
+                timesteps, batch_filename=batch_filename
+            )
 
-    cols = ['lsstg', 'lssti', 'lsstr', 'lsstu', 'lssty', 'lsstz']
+    cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
     robust_scale(df, cols)
 
-    Xs, ys = create_dataset(
-        df[cols],
-        df.true_target,
-        TIME_STEPS,
-        STEP
-    )
+    Xs, ys = create_dataset(df[cols], df.true_target, TIME_STEPS, STEP)
 
     # X_train, X_test, y_train, y_test = model_selection.train_test_split(
     #     Xs, ys, random_state=RANDOM_SEED
     # )
 
     np.save(
-            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
-            Xs,
+        f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_X_test_{batch_filename}.npy",
+        Xs,
     )
     np.save(
-            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
-            ys,
+        f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_y_test_{batch_filename}.npy",
+        ys,
     )
 
     if redshift is None:
         return Xs, ys
     else:
-        zcols = ['hostgal_photoz', 'hostgal_photoz_err']
+        zcols = ["hostgal_photoz", "hostgal_photoz_err"]
         robust_scale(df, zcols)
 
-        ZXs, zys = create_dataset(
-            df[zcols],
-            df.true_target,
-            TIME_STEPS,
-            STEP
-        )
+        ZXs, zys = create_dataset(df[zcols], df.true_target, TIME_STEPS, STEP)
 
         ZX = []
         for z in range(0, len(ZXs)):
@@ -1212,8 +1235,8 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         # )
 
         np.save(
-                f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test_{batch_filename}.npy",
-                np.array(ZX),
+            f"{asnwd}/data/plasticc/test_set/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test_{batch_filename}.npy",
+            np.array(ZX),
         )
         # np.save(
         #         f"{asnwd}/data/plasticc/{dataform}_transformed_df_timesteps_{timesteps}_ZX_test.npy",
@@ -1223,7 +1246,16 @@ def save_plasticc_test_set(timesteps=100, step=100, redshift=None, augmented=Non
         return Xs, ys, np.array(ZX)
 
 
-def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=None, avocado=None, testset=None, fink=None):
+def load_dataset(
+    dataset,
+    redshift=None,
+    balance=None,
+    augmented=None,
+    snonly=None,
+    avocado=None,
+    testset=None,
+    fink=None,
+):
     if dataset == "wisdm_2010":
         dataform = None
         # Load data
@@ -1269,7 +1301,8 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         X_train, y_train, X_test, y_test = load_mts(dataset)
         # transform the labels from integers to one hot vectors
         import sklearn
-        enc = sklearn.preprocessing.OneHotEncoder(categories='auto')
+
+        enc = sklearn.preprocessing.OneHotEncoder(categories="auto")
         enc.fit(np.concatenate((y_train, y_test), axis=0).reshape(-1, 1))
         y_train = enc.transform(y_train.reshape(-1, 1)).toarray()
         y_test = enc.transform(y_test.reshape(-1, 1)).toarray()
@@ -1292,19 +1325,45 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         # Load data
         if redshift is None:
             if avocado is not None:
-                X_train, y_train, X_test, y_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+                (
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                ) = load_full_avocado_plasticc_from_numpy(redshift=redshift)
             elif testset is not None:
-                X_train, y_train, X_test, y_test = load_full_plasticc_test_from_numpy(redshift=redshift)
+                X_train, y_train, X_test, y_test = load_full_plasticc_test_from_numpy(
+                    redshift=redshift
+                )
             else:
-                X_train, y_train, X_test, y_test = load_plasticc(augmented=augmented, snonly=snonly, avocado=avocado)
+                X_train, y_train, X_test, y_test = load_plasticc(
+                    augmented=augmented, snonly=snonly, avocado=avocado
+                )
         else:  # With redshift
             if testset is not None:
-                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_plasticc_test_from_numpy(redshift=redshift)
+                (
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    ZX_train,
+                    ZX_test,
+                ) = load_full_plasticc_test_from_numpy(redshift=redshift)
             elif avocado is not None:
-                X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_full_avocado_plasticc_from_numpy(redshift=redshift)
+                (
+                    X_train,
+                    y_train,
+                    X_test,
+                    y_test,
+                    ZX_train,
+                    ZX_test,
+                ) = load_full_avocado_plasticc_from_numpy(redshift=redshift)
             else:
                 X_train, y_train, X_test, y_test, ZX_train, ZX_test = load_plasticc(
-                    redshift=redshift, augmented=augmented, snonly=snonly, avocado=avocado
+                    redshift=redshift,
+                    augmented=augmented,
+                    snonly=snonly,
+                    avocado=avocado,
                 )
 
         if augmented is not None:
@@ -1327,28 +1386,41 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         loss = WeightedLogLoss()
 
     if balance is not None:
-        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        (
+            num_samples,
+            timesteps,
+            num_features,
+        ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
 
         RANDOM_SEED = 42
         np.random.seed(RANDOM_SEED)
         # random_state: if None, the random number generator is the RandomState instance used by np.random.
 
-        from imblearn.under_sampling import RandomUnderSampler, InstanceHardnessThreshold
+        from imblearn.under_sampling import (
+            RandomUnderSampler,
+            InstanceHardnessThreshold,
+        )
         from imblearn.over_sampling import SVMSMOTE
 
         # sampler = SVMSMOTE(sampling_strategy="not majority")
         # sampler = InstanceHardnessThreshold(sampling_strategy="not minority")
         sampler = RandomUnderSampler(sampling_strategy="not minority")
 
-        X_resampled, y_resampled = sampler.fit_resample(X_train.reshape(X_train.shape[0], -1), y_train)
+        X_resampled, y_resampled = sampler.fit_resample(
+            X_train.reshape(X_train.shape[0], -1), y_train
+        )
 
         # Re-shape 2D data back to 3D original shape, i.e (BATCH_SIZE, timesteps, num_features)
-        X_resampled = np.reshape(X_resampled, (X_resampled.shape[0], timesteps, num_features))
+        X_resampled = np.reshape(
+            X_resampled, (X_resampled.shape[0], timesteps, num_features)
+        )
 
         if redshift is not None:
             num_z_samples, num_z_features = ZX_train.shape
             Z_resampled, _ = sampler.fit_resample(ZX_train, y_train)
-            Z_resampled = np.reshape(Z_resampled, (Z_resampled.shape[0], num_z_features))
+            Z_resampled = np.reshape(
+                Z_resampled, (Z_resampled.shape[0], num_z_features)
+            )
 
             ZX_train = Z_resampled
 
@@ -1356,7 +1428,9 @@ def load_dataset(dataset, redshift=None, balance=None, augmented=None, snonly=No
         y_train = y_resampled
 
     if dataform is not None:
-        y_train_count, y_test_count = get_data_count(dataset, y_train, y_test, dataform=dataform)
+        y_train_count, y_test_count = get_data_count(
+            dataset, y_train, y_test, dataform=dataform
+        )
 
     if redshift is None:
         if fink is not None:
