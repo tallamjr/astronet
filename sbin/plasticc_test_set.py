@@ -37,10 +37,14 @@ class ProcessTestSet(object):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process PLAsTiCC Test Set')
+    parser = argparse.ArgumentParser(description="Process PLAsTiCC Test Set")
 
-    parser.add_argument("-f", "--file", default="plasticc_test_lightcurves_01",
-            help="Choose which dataset to process")
+    parser.add_argument(
+        "-f",
+        "--file",
+        default="plasticc_test_lightcurves_01",
+        help="Choose which dataset to process",
+    )
 
     try:
         args = parser.parse_args()
@@ -51,7 +55,5 @@ if __name__ == "__main__":
 
     filename = args.file
 
-    process_test_set = ProcessTestSet(
-        filename=filename
-    )
+    process_test_set = ProcessTestSet(filename=filename)
     process_test_set()

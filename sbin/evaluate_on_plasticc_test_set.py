@@ -26,14 +26,18 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 import random as python_random
+
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
 python_random.seed(RANDOM_SEED)
 
-plt.rcParams.update({
-    "text.usetex": True,
-    "font.family": "sans-serif",
-    "font.serif": ["Computer Modern Roman"]})
+plt.rcParams.update(
+    {
+        "text.usetex": True,
+        "font.family": "sans-serif",
+        "font.serif": ["Computer Modern Roman"],
+    }
+)
 
 print(plt.style.available)
 
@@ -47,44 +51,53 @@ class Plots(object):
         self.redshift = redshift
 
     def __call__(self):
-# architecture = "t2"
-# dataset = "plasticc"
-# X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
-#                                                                         dataset,
-#                                                                         redshift=True,
-#                                                                         avocado=None,
-#                                                                         testset=True
-#                                                         )
-        X_test = np.load(
-                f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-        )
-        y_test = np.load(
-                f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-        )
-        Z_test = np.load(
-                f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
-        )
+        # architecture = "t2"
+        # dataset = "plasticc"
+        # X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
+        #                                                                         dataset,
+        #                                                                         redshift=True,
+        #                                                                         avocado=None,
+        #                                                                         testset=True
+        #                                                         )
+        X_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",)
+        y_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",)
+        Z_test = np.load(f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",)
 
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
-        num_samples, timesteps, num_features = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        (
+            num_samples,
+            timesteps,
+            num_features,
+        ) = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
 
         if self.redshift is not None:
             inputs = [X_test, Z_test]
-            results_filename = f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
+            results_filename = (
+                f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
+            )
         else:
             inputs = X_test
-            results_filename = f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json"
+            results_filename = (
+                f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json"
+            )
 
         with open(results_filename) as f:
             events = json.load(f)
             if self.model_name is not None:
                 # Get params for model chosen with cli args
-                event = next(item for item in events['training_result'] if item["name"] == model_name)
+                event = next(
+                    item
+                    for item in events["training_result"]
+                    if item["name"] == model_name
+                )
             else:
-                event = min(events['training_result'], key=lambda ev: ev['model_evaluate_on_test_loss'])
+                event = min(
+                    events["training_result"],
+                    key=lambda ev: ev["model_evaluate_on_test_loss"],
+                )
 
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{self.model_name}",
@@ -157,31 +170,67 @@ class Plots(object):
             encoding,
             class_names,  # enc.categories_[0]
             save=True,
-            cmap=cmap
+            cmap=cmap,
         )
 
         plot_acc_history(architecture, dataset, model_name, event, save=True)
         plot_loss_history(architecture, dataset, model_name, event, save=True)
 
-        plot_multiROC(architecture, dataset, model_name, model, inputs, y_test, class_names, save=True)
-        plot_multiPR(architecture, dataset, model_name, model, inputs, y_test, class_names, save=True)
+        plot_multiROC(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            inputs,
+            y_test,
+            class_names,
+            save=True,
+        )
+        plot_multiPR(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            inputs,
+            y_test,
+            class_names,
+            save=True,
+        )
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Evaluate trained model for given architecture')
+    parser = argparse.ArgumentParser(
+        description="Evaluate trained model for given architecture"
+    )
 
-    parser.add_argument("-a", "--architecture", default="t2",
-            help="Choose which architecture to evaluate : 'atx', 't2'")
+    parser.add_argument(
+        "-a",
+        "--architecture",
+        default="t2",
+        help="Choose which architecture to evaluate : 'atx', 't2'",
+    )
 
-    parser.add_argument("-d", "--dataset", default="plasticc",
-            help="Choose which dataset to use: This is fixed for plasticc for now")
+    parser.add_argument(
+        "-d",
+        "--dataset",
+        default="plasticc",
+        help="Choose which dataset to use: This is fixed for plasticc for now",
+    )
 
-    parser.add_argument('-m', '--model', default="1619624444-0.1.dev765+g7c90cbb.d20210428",
-            help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+    parser.add_argument(
+        "-m",
+        "--model",
+        default="1619624444-0.1.dev765+g7c90cbb.d20210428",
+        help="Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>",
+    )
 
-    parser.add_argument("-z", "--redshift", default=None,
-            help="Whether to include redshift features or not")
+    parser.add_argument(
+        "-z",
+        "--redshift",
+        default=None,
+        help="Whether to include redshift features or not",
+    )
 
     try:
         args = parser.parse_args()
@@ -198,6 +247,9 @@ if __name__ == "__main__":
         redshift = True
 
     plotting = Plots(
-        architecture=architecture, dataset=dataset, model_name=model_name, redshift=redshift
+        architecture=architecture,
+        dataset=dataset,
+        model_name=model_name,
+        redshift=redshift,
     )
     plotting()
