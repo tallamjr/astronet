@@ -1,0 +1,10 @@
+recursive-exclude tests *.py
+
+recursive-include astronet *.py
+
+include data/full-plasticc.encoding
+include *.cff
+include *.txt
+include *.yaml
+include *.yml
+include pytest.ini
