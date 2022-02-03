@@ -17,6 +17,8 @@ dependencies:
   - sncosmo
 
   - pip:
+    - black==22.1.0
+    - black[jupyter]
     - nbval
     - pytest
     - pytest-cov
