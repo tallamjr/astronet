@@ -13,7 +13,7 @@ setup(
         "fallback_version": __FALLBACK_VERSION__,
     },
     setup_requires=["setuptools_scm>=3.5.0"],
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=["tests", "data"]),
     install_requires=REQUIREMENTS,
     classifiers=[
         "Programming Language :: Python :: 3.7",
