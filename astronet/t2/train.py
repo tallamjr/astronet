@@ -209,7 +209,11 @@ class Training(object):
                 #                DetectOverfittingCallback(
                 #                    threshold=2
                 #                ),
-                CSVLogger(csv_logger_file, separator=",", append=False,),
+                CSVLogger(
+                    csv_logger_file,
+                    separator=",",
+                    append=False,
+                ),
                 EarlyStopping(
                     min_delta=0.001,
                     mode="min",
