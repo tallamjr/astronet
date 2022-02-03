@@ -1,9 +1,18 @@
 prune bin
+prune data
 prune notebooks
+prune resources
+prune results
 prune sbin
 prune tests
 prune astronet/atx/models
 prune astronet/t2/models
+
+recursive-exclude conf *.conf
+recursive-exclude astronet *.json
+recursive-exclude astronet *.pdf
+recursive-exclude astronet *.pkl
+recursive-exclude astronet *.png
 
 include *.cff
 include *.txt
