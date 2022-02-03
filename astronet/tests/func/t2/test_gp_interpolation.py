@@ -27,9 +27,7 @@ def test_plasticc_gp_interpolation():
         sep=",",
     )
     data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
-    data.rename(
-        {"flux_err": "flux_error"}, axis="columns", inplace=True
-    )
+    data.rename({"flux_err": "flux_error"}, axis="columns", inplace=True)
 
     filters = data["filter"]
     filters = list(np.unique(filters))

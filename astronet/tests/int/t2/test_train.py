@@ -48,7 +48,11 @@ def test_training_pipeline_wisdm_2010():
     num_layers = 1  # --> N x repeated transformer blocks
     droprate = 0.1  # --> Rate of neurons to drop
 
-    _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+    (
+        _,
+        timesteps,
+        num_features,
+    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
     input_shape = (BATCH_SIZE, timesteps, num_features)
     print(input_shape)
 
@@ -63,9 +67,7 @@ def test_training_pipeline_wisdm_2010():
         droprate=droprate,
     )
 
-    model.compile(
-        loss=loss, optimizer="adam", metrics=["acc"]
-    )
+    model.compile(loss=loss, optimizer="adam", metrics=["acc"])
 
     _ = model.fit(
         X_train,
@@ -113,7 +115,11 @@ def test_training_pipeline_plasticc():
     num_layers = 1  # --> N x repeated transformer blocks
     droprate = 0.1  # --> Rate of neurons to drop
 
-    _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+    (
+        _,
+        timesteps,
+        num_features,
+    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
     input_shape = (BATCH_SIZE, timesteps, num_features)
     print(input_shape)
 
@@ -132,9 +138,7 @@ def test_training_pipeline_plasticc():
     # wloss = custom_log_loss
 
     model.compile(
-        loss=wloss,
-        optimizer="adam", metrics=["acc"],
-        run_eagerly=True,
+        loss=wloss, optimizer="adam", metrics=["acc"], run_eagerly=True,
     )
 
     _ = model.fit(
@@ -183,7 +187,11 @@ def test_training_pipeline_full_plasticc():
     num_layers = 1  # --> N x repeated transformer blocks
     droprate = 0.1  # --> Rate of neurons to drop
 
-    _, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+    (
+        _,
+        timesteps,
+        num_features,
+    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
     input_shape = (BATCH_SIZE, timesteps, num_features)
     print(input_shape)
 
@@ -202,9 +210,7 @@ def test_training_pipeline_full_plasticc():
     # wloss = custom_log_loss
 
     model.compile(
-        loss=wloss,
-        optimizer="adam", metrics=["acc"],
-        run_eagerly=True,
+        loss=wloss, optimizer="adam", metrics=["acc"], run_eagerly=True,
     )
 
     _ = model.fit(

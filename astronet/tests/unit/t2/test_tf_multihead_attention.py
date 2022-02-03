@@ -99,9 +99,7 @@ class MultiheadAttentionTest(tf.test.TestCase):
         depth = d_model // num_heads
 
         # def call(self, v, k, q, mask):
-        multihead_attention = MultiHeadAttention(
-            d_model, num_heads, debug_mode=True
-        )
+        multihead_attention = MultiHeadAttention(d_model, num_heads, debug_mode=True)
 
         q = tf.ones([batch_size, seq_len, depth])
         k = tf.ones([batch_size, seq_len, depth])
