@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from astropy.table import Table, vstack
 from functools import partial
-from typing import Dict
+from typing import List, Dict, Union
 
 from astronet.constants import LSST_PB_WAVELENGTHS
 
@@ -40,6 +40,10 @@ def fit_2d_gp(
         The kernel used to fit the GP.
     gp_predict : functools.partial of george.gp.GP
         The GP instance that was used to fit the object.
+
+    Examples
+    --------
+    >>> fit_2d_gp
     """
     guess_length_scale = 20.0  # a parameter of the Matern32Kernel
 
@@ -99,8 +103,7 @@ def fit_2d_gp(
 
     if return_kernel:
         return kernel, gp_predict
-    else:
-        return gp_predict
+    return gp_predict
 
 
 def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
@@ -119,6 +122,10 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
     -------
     obj_gps : pandas.core.frame.DataFrame, optional
         Time, flux and flux error of the fitted Gaussian Process.
+
+    Examples
+    --------
+    >>> fit_2d_gp
     """
     unique_wavelengths = np.unique(gp_wavelengths)
     number_gp = len(gp_times)
@@ -147,29 +154,72 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
     return obj_gps
 
 
-def robust_scale(df, scale_columns):
-    # TODO: Docstrings
+def robust_scale(
+    dataframe: pd.DataFrame, scale_columns: List[Union[str, int]]
+) -> pd.DataFrame:
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     from sklearn.preprocessing import RobustScaler
 
     scaler = RobustScaler()
-
-    scaler = scaler.fit(df[scale_columns])
-
-    df.loc[:, scale_columns] = scaler.transform(df[scale_columns].to_numpy())
-    # df_val.loc[:, scale_columns] = scaler.transform(
-    #     df_val[scale_columns].to_numpy()
-    # )
-    # df_test.loc[:, scale_columns] = scaler.transform(
-    #     df_test[scale_columns].to_numpy()
-    # )
+    scaler = scaler.fit(dataframe[scale_columns])
+    dataframe.loc[:, scale_columns] = scaler.transform(
+        dataframe[scale_columns].to_numpy()
+    )
 
 
 def one_hot_encode(y_train, y_test):
-    # TODO: Docstrings
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     from sklearn.preprocessing import OneHotEncoder
 
     enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
-
     enc = enc.fit(y_train)
 
     y_train = enc.transform(y_train)
@@ -179,7 +229,31 @@ def one_hot_encode(y_train, y_test):
 
 
 def tf_one_hot_encode(y_train, y_test):
-    # TODO: Docstrings
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     dct = {42: 0, 62: 1, 90: 2}
 
@@ -187,13 +261,8 @@ def tf_one_hot_encode(y_train, y_test):
     flabels = list(map(dct.get, lst))
     y_train = tf.one_hot(flabels, len(np.unique(y_train)))
 
-    # lst = y_val.flatten().tolist()
-    # flabels = list(map(dct.get, lst))
-    # y_val = tf.one_hot(flabels, len(np.unique(y_val)))
-
     lst = y_test.flatten().tolist()
     flabels = list(map(dct.get, lst))
     y_test = tf.one_hot(flabels, len(np.unique(y_test)))
 
-    # return y_train, y_val, y_test
     return y_train, y_test
