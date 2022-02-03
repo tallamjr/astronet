@@ -83,6 +83,31 @@ def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
 
 
 def find_optimal_batch_size(training_set_length: int) -> int:
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     if training_set_length < 10000:
         batch_size_list = [16, 32, 64]
@@ -105,6 +130,31 @@ def find_optimal_batch_size(training_set_length: int) -> int:
 
 
 def train_val_test_split(df, cols):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     features = df[cols]
     # column_indices = {name: i for i, name in enumerate(features.columns)}
@@ -313,6 +363,31 @@ def load_wisdm_2019(timesteps=200, step=200):
 
 
 def load_mts(dataset):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     X_train = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/x_train.npy")
     y_train = np.load(f"{asnwd}/data/transformed-mtsdata/{dataset}/y_train.npy")
@@ -435,11 +510,61 @@ def __transient_trim(
 
 
 def text_to_bits(text, encoding="utf-8", errors="surrogatepass"):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     bits = bin(int.from_bytes(text.encode(encoding, errors), "big"))[2:]
     return int(bits.zfill(8 * ((len(bits) + 7) // 8)), 2)
 
 
 def text_from_bits(bits, encoding="utf-8", errors="surrogatepass"):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     bits = bin(bits)
     n = int(bits, 2)
     return n.to_bytes((n.bit_length() + 7) // 8, "big").decode(encoding, errors) or "\0"
@@ -502,6 +627,31 @@ def generate_gp_all_objects(
     timesteps: int = 100,
     pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
 ) -> pd.DataFrame:
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     filters = obs_transient["filter"]
     filters = list(np.unique(filters))
@@ -531,6 +681,31 @@ def generate_gp_all_objects(
 
 
 def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -615,6 +790,31 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 def __load_plasticc_test_set_dataset_from_csv(
     timesteps, snonly=None, batch_filename=None
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -704,6 +904,31 @@ def __load_plasticc_test_set_dataset_from_csv(
 def __load_avocado_plasticc_dataset_from_csv(
     timesteps, snonly=None, batch_filename=None
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -787,6 +1012,31 @@ def __load_avocado_plasticc_dataset_from_csv(
 
 
 def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     # augmented_binary = f"{asnwd}/data/plasticc/aug_z_new_long_many_obs_35k.pckl"
 
@@ -831,6 +1081,31 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
 
 
 def __load_augmented_plasticc_dataset_from_csv(timesteps):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -932,6 +1207,31 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
 
 def get_data_count(dataset, y_train, y_test, dataform=None):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     if dataform is None:
         print("Using WISDM data")
@@ -956,6 +1256,31 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
 def load_plasticc(
     timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -1063,6 +1388,31 @@ def load_plasticc(
 def load_full_avocado_plasticc_from_numpy(
     timesteps=100, redshift=None, batch_filename=None
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     dataform = "avocado"
     try:
@@ -1110,6 +1460,31 @@ def load_full_avocado_plasticc_from_numpy(
 
 
 def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -1187,6 +1562,31 @@ def save_avocado_training_set(
     snonly=None,
     batch_filename=None,
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -1260,6 +1660,31 @@ def save_plasticc_test_set(
     snonly=None,
     batch_filename=None,
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -1359,6 +1784,31 @@ def load_dataset(
     testset=None,
     fink=None,
 ):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
     if dataset == "wisdm_2010":
         dataform = None
         # Load data
