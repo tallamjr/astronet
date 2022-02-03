@@ -61,12 +61,12 @@ def fit_2d_gp(
     # include an error floor so that in the case of very high
     # signal-to-noise observations we pick the maximum flux value.
     signal_to_noises = np.abs(obj_flux) / np.sqrt(
-        obj_flux_error ** 2 + (1e-2 * np.max(obj_flux)) ** 2
+        obj_flux_error**2 + (1e-2 * np.max(obj_flux)) ** 2
     )
     scale = np.abs(obj_flux[signal_to_noises.idxmax()])
 
     kernel = (0.5 * scale) ** 2 * george.kernels.Matern32Kernel(
-        [guess_length_scale ** 2, 6000 ** 2], ndim=2
+        [guess_length_scale**2, 6000**2], ndim=2
     )
     kernel.freeze_parameter("k2:metric:log_M_1_1")
 
@@ -75,7 +75,7 @@ def fit_2d_gp(
     x_data = np.vstack([obj_times, obj_wavelengths]).T
     gp.compute(x_data, obj_flux_error)
 
-    bounds = [(0, np.log(1000 ** 2))]
+    bounds = [(0, np.log(1000**2))]
     bounds = [(default_gp_param[0] - 10, default_gp_param[0] + 10)] + bounds
     results = op.minimize(
         neg_log_like,
