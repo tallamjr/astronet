@@ -75,7 +75,7 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
         ax = ax or plt.gca()
         ax.plot(event["acc"], label="train")
         ax.plot(event["val_acc"], label="validation")
-        ax.set_title(fr"{dataset}")
+        ax.set_title(rf"{dataset}")
 
     else:
         plt.figure(figsize=(16, 9))
@@ -85,7 +85,7 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
         # plt.xticks(np.arange(len(event['acc'])))
         plt.ylabel("Accuracy")
         plt.legend()
-        plt.title(fr"Training vs. Validation per Epoch - {dataset}")
+        plt.title(rf"Training vs. Validation per Epoch - {dataset}")
 
     if save:
         try:
@@ -106,7 +106,7 @@ def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=No
         ax = ax or plt.gca()
         ax.plot(event["loss"], label="train")
         ax.plot(event["val_loss"], label="validation")
-        ax.set_title(fr"{dataset}")
+        ax.set_title(rf"{dataset}")
     else:
         plt.figure(figsize=(16, 9))
         plt.plot(event["loss"], label="train")
