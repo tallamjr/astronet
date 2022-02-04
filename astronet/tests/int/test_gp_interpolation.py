@@ -3,12 +3,11 @@ import os
 import pandas as pd
 import pytest
 
-from pathlib import Path
-
 from astronet.constants import (
     LSST_PB_WAVELENGTHS,
     LSST_FILTER_MAP,
 )
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.preprocess import predict_2d_gp, fit_2d_gp
 from astronet.utils import (
     __transient_trim,
@@ -23,7 +22,7 @@ from astronet.utils import (
 def test_plasticc_gp_interpolation():
 
     data = pd.read_csv(
-        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/training_set.csv",
+        f"{asnwd}/data/plasticc/training_set.csv",
         sep=",",
     )
     data = remap_filters(df=data, filter_map=LSST_FILTER_MAP)
@@ -35,7 +34,7 @@ def test_plasticc_gp_interpolation():
 
     assert data.shape == (1421705, 6)
     df = __filter_dataframe_only_supernova(
-        f"{Path(__file__).absolute().parent.parent.parent.parent.parent}/data/plasticc/train_subset.txt",
+        f"{asnwd}/data/plasticc/train_subset.txt",
         data,
     )
     assert df.shape == (764572, 6)
