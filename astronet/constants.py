@@ -1,6 +1,11 @@
 import os
+from pathlib import Path
 
-ASTRONET_WORKING_DIRECTORY = f"{os.environ['ASNWD']}"
+try:
+    ASTRONET_WORKING_DIRECTORY = f"{os.environ['ASNWD']}"
+except Exception as e:
+    print(f"Environment variable not set:{e}.\nDefining relative to constants.py file")
+    ASTRONET_WORKING_DIRECTORY = Path(__file__).absolute().parent.parent
 
 # LSST
 
