@@ -1,7 +1,9 @@
+from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
-with open("requirements.txt") as f:
-    REQUIREMENTS = f.read().splitlines()
+install_reqs = parse_requirements("requirements.txt")
+
+REQUIREMENTS = [str(ir.req) for ir in install_reqs]
 
 __FALLBACK_VERSION__ = "0.1"
 
