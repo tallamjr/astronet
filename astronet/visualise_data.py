@@ -73,8 +73,8 @@ def plot_event_data_with_model(
                     alpha=0.15,
                     label=None,
                 )
-            except:
-                pass
+            except Exception as e:
+                print(e)
         ax.errorbar(
             obj_data_pb["mjd"],
             obj_data_pb["flux"],

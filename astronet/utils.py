@@ -1214,7 +1214,7 @@ def load_full_avocado_plasticc_from_numpy(
     ...
     """
 
-    dataform = "avocado"
+    # dataform = "avocado"
     try:
         X_train = np.load(
             f"{asnwd}/data/plasticc/avocado/avocado__transformed_df_timesteps_100_X_full_avo_train.npy",

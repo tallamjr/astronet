@@ -293,8 +293,6 @@ def custom_tensorflow_plasticc_loss(y_true, y_pred, flip):
     predictions = y_pred
     labels = np.unique(flip)
 
-    tf_y_test
-
     # sanitize predictions
     epsilon = (
         sys.float_info.epsilon

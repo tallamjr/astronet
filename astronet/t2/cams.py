@@ -482,7 +482,7 @@ def show_cam(image_index, desired_class, counter):
     #     formatter.set_scientific(True)
     #     formatter.set_powerlimits((-2, 2))
 
-    hm = sns.heatmap(
+    sns.heatmap(
         cam_output_L,
         cmap=my_cmap,
         cbar=True,
@@ -493,6 +493,18 @@ def show_cam(image_index, desired_class, counter):
         vmax=cam_output.max(),
         vmin=cam_output.min(),
     )  # vmin=v.min(), vmax=v.max()
+
+    # hm = sns.heatmap(
+    #     cam_output_L,
+    #     cmap=my_cmap,
+    #     cbar=True,
+    #     robust=False,
+    #     ax=ax,
+    #     annot=False,
+    #     cbar_kws={"format": formatter},
+    #     vmax=cam_output.max(),
+    #     vmin=cam_output.min(),
+    # )  # vmin=v.min(), vmax=v.max()
 
     print("MAX L:", cam_output_L.max(), np.argmax(cam_output_L))
     print("SUM L:", cam_output_L.sum())
