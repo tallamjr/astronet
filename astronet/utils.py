@@ -1,6 +1,5 @@
 import joblib
 import logging
-import os.path
 import numpy as np
 import pandas as pd
 import pickle
@@ -14,18 +13,16 @@ from sklearn import model_selection
 
 from astronet.constants import (
     LSST_FILTER_MAP,
-    ZTF_FILTER_MAP,
     LSST_PB_WAVELENGTHS,
+    PLASTICC_CLASS_MAPPING,
     ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
     __filter_dataframe_only_supernova,
     __transient_trim,
-    fit_2d_gp,
     generate_gp_all_objects,
     one_hot_encode,
-    predict_2d_gp,
     remap_filters,
     robust_scale,
 )
@@ -208,6 +205,26 @@ def create_dataset(X, y, time_steps=1, step=1):
         ys.append(stats.mode(labels)[0][0])
 
     return np.array(Xs), np.array(ys).reshape(-1, 1)
+
+
+def get_encoding(dataset, dataform=None):
+
+    if dataform is not None:
+        encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
+    else:
+        encoding_filename = f"{asnwd}/data/{dataset}.encoding"
+
+    with open(encoding_filename, "rb") as eb:
+        encoding = joblib.load(eb)
+    class_encoding = encoding.categories_[0]
+
+    if dataset == "plasticc":
+        class_mapping = PLASTICC_CLASS_MAPPING
+        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+    else:
+        class_names = class_encoding
+
+    return encoding, class_encoding, class_names
 
 
 def load_wisdm_2010(timesteps=200, step=200):

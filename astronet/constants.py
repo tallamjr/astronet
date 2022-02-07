@@ -7,8 +7,46 @@ except Exception as e:
     print(f"Environment variable not set:{e}.\nDefining relative to constants.py file")
     ASTRONET_WORKING_DIRECTORY = Path(__file__).absolute().parent.parent
 
-# LSST
+# ================================================== PLASTICC ==================================== #
+PLASTICC_CLASS_MAPPING = {
+    90: "SNIa",
+    67: "SNIa-91bg",
+    52: "SNIax",
+    42: "SNII",
+    62: "SNIbc",
+    95: "SLSN-I",
+    15: "TDE",
+    64: "KN",
+    88: "AGN",
+    92: "RRL",
+    65: "M-dwarf",
+    16: "EB",
+    53: "Mira",
+    6: "$\mu$-Lens-Single",
+}
 
+PLASTICC_WEIGHTS_DICT = {
+    6: 1 / 18,
+    15: 1 / 9,
+    16: 1 / 18,
+    42: 1 / 18,
+    52: 1 / 18,
+    53: 1 / 18,
+    62: 1 / 18,
+    64: 1 / 9,
+    65: 1 / 18,
+    67: 1 / 18,
+    88: 1 / 18,
+    90: 1 / 18,
+    92: 1 / 18,
+    95: 1 / 18,
+    99: 1 / 19,
+    1: 1 / 18,
+    2: 1 / 18,
+    3: 1 / 18,
+}
+
+# ===================================================== LSST ==================================== #
 LSST_FILTER_MAP = {
     0: "lsstu",
     1: "lsstg",
@@ -37,8 +75,8 @@ LSST_PB_COLORS = {
     "lssty": "#e3c530",  # Yellow: https://www.color-hex.com/color/e3c530
 }
 
-# ZTF
 
+# ===================================================== ZTF ==================================== #
 ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
 
 ZTF_FILTER_MAP_COLORS = {
@@ -59,26 +97,4 @@ ZTF_PB_COLORS = {
     "ztfg": "#4daf4a",  # Green: https://www.color-hex.com/color/4daf4a
     "ztfr": "#e41a1c",  # Red: https://www.color-hex.com/color/e41a1c
     "ztfi": "#377eb8",  # Blue: https://www.color-hex.com/color/377eb8
-}
-
-# PLASTICC
-PLASTICC_WEIGHTS_DICT = {
-    6: 1 / 18,
-    15: 1 / 9,
-    16: 1 / 18,
-    42: 1 / 18,
-    52: 1 / 18,
-    53: 1 / 18,
-    62: 1 / 18,
-    64: 1 / 9,
-    65: 1 / 18,
-    67: 1 / 18,
-    88: 1 / 18,
-    90: 1 / 18,
-    92: 1 / 18,
-    95: 1 / 18,
-    99: 1 / 19,
-    1: 1 / 18,
-    2: 1 / 18,
-    3: 1 / 18,
 }

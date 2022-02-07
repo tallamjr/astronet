@@ -1,5 +1,4 @@
 import argparse
-import joblib
 import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -30,43 +29,6 @@ from astronet.utils import (
     load_wisdm_2019,
     load_plasticc,
 )
-
-
-def _get_encoding(dataset, dataform=None):
-
-    if dataform is not None:
-        encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
-    else:
-        encoding_filename = f"{asnwd}/data/{dataset}.encoding"
-
-    with open(encoding_filename, "rb") as eb:
-        encoding = joblib.load(eb)
-    class_encoding = encoding.categories_[0]
-
-    if dataset == "plasticc":
-        class_mapping = {
-            90: "SNIa",
-            67: "SNIa-91bg",
-            52: "SNIax",
-            42: "SNII",
-            62: "SNIbc",
-            95: "SLSN-I",
-            15: "TDE",
-            64: "KN",
-            88: "AGN",
-            92: "RRL",
-            65: "M-dwarf",
-            16: "EB",
-            53: "Mira",
-            6: "mu-Lens-Single",
-        }
-
-        class_encoding
-        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-    else:
-        class_names = class_encoding
-
-    return encoding, class_encoding, class_names
 
 
 def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
@@ -159,14 +121,13 @@ def plot_confusion_matrix(
         ax=ax,
     )
 
-    import matplotlib.transforms
-
     # plt.setp( ax.xaxis.get_majorticklabels(), rotation=-45)
 
+    # import matplotlib.transforms
     # Create offset transform by 5 points in y direction
-    dy = 20 / 72.0
-    dx = 0 / 72.0
-    offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+    # dy = 20 / 72.0
+    # dx = 0 / 72.0
+    # offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
 
     plt.ylabel("Actual")
     plt.xlabel("Predicted")
@@ -404,8 +365,8 @@ if __name__ == "__main__":
         log.info("=" * shutil.get_terminal_size((80, 20))[0])
         log.info(f"File Path: {Path(__file__).absolute()}")
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-    except:
-        print("Seems you are running from a notebook...")
+    except Exception as e:
+        print(f"{e}: Seems you are running from a notebook...")
         __file__ = f"{Path().resolve().parent}/astronet/visualise_results.py"
 
     RANDOM_SEED = 42
