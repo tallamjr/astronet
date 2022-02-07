@@ -1,4 +1,4 @@
-name: pytest
+name: PyTest
 
 on:
   # Trigger the workflow on push or pull request,
@@ -93,5 +93,5 @@ jobs:
     - name: Run pytest
       run: |
         export ASNWD=${{ github.workspace }}
-        pytest --cov $ASNWD/tests/
+        pytest --cov $ASNWD/tests/ --ignore $ASNWD/tests/unit/*.ipynb
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}

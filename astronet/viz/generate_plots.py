@@ -13,7 +13,7 @@ from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import get_encoding, find_optimal_batch_size
 
 from astronet.metrics import WeightedLogLoss
-from astronet.visualise_results import (
+from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
     plot_loss_history,
@@ -36,8 +36,6 @@ plt.rcParams.update(
         "font.serif": ["Computer Modern Roman"],
     }
 )
-
-print(plt.style.available)
 
 
 class Plots(object):
