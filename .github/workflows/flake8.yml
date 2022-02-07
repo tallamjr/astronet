@@ -5,10 +5,11 @@ on:
    # but only for the master branch
    push:
      branches:
-       - __master
+       - master
+      - issues/69/refactor
    pull_request:
      branches:
-       - __master
+       - master
 
 jobs:
   flake8:
@@ -27,4 +28,4 @@ jobs:
         pip install flake8
     - name: Lint with flake8
       run: |
-        flake8 --ignore=E221 --builtins=ArgumentError .
+        flake8 --ignore=E221,E501,E203 --builtins=ArgumentError .

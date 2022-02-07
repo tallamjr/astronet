@@ -6,6 +6,7 @@ on:
    push:
      branches:
        - master
+      - issues/69/refactor
    pull_request:
      branches:
        - master

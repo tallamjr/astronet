@@ -1,4 +1,4 @@
-name: Test Suite with Code Coverage
+name: pytest
 
 on:
   # Trigger the workflow on push or pull request,
@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - master
+      - issues/69/refactor
   pull_request:
     branches:
       - master
@@ -91,5 +92,5 @@ jobs:
     - name: Run pytest
       run: |
         export ASNWD=${{ github.workspace }}
-        pytest --cov .
+        pytest --cov $ASNWD/tests/
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
