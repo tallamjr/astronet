@@ -8,19 +8,14 @@ import seaborn as sns
 import tensorflow as tf
 import matplotlib.ticker as ticker
 
+from keras.models import Model
 from matplotlib import rcParams
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
+from sklearn.preprocessing import minmax_scale, normalize
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.t2.model import T2Model
-from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
-from astronet.visualise_results import (
-    plot_acc_history,
-    plot_confusion_matrix,
-    plot_loss_history,
-    plot_multiROC,
-    _get_encoding,
-)
+from astronet.utils import get_encoding, find_optimal_batch_size
 
 tf.get_logger().setLevel("ERROR")
 
@@ -167,31 +162,13 @@ print(model.layers)
 for i in model.layers:
     print(i.output)
 
-encoding, class_encoding, class_names = _get_encoding(dataset, dataform=dataform)
-class_mapping = {
-    90: "SNIa",
-    67: "SNIa-91bg",
-    52: "SNIax",
-    42: "SNII",
-    62: "SNIbc",
-    95: "SLSN-I",
-    15: "TDE",
-    64: "KN",
-    88: "AGN",
-    92: "RRL",
-    65: "M-dwarf",
-    16: "EB",
-    53: "Mira",
-    6: "$\mu$-Lens-Single",
-}
-class_encoding
-class_names = list(np.vectorize(class_mapping.get)(class_encoding))
+encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
+
 print(class_names)
 
 for i in range(len(model.layers)):
     print(i, model.layers[i].name)
 
-from keras.models import Model
 
 # same as previous model but with an additional output
 cam_model = Model(
@@ -252,7 +229,6 @@ print("all class activation map shape ", cam_all.shape)
 np.set_printoptions(precision=15)
 pd.options.display.float_format = "{:.15f}".format
 
-from sklearn.preprocessing import minmax_scale, normalize
 
 (num_objects, num_cam_features, num_classes) = cam_all.shape
 
@@ -340,6 +316,8 @@ sns.set_theme(style="whitegrid")
 # print(class_names)
 # assert len(class_names) == 15
 ######################################################################################
+
+
 def make_violin(dfza):
     ax = sns.violinplot(data=dfza, palette=["lightpink", "lightpink"])
 
@@ -357,6 +335,7 @@ def make_violin(dfza):
         bbox_inches="tight",
     )
     plt.clf()
+    return fig
 
 
 # make_violin(dfza)
