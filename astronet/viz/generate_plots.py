@@ -79,13 +79,11 @@ class Plots(object):
 
         if self.redshift is not None:
             inputs = [X_test, Z_test]
-            results_filename = (
-                f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
-            )
+            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{dataset}/results_with_z.json"
         else:
             inputs = X_test
             results_filename = (
-                f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json"
+                f"{asnwd}/astronet/{self.architecture}/models/{dataset}/results.json"
             )
 
         with open(results_filename) as f:
@@ -104,7 +102,7 @@ class Plots(object):
                 )
 
         model = keras.models.load_model(
-            f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{self.model_name}",
+            f"{asnwd}/astronet/{self.architecture}/models/{dataset}/model-{self.model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
@@ -142,7 +140,7 @@ class Plots(object):
         print("Plotting figures...")
         cmap = sns.light_palette("Navy", as_cmap=True)
         plot_confusion_matrix(
-            architecture,
+            self.architecture,
             dataset,
             model_name,
             y_test,
@@ -153,11 +151,15 @@ class Plots(object):
             cmap=cmap,
         )
 
-        plot_acc_history(architecture, dataset, model_name, event, save=self.savefigs)
-        plot_loss_history(architecture, dataset, model_name, event, save=self.savefigs)
+        plot_acc_history(
+            self.architecture, dataset, model_name, event, save=self.savefigs
+        )
+        plot_loss_history(
+            self.architecture, dataset, model_name, event, save=self.savefigs
+        )
 
         plot_multiROC(
-            architecture,
+            self.architecture,
             dataset,
             model_name,
             model,
@@ -167,7 +169,7 @@ class Plots(object):
             save=self.savefigs,
         )
         plot_multiPR(
-            architecture,
+            self.architecture,
             dataset,
             model_name,
             model,
