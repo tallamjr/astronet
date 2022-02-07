@@ -1,6 +1,6 @@
 import numpy as np
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 batch_filename = [
     "avo_aug_1_chunk_0",

@@ -1,6 +1,6 @@
 import numpy as np
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 from astronet.utils import load_full_plasticc_test_from_numpy
 

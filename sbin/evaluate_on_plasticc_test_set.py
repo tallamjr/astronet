@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from tensorflow import keras
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
 from astronet.metrics import WeightedLogLoss

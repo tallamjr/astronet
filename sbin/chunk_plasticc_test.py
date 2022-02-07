@@ -5,7 +5,7 @@ import sys
 
 from pathlib import Path
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 
 def chunker(seq, size):

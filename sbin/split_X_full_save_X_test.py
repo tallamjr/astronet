@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import load_dataset
 
 
