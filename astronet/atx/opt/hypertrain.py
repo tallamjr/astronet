@@ -4,7 +4,6 @@ import json
 import logging
 import numpy as np
 import optuna
-import os
 import shutil
 import subprocess
 import sys
@@ -20,19 +19,13 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
-from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
-try:
-    print(os.environ["ASNWD"])
-    log_filename = str(os.environ["ASNWD"]) + "/astronet/atx/opt/studies.log"
-except KeyError:
-    print("Please set the environment ASNWD in 'conf/astronet.conf'")
-    sys.exit(1)
+log_filename = f"{asnwd}/astronet/atx/opt/studies.log"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -52,8 +45,8 @@ try:
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-except:
-    print("Seems you are running from a notebook...")
+except Exception as e:
+    print(f"{e}: Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/atx/opt/hypertrain.py"
 
 RANDOM_SEED = 42

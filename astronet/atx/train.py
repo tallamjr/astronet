@@ -1,6 +1,5 @@
 import argparse
 import json
-import logging
 import numpy as np
 import os
 import psutil
@@ -27,7 +26,6 @@ from astronet.custom_callbacks import (
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
-from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import (
     astronet_logger,
     load_dataset,
@@ -40,8 +38,8 @@ try:
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-except:
-    print("Seems you are running from a notebook...")
+except Exception as e:
+    print(f"{e}: Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/atx/train.py"
     log = astronet_logger(__file__)
 
@@ -101,7 +99,6 @@ class Training(object):
             hyper_results_file = (
                 f"{asnwd}/astronet/atx/opt/runs/{self.dataset}/results_with_z.json"
             )
-            num_aux_feats = ZX_train.shape[1]
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(
                 dataset,
@@ -110,7 +107,6 @@ class Training(object):
                 testset=self.testset,
             )
             hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
-            num_aux_feats = 0
 
         num_classes = y_train.shape[1]
 
