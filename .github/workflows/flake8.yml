@@ -25,5 +25,5 @@ jobs:
       - name: flake8 Lint
         uses: py-actions/flake8@v2
         with:
-          ignore: "F401,E221,E501,E203,W503,W605"
+          ignore: "F401,E221,E501,E203,E731,W503,W605"
           path: "${{ github.workspace }}/astronet"
