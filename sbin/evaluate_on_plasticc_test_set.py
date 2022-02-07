@@ -1,8 +1,8 @@
 import argparse
-import joblib
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import random as python_random
 import sys
 import seaborn as sns
 import tensorflow as tf
@@ -10,7 +10,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
+from astronet.utils import get_encoding, find_optimal_batch_size
 
 from astronet.metrics import WeightedLogLoss
 from astronet.visualise_results import (
@@ -24,8 +24,6 @@ from astronet.visualise_results import (
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
-
-import random as python_random
 
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
@@ -44,11 +42,13 @@ print(plt.style.available)
 
 class Plots(object):
     # TODO: Update docstrings
-    def __init__(self, architecture, dataset, model_name, redshift):
+    def __init__(self, architecture, dataset, model_name, redshift, savefigs=True):
         self.architecture = architecture
         self.dataset = dataset
         self.model_name = model_name
         self.redshift = redshift
+        self.redshift = redshift
+        self.savefigs = savefigs
 
     def __call__(self):
         # architecture = "t2"
@@ -112,31 +112,7 @@ class Plots(object):
         )
 
         dataform = "testset"
-        with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
-            encoding = joblib.load(eb)
-        class_encoding = encoding.categories_[0]
-
-        if dataset == "plasticc":
-            class_mapping = {
-                90: "SNIa",
-                67: "SNIa-91bg",
-                52: "SNIax",
-                42: "SNII",
-                62: "SNIbc",
-                95: "SLSN-I",
-                15: "TDE",
-                64: "KN",
-                88: "AGN",
-                92: "RRL",
-                65: "M-dwarf",
-                16: "EB",
-                53: "Mira",
-                6: "$\mu$-Lens-Single",
-            }
-            class_encoding
-            class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-        else:
-            class_names = class_encoding
+        encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
         from collections import Counter
         from pandas.core.common import flatten
 
@@ -175,12 +151,12 @@ class Plots(object):
             y_preds,
             encoding,
             class_names,  # enc.categories_[0]
-            save=True,
+            save=self.savefigs,
             cmap=cmap,
         )
 
-        plot_acc_history(architecture, dataset, model_name, event, save=True)
-        plot_loss_history(architecture, dataset, model_name, event, save=True)
+        plot_acc_history(architecture, dataset, model_name, event, save=self.savefigs)
+        plot_loss_history(architecture, dataset, model_name, event, save=self.savefigs)
 
         plot_multiROC(
             architecture,
@@ -190,7 +166,7 @@ class Plots(object):
             inputs,
             y_test,
             class_names,
-            save=True,
+            save=self.savefigs,
         )
         plot_multiPR(
             architecture,
@@ -200,7 +176,7 @@ class Plots(object):
             inputs,
             y_test,
             class_names,
-            save=True,
+            save=self.savefigs,
         )
 
 
