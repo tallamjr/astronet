@@ -1,15 +1,15 @@
 name: Lint
 
 on:
-   # Trigger the workflow on push or pull request,
-   # but only for the master branch
-   push:
-     branches:
-       - master
+  # Trigger the workflow on push or pull request,
+  # but only for the master branch
+  push:
+    branches:
+      - master
       - issues/69/refactor
-   pull_request:
-     branches:
-       - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   black:
