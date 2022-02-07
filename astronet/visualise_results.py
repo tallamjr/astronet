@@ -22,9 +22,9 @@ from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
-from astronet.preprocess import one_hot_encode
 from astronet.utils import (
     astronet_logger,
+    get_encoding,
     load_wisdm_2010,
     load_wisdm_2019,
     load_plasticc,
@@ -416,33 +416,13 @@ if __name__ == "__main__":
         load_dataset = load_wisdm_2019
     elif args.dataset == "plasticc":
         load_dataset = load_plasticc
-        class_mapping = {
-            90: "SNIa",
-            67: "SNIa-91bg",
-            52: "SNIax",
-            42: "SNII",
-            62: "SNIbc",
-            95: "SLSN-I",
-            15: "TDE",
-            64: "KN",
-            88: "AGN",
-            92: "RRL",
-            65: "M-dwarf",
-            16: "EB",
-            53: "Mira",
-            6: "mu-Lens-Single",
-        }
+        dataform = "full"
 
     # Load data
     X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-    # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
-    class_encoding = enc.categories_[0]
 
-    if args.dataset == "plasticc":
-        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-    else:
-        class_names = class_encoding
+    # Get inverse of one-hot encoding
+    enc, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
 
     print(X_train.shape, y_train.shape)
     print(X_val.shape, y_val.shape)
