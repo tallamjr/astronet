@@ -11,6 +11,102 @@ from typing import List, Dict, Union
 from astronet.constants import LSST_PB_WAVELENGTHS
 
 
+def __filter_dataframe_only_supernova(
+    object_list_filename: str, dataframe: pd.DataFrame
+) -> pd.DataFrame:
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
+    plasticc_object_list = np.genfromtxt(object_list_filename, dtype="U")
+    filtered_dataframe = dataframe[dataframe["object_id"].isin(plasticc_object_list)]
+    return filtered_dataframe
+
+
+def __transient_trim(
+    object_list: List[str], df: pd.DataFrame
+) -> (pd.DataFrame, List[np.array]):
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
+    adf = pd.DataFrame(data=[], columns=df.columns)
+    good_object_list = []
+    for obj in object_list:
+        obs = df[df["object_id"] == obj]
+        obs_time = obs["mjd"]
+        obs_detected_time = obs_time[obs["detected"] == 1]
+        if len(obs_detected_time) == 0:
+            print(f"Zero detected points for object:{object_list.index(obj)}")
+            continue
+        is_obs_transient = (obs_time > obs_detected_time.iat[0] - 50) & (
+            obs_time < obs_detected_time.iat[-1] + 50
+        )
+        obs_transient = obs[is_obs_transient]
+        if len(obs_transient["mjd"]) == 0:
+            is_obs_transient = (obs_time > obs_detected_time.iat[0] - 1000) & (
+                obs_time < obs_detected_time.iat[-1] + 1000
+            )
+            obs_transient = obs[is_obs_transient]
+        obs_transient["mjd"] -= min(
+            obs_transient["mjd"]
+        )  # so all transients start at time 0
+        good_object_list.append(object_list.index(obj))
+        adf = np.vstack((adf, obs_transient))
+
+    obs_transient = pd.DataFrame(data=adf, columns=obs_transient.columns)
+
+    filter_indices = good_object_list
+    axis = 0
+    array = np.array(object_list)
+
+    new_filtered_object_list = np.take(array, filter_indices, axis)
+
+    return obs_transient, list(new_filtered_object_list)
+
+
 def fit_2d_gp(
     obj_data: pd.DataFrame,
     return_kernel: bool = False,
@@ -106,6 +202,116 @@ def fit_2d_gp(
     return gp_predict
 
 
+def generate_gp_single_event(
+    df: pd.DataFrame, timesteps: int = 100, pb_wavelengths: Dict = LSST_PB_WAVELENGTHS
+) -> pd.DataFrame:
+    """Intermediate helper function useful for visualisation of the original data with the mean of
+    the Gaussian Process interpolation as well as the uncertainity.
+
+    Additional steps required to build full dataframe for classification found in
+    `generate_gp_all_objects`, namely:
+
+        ...
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
+        obj_gps = obj_gps.reset_index()
+        obj_gps["object_id"] = object_id
+        ...
+
+    To allow a transformation from:
+
+        mjd	        flux	    flux_error	filter
+    0	0.000000	19.109279	0.176179	ztfg
+    1	0.282785	19.111843	0.173419	ztfg
+    2	0.565571	19.114406	0.170670	ztfg
+
+    to ...
+
+    filter	mjd	        ztfg    ztfr	object_id
+    0	    0	        19.1093	19.2713	27955532126447639664866058596
+    1	    0.282785	19.1118	19.2723	27955532126447639664866058596
+    2	    0.565571	19.1144	19.2733	27955532126447639664866058596
+
+    Examples
+    --------
+    >>> _obj_gps = generate_gp_single_event(data)
+    >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
+    """
+
+    filters = df["filter"]
+    filters = list(np.unique(filters))
+
+    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+
+    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+
+    number_gp = timesteps
+    gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+    obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
+    obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+
+    return obj_gps
+
+
+def generate_gp_all_objects(
+    object_list: List[str],
+    obs_transient: pd.DataFrame,
+    timesteps: int = 100,
+    pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
+) -> pd.DataFrame:
+    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+    Parameters
+    ----------
+    object_list: List[str]
+        List of objects to apply the transformation to
+    df: pd.DataFrame
+        DataFrame containing the full light curve including dead points.
+
+    Returns
+    -------
+    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+        Tuple containing the updated dataframe with only the transient section, and a list of
+        objects that the transformation was successful for. Note, some objects may cause an error
+        and hence would not be returned in the new transformed dataframe
+
+    Examples
+    --------
+    >>> object_list = list(np.unique(df["object_id"]))
+    >>> obs_transient, object_list = __transient_trim(object_list, df)
+    >>> generated_gp_dataset = generate_gp_all_objects(
+        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+        )
+    ...
+    """
+
+    filters = obs_transient["filter"]
+    filters = list(np.unique(filters))
+
+    columns = []
+    columns.append("mjd")
+    for filt in filters:
+        columns.append(filt)
+    columns.append("object_id")
+
+    adf = pd.DataFrame(
+        data=[],
+        columns=columns,
+    )
+
+    for object_id in object_list:
+        print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
+        df = obs_transient[obs_transient["object_id"] == object_id]
+
+        obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
+
+        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
+        obj_gps = obj_gps.reset_index()
+        obj_gps["object_id"] = object_id
+        adf = np.vstack((adf, obj_gps))
+    return pd.DataFrame(data=adf, columns=obj_gps.columns)
+
+
 def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
     """Outputs the predictions of a Gaussian Process.
 
@@ -152,6 +358,22 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
 
     obj_gps = obj_gps.to_pandas()
     return obj_gps
+
+
+def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
+    """Function to remap integer filters to the corresponding filters.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Dataframe of lightcurve observations
+    filter_map: dict
+        Corresponding map for filters used. Current options are found in astronet.constants:
+        {LSST_FILTER_MAP, ZTF_FILTER_MAP}
+    """
+    df.rename({"passband": "filter"}, axis="columns", inplace=True)
+    df["filter"].replace(to_replace=filter_map, inplace=True)
+    return df
 
 
 def robust_scale(
@@ -228,7 +450,7 @@ def one_hot_encode(y_train, y_test):
     return enc, y_train, y_test
 
 
-def tf_one_hot_encode(y_train, y_test):
+def one_hot_encode_tf(y_train, y_test):
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
