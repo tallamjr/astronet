@@ -45,7 +45,6 @@ class Plots(object):
         self.dataset = dataset
         self.model_name = model_name
         self.redshift = redshift
-        self.redshift = redshift
         self.savefigs = savefigs
 
     def __call__(self):
@@ -79,12 +78,10 @@ class Plots(object):
 
         if self.redshift is not None:
             inputs = [X_test, Z_test]
-            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{dataset}/results_with_z.json"
+            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
         else:
             inputs = X_test
-            results_filename = (
-                f"{asnwd}/astronet/{self.architecture}/models/{dataset}/results.json"
-            )
+            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results.json"
 
         with open(results_filename) as f:
             events = json.load(f)
@@ -93,7 +90,7 @@ class Plots(object):
                 event = next(
                     item
                     for item in events["training_result"]
-                    if item["name"] == model_name
+                    if item["name"] == self.model_name
                 )
             else:
                 event = min(
@@ -102,13 +99,15 @@ class Plots(object):
                 )
 
         model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{dataset}/model-{self.model_name}",
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
 
         dataform = "testset"
-        encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
+        encoding, class_encoding, class_names = get_encoding(
+            self.dataset, dataform=dataform
+        )
         from collections import Counter
         from pandas.core.common import flatten
 
@@ -141,8 +140,8 @@ class Plots(object):
         cmap = sns.light_palette("Navy", as_cmap=True)
         plot_confusion_matrix(
             self.architecture,
-            dataset,
-            model_name,
+            self.dataset,
+            self.model_name,
             y_test,
             y_preds,
             encoding,
@@ -152,16 +151,16 @@ class Plots(object):
         )
 
         plot_acc_history(
-            self.architecture, dataset, model_name, event, save=self.savefigs
+            self.architecture, self.dataset, self.model_name, event, save=self.savefigs
         )
         plot_loss_history(
-            self.architecture, dataset, model_name, event, save=self.savefigs
+            self.architecture, self.dataset, self.model_name, event, save=self.savefigs
         )
 
         plot_multiROC(
             self.architecture,
-            dataset,
-            model_name,
+            self.dataset,
+            self.model_name,
             model,
             inputs,
             y_test,
@@ -170,8 +169,8 @@ class Plots(object):
         )
         plot_multiPR(
             self.architecture,
-            dataset,
-            model_name,
+            self.dataset,
+            self.model_name,
             model,
             inputs,
             y_test,
