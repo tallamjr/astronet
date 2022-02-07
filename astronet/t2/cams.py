@@ -3,6 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import random as python_random
 import seaborn as sns
 import tensorflow as tf
 import matplotlib.ticker as ticker
@@ -10,7 +11,7 @@ import matplotlib.ticker as ticker
 from matplotlib import rcParams
 from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.t2.model import T2Model
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 from astronet.visualise_results import (
@@ -27,7 +28,6 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
-import random as python_random
 
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.

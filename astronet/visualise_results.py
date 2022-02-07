@@ -21,7 +21,7 @@ from sklearn.metrics import (
 )
 from tensorflow import keras
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import one_hot_encode
 from astronet.utils import (
