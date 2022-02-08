@@ -48,7 +48,7 @@ addopts = [
     "--nbmake",
     "--ignore=sbin",
     "--ignore=notebooks",
-    "--ignore=astronet/test/unit/viz",
+    "--ignore=astronet/tests/unit/viz/*",
 ]
 testpaths = [
     "astronet/tests",
@@ -56,5 +56,5 @@ testpaths = [
 
 [tool.coverage.run]
 omit = [
-    "astronet/test/unit/viz/*"
+    "astronet/tests/*"
 ]
