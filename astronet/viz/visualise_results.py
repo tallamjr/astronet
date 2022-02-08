@@ -33,6 +33,9 @@ from astronet.utils import (
 
 def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
+
+    fig, _ = plt.subplots()
+
     if ax is not None:
         ax = ax or plt.gca()
         ax.plot(event["acc"], label="train")
@@ -61,9 +64,14 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
         plt.savefig(fname, format="pdf")
         plt.clf()
 
+    return fig
+
 
 def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
+
+    fig, _ = plt.subplots()
+
     if ax is not None:
         ax = ax or plt.gca()
         ax.plot(event["loss"], label="train")
@@ -89,6 +97,8 @@ def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=No
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-loss-{model_name}.pdf"
         plt.savefig(fname, format="pdf")
         plt.clf()
+
+    return fig
 
 
 def plot_confusion_matrix(
@@ -168,6 +178,8 @@ def plot_confusion_matrix(
     else:
         print(model_name)
         plt.show()
+
+    return fig
 
 
 def plot_multiROC(
@@ -255,6 +267,8 @@ def plot_multiROC(
     plt.title("Multi-Class Receiver Operating Characteristic")
     plt.legend(loc="lower right")
 
+    fig = plt.gcf()
+
     if save:
         try:
             os.makedirs(
@@ -269,6 +283,8 @@ def plot_multiROC(
     else:
         print(model_name)
         plt.show()
+
+    return fig
 
 
 def plot_multiPR(
@@ -356,6 +372,8 @@ def plot_multiPR(
     else:
         print(model_name)
         plt.show()
+
+    return fig
 
 
 if __name__ == "__main__":
