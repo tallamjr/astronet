@@ -4,7 +4,6 @@ prune notebooks
 prune resources
 prune results
 prune sbin
-prune tests
 prune astronet/atx/models
 prune astronet/t2/models
 
@@ -25,3 +24,5 @@ graft astronet/atx/models/plasticc/model-9887359-1641295475-0.1.dev943+gc9bafac.
 graft astronet/t2/models/plasticc/model-1619624444-0.1.dev765+g7c90cbb.d20210428
 
 recursive-include astronet *.py
+
+prune astronet/tests

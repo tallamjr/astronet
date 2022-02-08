@@ -1,6 +1,5 @@
 # Tests
 
-
 ```bash
 
 .
@@ -31,6 +30,22 @@
 5 directories, 18 files
 ```
 
-## Unit Tests `unit`
-## Integration Tests `int`
-## Functional Tests `unit`
+Above is the directory structure of the tests, separated into unit, integration and functional tests
+
+#### Unit Tests `unit`
+
+Testing smallest units or modules individually.
+
+#### Integration Tests `int`
+
+Testing integration of two or more units/modules combined for performing tasks.
+
+#### Functional Tests `unit`
+
+Testing the behaviour of the application as per the requirement.
+
+### Running Tests
+
+This package uses `pytest` with additional options defined in `pytest.ini` file.
+
+To run, simply use `pytest .`
