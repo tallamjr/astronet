@@ -27,6 +27,7 @@ logs/
 *.log
 *.pdf
 !astronet/t2/plots/**/*.pdf
+!astronet/atx/plots/**/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
