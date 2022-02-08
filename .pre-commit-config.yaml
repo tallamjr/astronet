@@ -17,9 +17,9 @@ repos:
     -   id: flake8
         args: ["--max-line-length=131", "--ignore=F401,E221,E501,E203,E731,W503,W605"]
         exclude: sbin
--   repo: https://github.com/mgedmin/check-manifest
-    rev: "0.47"
-    hooks:
-    -   id: check-manifest
-        args: [--no-build-isolation]
-        additional_dependencies: [setuptools-scm]
+# -   repo: https://github.com/mgedmin/check-manifest
+#     rev: "0.47"
+#     hooks:
+#     -   id: check-manifest
+#         args: [--no-build-isolation]
+#         additional_dependencies: [setuptools-scm]
