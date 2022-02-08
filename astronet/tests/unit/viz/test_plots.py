@@ -6,6 +6,7 @@ import random as python_random
 import seaborn as sns
 import tensorflow as tf
 
+from pathlib import Path
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
@@ -111,7 +112,10 @@ class TestPlots:
     def test_fixtures(self, architecture, dataset, model_name, fixt):
         print("\ntest_one", architecture, dataset, model_name, fixt)
 
-    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
+        savefig_kwargs={"dpi": 300, "format": "pdf"},
+    )
     def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
 
         cmap = sns.light_palette("Navy", as_cmap=True)
@@ -139,7 +143,10 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
+        savefig_kwargs={"dpi": 300, "format": "pdf"},
+    )
     def test_acc_history(self, architecture, dataset, model_name, fixt):
 
         X_test, y_test, Z_test, inputs = fixt
@@ -161,7 +168,10 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
+        savefig_kwargs={"dpi": 300, "format": "pdf"},
+    )
     def test_loss_history(self, architecture, dataset, model_name, fixt):
 
         X_test, y_test, Z_test, inputs = fixt
@@ -183,7 +193,10 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
+        savefig_kwargs={"dpi": 300, "format": "pdf"},
+    )
     def test_multiROC(self, architecture, dataset, model_name, fixt):
 
         X_test, y_test, Z_test, inputs = fixt
@@ -208,7 +221,10 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
+        savefig_kwargs={"dpi": 300, "format": "pdf"},
+    )
     def test_multiPR(self, architecture, dataset, model_name, fixt):
 
         X_test, y_test, Z_test, inputs = fixt
