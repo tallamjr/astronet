@@ -94,5 +94,5 @@ jobs:
     - name: Run pytest
       run: |
         export ASNWD=${{ github.workspace }}
-        pytest --cov $ASNWD/tests/ --ignore $ASNWD/tests/unit/*.ipynb
+        pytest --ignore=$ASNWD/tests/unit/viz --cov $ASNWD/tests/
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
