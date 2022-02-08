@@ -53,3 +53,8 @@ addopts = [
 testpaths = [
     "astronet/tests",
 ]
+
+[tool.coverage.run]
+omit = [
+    "astronet/test/unit/viz/*"
+]
