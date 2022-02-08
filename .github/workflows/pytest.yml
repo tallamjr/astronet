@@ -89,6 +89,7 @@ jobs:
         pip install pytest
         pip install pytest-cov
         pip install nbmake
+        pip install pytest-mpl
 
     - name: Run pytest
       run: |
