@@ -114,7 +114,6 @@ class TestPlots:
 
     @pytest.mark.mpl_image_compare(
         hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
-        savefig_kwargs={"dpi": 300, "format": "pdf"},
     )
     def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
 
@@ -145,7 +144,6 @@ class TestPlots:
 
     @pytest.mark.mpl_image_compare(
         hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
-        savefig_kwargs={"dpi": 300, "format": "pdf"},
     )
     def test_acc_history(self, architecture, dataset, model_name, fixt):
 
@@ -170,7 +168,6 @@ class TestPlots:
 
     @pytest.mark.mpl_image_compare(
         hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
-        savefig_kwargs={"dpi": 300, "format": "pdf"},
     )
     def test_loss_history(self, architecture, dataset, model_name, fixt):
 
@@ -195,7 +192,6 @@ class TestPlots:
 
     @pytest.mark.mpl_image_compare(
         hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
-        savefig_kwargs={"dpi": 300, "format": "pdf"},
     )
     def test_multiROC(self, architecture, dataset, model_name, fixt):
 
@@ -223,7 +219,6 @@ class TestPlots:
 
     @pytest.mark.mpl_image_compare(
         hash_library=f"{Path(__file__).absolute()}/baseline/hashlib.json",
-        savefig_kwargs={"dpi": 300, "format": "pdf"},
     )
     def test_multiPR(self, architecture, dataset, model_name, fixt):
 
