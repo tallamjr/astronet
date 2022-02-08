@@ -34,3 +34,22 @@ relative_to = "setup.py"
 
 [tool.check-manifest]
 ignore-default-rules = false
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--color=yes",
+    "--verbose",
+    "--capture=no",
+    "--showlocals",
+    "--durations=0",
+    "--setup-show",
+    "--mpl",
+    "--nbmake",
+    "--ignore=sbin",
+    "--ignore=notebooks",
+    "--ignore=astronet/test/unit/viz",
+]
+testpaths = [
+    "tests",
+]
