@@ -108,9 +108,11 @@ class TestPlots:
         print("\ntest_one", architecture, dataset, model_name, fixt)
         print(f"FILENAME: {fixt}")
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
     def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
+
         cmap = sns.light_palette("Navy", as_cmap=True)
+
         (
             X_test,
             y_test,
@@ -136,8 +138,9 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
     def test_acc_history(self, architecture, dataset, model_name, fixt):
+
         (
             X_test,
             y_test,
@@ -159,8 +162,9 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
     def test_loss_history(self, architecture, dataset, model_name, fixt):
+
         (
             X_test,
             y_test,
@@ -182,8 +186,9 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
     def test_multiROC(self, architecture, dataset, model_name, fixt):
+
         (
             X_test,
             y_test,
@@ -208,7 +213,7 @@ class TestPlots:
         )
         return fig
 
-    @pytest.mark.mpl_image_compare
+    @pytest.mark.mpl_image_compare(hash_library="baseline/hashlib.json")
     def test_multiPR(self, architecture, dataset, model_name, fixt):
 
         (
