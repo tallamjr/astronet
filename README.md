@@ -13,7 +13,7 @@
     \__,_/ /____/ \__/ /_/    \____//_/ /_/\___/\__/
 
 
-![pytest](https://github.com/tallamjr/astronet/workflows/pytest.yml/badge.svg?branch=master)
+[![pytest](https://github.com/tallamjr/astronet/actions/workflows/pytest.yml/badge.svg)](https://github.com/tallamjr/astronet/actions/workflows/pytest.yml)
 [![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet)
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
