@@ -85,30 +85,8 @@ def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
 
 
 def find_optimal_batch_size(training_set_length: int) -> int:
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
-
-    Parameters
-    ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
-    df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
-
-    Returns
-    -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
-
-    Examples
-    --------
-    >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
+    """Determine optimal batch size to use. Ideally leave a large remainder such that the GPU is
+    full for most of the time.
     """
 
     if training_set_length < 10000:
@@ -132,31 +110,7 @@ def find_optimal_batch_size(training_set_length: int) -> int:
 
 
 def train_val_test_split(df, cols):
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
-
-    Parameters
-    ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
-    df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
-
-    Returns
-    -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
-
-    Examples
-    --------
-    >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
-    """
+    """Split dataset into train, validation and test set."""
 
     features = df[cols]
     # column_indices = {name: i for i, name in enumerate(features.columns)}
