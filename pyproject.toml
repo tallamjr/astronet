@@ -57,5 +57,6 @@ testpaths = [
 
 [tool.coverage.run]
 omit = [
-    "astronet/tests/*"
+    "astronet/tests/*",
+    "**/constants.py",
 ]
