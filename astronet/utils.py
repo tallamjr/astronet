@@ -7,6 +7,7 @@ import pickle
 import tensorflow as tf
 
 from typing import List, Dict
+from sklearn.preprocessing import OneHotEncoder
 
 from pathlib import Path
 from scipy import stats
@@ -125,31 +126,40 @@ def train_val_test_split(df, cols):
     return df_train, df_val, df_test, num_features
 
 
-def create_dataset(X, y, time_steps=1, step=1):
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+def create_dataset(
+    X: pd.DataFrame, y: pd.Series, time_steps: int = 1, step: int = 1
+) -> (np.ndarray, np.ndarray):
+    """Create dataset from GP interpolated data and splitting according to the timesteps used when
+    generating the GP dataframe. This allows for the correct label to be assigned to the
+    corresponding X values
 
     Parameters
     ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
-    df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
+    X: pd.DataFrame
+        Subset of full dataframe containing only the passband columns
+    y: pd.Series
+        A pd.Series containing the object labels
+    TIME_STEPS: int
+        Number relating to how many times the GP has been evaluated
+    STEP: int
+        Relates to window size, if TIME_STEPS == STEP, there is no window, but one can create
+        overlapping segments if the STEP size is changed.
 
     Returns
     -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
+    (Xs, ys): (np.ndarray, np.ndarray):
+        A matrix of X values with corresponding y labels given as a column vector
 
     Examples
     --------
-    >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
+    >>> cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
+    >>> robust_scale(df, cols)
+    >>> TIME_STEPS = timesteps
+    >>> STEP = step
+    >>> Xs, ys = create_dataset(df[cols], df.target, TIME_STEPS, STEP)
+    >>> X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    ...     Xs, ys, random_state=RANDOM_SEED
+    ... )
     """
 
     Xs, ys = [], []
@@ -162,7 +172,10 @@ def create_dataset(X, y, time_steps=1, step=1):
     return np.array(Xs), np.array(ys).reshape(-1, 1)
 
 
-def get_encoding(dataset, dataform=None):
+def get_encoding(
+    dataset: str, dataform: str = None
+) -> (OneHotEncoder, List(str), List(str)):
+    """Get inverse of the OneHotEncoder used intially encoding the original labels"""
 
     if dataform is not None:
         encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
@@ -183,6 +196,7 @@ def get_encoding(dataset, dataform=None):
 
 
 def load_wisdm_2010(timesteps=200, step=200):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -251,10 +265,8 @@ def load_wisdm_2010(timesteps=200, step=200):
     return X_train, y_train, X_test, y_test
 
 
-#  TODO:
-# Investigate performance of timesteps=200 for wisdm_2019 since this is the timesteps used for
-# widsm_2010 which obtains better performance.
 def load_wisdm_2019(timesteps=200, step=200):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -339,6 +351,7 @@ def load_wisdm_2019(timesteps=200, step=200):
 
 
 def load_mts(dataset):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -374,6 +387,7 @@ def load_mts(dataset):
 
 
 def text_to_bits(text, encoding="utf-8", errors="surrogatepass"):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -404,6 +418,7 @@ def text_to_bits(text, encoding="utf-8", errors="surrogatepass"):
 
 
 def text_from_bits(bits, encoding="utf-8", errors="surrogatepass"):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -435,6 +450,7 @@ def text_from_bits(bits, encoding="utf-8", errors="surrogatepass"):
 
 
 def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -544,6 +560,7 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 def __load_plasticc_test_set_dataset_from_csv(
     timesteps, snonly=None, batch_filename=None
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -658,6 +675,7 @@ def __load_plasticc_test_set_dataset_from_csv(
 def __load_avocado_plasticc_dataset_from_csv(
     timesteps, snonly=None, batch_filename=None
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -766,6 +784,7 @@ def __load_avocado_plasticc_dataset_from_csv(
 
 
 def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -835,6 +854,7 @@ def __generate_augmented_plasticc_dataset_from_pickle(augmented_binary):
 
 
 def __load_augmented_plasticc_dataset_from_csv(timesteps):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -961,6 +981,7 @@ def __load_augmented_plasticc_dataset_from_csv(timesteps):
 
 
 def get_data_count(dataset, y_train, y_test, dataform=None):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1010,6 +1031,7 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
 def load_plasticc(
     timesteps=100, step=100, redshift=None, augmented=None, snonly=None, avocado=None
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1142,6 +1164,7 @@ def load_plasticc(
 def load_full_avocado_plasticc_from_numpy(
     timesteps=100, redshift=None, batch_filename=None
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1214,6 +1237,7 @@ def load_full_avocado_plasticc_from_numpy(
 
 
 def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1316,6 +1340,7 @@ def save_avocado_training_set(
     snonly=None,
     batch_filename=None,
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1414,6 +1439,7 @@ def save_plasticc_test_set(
     snonly=None,
     batch_filename=None,
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -1538,6 +1564,7 @@ def load_dataset(
     testset=None,
     fink=None,
 ):
+    # TODO: Update docstrings
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
