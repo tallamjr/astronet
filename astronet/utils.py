@@ -174,7 +174,7 @@ def create_dataset(
 
 def get_encoding(
     dataset: str, dataform: str = None
-) -> (OneHotEncoder, List(str), List(str)):
+) -> (OneHotEncoder, List[str], List[str]):
     """Get inverse of the OneHotEncoder used intially encoding the original labels"""
 
     if dataform is not None:
