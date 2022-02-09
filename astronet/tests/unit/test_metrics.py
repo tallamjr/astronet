@@ -6,7 +6,7 @@ from astronet.metrics import custom_log_loss, WeightedLogLoss
 
 def test_custom_log_loss():
 
-    x = tf.constant([[1., 0., 0.], [1., 0., 0.], [0., 1., 0.]])
+    x = tf.constant([[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
     y = np.array([[0.9, 0.1, 0.2], [0.9, 0.4, 0.1], [0.2, 0.9, 0.2]])
 
     logloss = custom_log_loss(x, y).numpy()
@@ -20,7 +20,7 @@ def test_custom_log_loss():
 
 def test_weighted_log_loss():
 
-    x = tf.constant([[1., 0., 0.], [1., 0., 0.], [0., 1., 0.]])
+    x = tf.constant([[1.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
     y = np.array([[0.9, 0.1, 0.2], [0.9, 0.4, 0.1], [0.2, 0.9, 0.2]])
 
     logloss = WeightedLogLoss()

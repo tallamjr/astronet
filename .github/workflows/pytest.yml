@@ -1,4 +1,4 @@
-name: Test Suite with Code Coverage
+name: PyTest
 
 on:
   # Trigger the workflow on push or pull request,
@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - master
+      - issues/69/refactor
   pull_request:
     branches:
       - master
@@ -22,21 +23,21 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          nb-ubuntu-gcc-py37,
-          # nb-osx-gcc-py37,
-          # nb-osx-clang-py37,
+          ubuntu-gcc-py37,
+          # osx-gcc-py37,
+          # osx-clang-py37,
           ]
 
         include:
-          - name: nb-ubuntu-gcc-py37
-            os: ubuntu-16.04
+          - name: ubuntu-gcc-py37
+            os: ubuntu-latest
             compiler: gcc-7
 
-          # - name: nb-osx-gcc-py37
+          # - name: osx-gcc-py37
           #   os: macos-latest
           #   compiler: gcc-9
 
-          # - name: nb-osx-clang-py37
+          # - name: osx-clang-py37
           #   os: macos-latest
           #   compiler: clang
 
@@ -87,9 +88,10 @@ jobs:
         pip install matplotlib
         pip install pytest
         pip install pytest-cov
+        pip install nbmake
+        pip install pytest-mpl
 
     - name: Run pytest
       run: |
-        export ASNWD=${{ github.workspace }}
-        pytest --cov .
+        pytest .
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}

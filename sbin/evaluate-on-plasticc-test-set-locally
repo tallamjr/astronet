@@ -26,7 +26,7 @@ else
     model="1619624444-0.1.dev765+g7c90cbb.d20210428"            # t2
 fi
 
-python $ASNWD/sbin/evaluate_on_plasticc_test_set.py \
+python $ASNWD/astronet/viz/generate_plots.py \
     --architecture $architecture \
     --dataset $dataset \
     --model $model \

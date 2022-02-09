@@ -73,8 +73,8 @@ def plot_event_data_with_model(
                     alpha=0.15,
                     label=None,
                 )
-            except:
-                pass
+            except Exception as e:
+                print(e)
         ax.errorbar(
             obj_data_pb["mjd"],
             obj_data_pb["flux"],
@@ -104,7 +104,9 @@ def plot_event_data_with_model(
     return f, ax
 
 
-def plot_event_gp_mean(df: pd.DataFrame, object_id: Union[int, str], pb_colors: Dict) -> None:
+def plot_event_gp_mean(
+    df: pd.DataFrame, object_id: Union[int, str], pb_colors: Dict
+) -> None:
     # TODO: Update docstrings
 
     df = df[df["object_id"] == object_id]
@@ -113,10 +115,8 @@ def plot_event_gp_mean(df: pd.DataFrame, object_id: Union[int, str], pb_colors: 
     if "target" in df.columns:
         print(object_id, df["target"].values[0])
         drop_columns.append("target")
-    gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(
-        columns=drop_columns
-    )
-    ax = gp_mean_data.set_index('mjd').plot(linewidth=2.0, color=pb_colors, marker='o')
+    gp_mean_data = pd.DataFrame(data=df, columns=df.columns).drop(columns=drop_columns)
+    ax = gp_mean_data.set_index("mjd").plot(linewidth=2.0, color=pb_colors, marker="o")
     f = ax.get_figure()
 
     return f, ax

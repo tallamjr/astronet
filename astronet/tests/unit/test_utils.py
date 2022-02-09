@@ -16,7 +16,9 @@ def test_load_wisdm_2010():
     assert y_test.shape == (1373, 1)
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large 'phone.df' file")
+@pytest.mark.skipif(
+    os.getenv("CI") is not None, reason="Requires large 'phone.df' file"
+)
 def test_load_wisdm_2019():
 
     X_train, y_train, X_test, y_test = load_wisdm_2019(timesteps=100, step=40)
@@ -31,7 +33,9 @@ def test_load_wisdm_2019():
 @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
 def test_load_plasticc_snonly():
 
-    X_train, y_train, X_test, y_test = load_plasticc(timesteps=100, step=100, snonly=True)
+    X_train, y_train, X_test, y_test = load_plasticc(
+        timesteps=100, step=100, snonly=True
+    )
 
     assert X_train.shape == (2991, 100, 6)
     assert X_test.shape == (998, 100, 6)

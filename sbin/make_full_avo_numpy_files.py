@@ -1,6 +1,6 @@
 import numpy as np
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 batch_filename = [
     "avo_aug_1_chunk_0",
@@ -36,7 +36,7 @@ batch_filename = [
 
 # X
 X_full_train = np.load(
-        f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_X_train_avo_aug_1_chunk_0.npy",
+    f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_X_train_avo_aug_1_chunk_0.npy",
 )
 
 for file in batch_filename:
@@ -53,7 +53,7 @@ np.save(
 
 # y
 y_full_train = np.load(
-        f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_y_train_avo_aug_1_chunk_0.npy",
+    f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_y_train_avo_aug_1_chunk_0.npy",
 )
 
 for file in batch_filename:
@@ -70,7 +70,7 @@ np.save(
 
 # Z
 Z_full_train = np.load(
-        f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_Z_train_avo_aug_1_chunk_0.npy",
+    f"{asnwd}/data/plasticc/avocado/avocado_transformed_df_timesteps_100_Z_train_avo_aug_1_chunk_0.npy",
 )
 
 for file in batch_filename:

@@ -1,0 +1,28 @@
+prune bin
+prune data
+prune notebooks
+prune resources
+prune results
+prune sbin
+prune astronet/atx/models
+prune astronet/t2/models
+
+recursive-exclude conf *.conf
+recursive-exclude astronet *.json
+recursive-exclude astronet *.pdf
+recursive-exclude astronet *.pkl
+recursive-exclude astronet *.png
+
+include *.cff
+include *.txt
+include *.yaml
+include *.yml
+include data/full-plasticc.encoding
+include pytest.ini
+
+graft astronet/atx/models/plasticc/model-9887359-1641295475-0.1.dev943+gc9bafac.d20220104
+graft astronet/t2/models/plasticc/model-1619624444-0.1.dev765+g7c90cbb.d20210428
+
+recursive-include astronet *.py
+
+prune astronet/tests

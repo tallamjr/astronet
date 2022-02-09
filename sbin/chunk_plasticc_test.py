@@ -5,12 +5,12 @@ import sys
 
 from pathlib import Path
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 
 def chunker(seq, size):
     """https://stackoverflow.com/a/434328/4521950"""
-    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+    return (seq[pos : pos + size] for pos in range(0, len(seq), size))
 
 
 def read_large_file(filename):
@@ -20,7 +20,7 @@ def read_large_file(filename):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process PLAsTiCC Test Set in Chunks')
+    parser = argparse.ArgumentParser(description="Process PLAsTiCC Test Set in Chunks")
 
     parser.add_argument(
         "-n",
@@ -58,9 +58,9 @@ if __name__ == "__main__":
 
     df = read_large_file(filename)
 
-    object_list = list(np.unique(df['object_id']))
+    object_list = list(np.unique(df["object_id"]))
 
     for idx, objects in enumerate(chunker(object_list, num_objects_per_chunk)):
-        dfs = df[df['object_id'].isin(objects)]
+        dfs = df[df["object_id"].isin(objects)]
         print(idx, dfs.shape)
         dfs.to_csv(f"{output_dir}{Path(filename).stem}_chunk_{idx}.csv")

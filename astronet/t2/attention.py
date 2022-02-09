@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 
 
 class MultiHeadSelfAttention(layers.Layer):
-    # TODO: Docstrings
+    # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads=8):
         super(MultiHeadSelfAttention, self).__init__()
         self.embed_dim = embed_dim
@@ -29,9 +29,7 @@ class MultiHeadSelfAttention(layers.Layer):
         return output, weights
 
     def separate_heads(self, x, batch_size):
-        x = tf.reshape(
-            x, (batch_size, -1, self.num_heads, self.projection_dim)
-        )
+        x = tf.reshape(x, (batch_size, -1, self.num_heads, self.projection_dim))
         return tf.transpose(x, perm=[0, 2, 1, 3])
 
     def call(self, inputs):

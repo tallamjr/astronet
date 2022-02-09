@@ -1,6 +1,5 @@
 import argparse
 import json
-import logging
 import numpy as np
 import os
 import psutil
@@ -19,20 +18,28 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.constants import astronet_working_directory as asnwd
-from astronet.custom_callbacks import DetectOverfittingCallback, TimeHistoryCallback, SGEBreakoutCallback
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.custom_callbacks import (
+    DetectOverfittingCallback,
+    TimeHistoryCallback,
+    SGEBreakoutCallback,
+)
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
-from astronet.preprocess import one_hot_encode, tf_one_hot_encode
-from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size, get_data_count
+from astronet.utils import (
+    astronet_logger,
+    load_dataset,
+    find_optimal_batch_size,
+    get_data_count,
+)
 
 try:
     log = astronet_logger(__file__)
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-except:
-    print("Seems you are running from a notebook...")
+except Exception as e:
+    print(f"{e}: Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/atx/train.py"
     log = astronet_logger(__file__)
 
@@ -41,11 +48,10 @@ np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
-os.environ['TF_DETERMINISTIC_OPS'] = '1'
+os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
 class Training(object):
-    # TODO: Update docstrings
     def __init__(self, epochs, dataset, model, redshift, balance, avocado, testset):
         self.epochs = epochs
         self.dataset = dataset
@@ -56,20 +62,51 @@ class Training(object):
         self.testset = testset
 
     def __call__(self):
+        """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+
+        Parameters
+        ----------
+        object_list: List[str]
+            List of objects to apply the transformation to
+        df: pd.DataFrame
+            DataFrame containing the full light curve including dead points.
+
+        Returns
+        -------
+        obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
+            Tuple containing the updated dataframe with only the transient section, and a list of
+            objects that the transformation was successful for. Note, some objects may cause an error
+            and hence would not be returned in the new transformed dataframe
+
+        Examples
+        --------
+        >>> object_list = list(np.unique(df["object_id"]))
+        >>> obs_transient, object_list = __transient_trim(object_list, df)
+        >>> generated_gp_dataset = generate_gp_all_objects(
+            object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
+            )
+        ...
+        """
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset=self.dataset, redshift=self.redshift, balance=self.balance,
-                avocado=self.avocado, testset=self.testset
+                dataset=self.dataset,
+                redshift=self.redshift,
+                balance=self.balance,
+                avocado=self.avocado,
+                testset=self.testset,
             )
-            hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{self.dataset}/results_with_z.json"
-            num_aux_feats = ZX_train.shape[1]
+            hyper_results_file = (
+                f"{asnwd}/astronet/atx/opt/runs/{self.dataset}/results_with_z.json"
+            )
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(dataset, balance=self.balance,
-                avocado=self.avocado, testset=self.testset
+            X_train, y_train, X_test, y_test, loss = load_dataset(
+                dataset,
+                balance=self.balance,
+                avocado=self.avocado,
+                testset=self.testset,
             )
             hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
-            num_aux_feats = 0
 
         num_classes = y_train.shape[1]
 
@@ -84,15 +121,27 @@ class Training(object):
             events = json.load(f)
             if self.model is not None:
                 # Get params for model chosen with cli args
-                event = next(item for item in events['optuna_result'] if item["name"] == self.model)
+                event = next(
+                    item
+                    for item in events["optuna_result"]
+                    if item["name"] == self.model
+                )
             else:
-                event = min(events['optuna_result'], key=lambda ev: ev['objective_score'])
+                event = min(
+                    events["optuna_result"], key=lambda ev: ev["objective_score"]
+                )
 
-        kernel_size = event['kernel_size']  # --> Filter length
-        pool_size = event['pool_size']      # --> Pooling width
-        scaledown_factor = event['scaledown_factor']    # --> Reduce number of filters down by given factor
+        kernel_size = event["kernel_size"]  # --> Filter length
+        pool_size = event["pool_size"]  # --> Pooling width
+        scaledown_factor = event[
+            "scaledown_factor"
+        ]  # --> Reduce number of filters down by given factor
 
-        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        (
+            num_samples,
+            timesteps,
+            num_features,
+        ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
@@ -109,7 +158,7 @@ class Training(object):
             )
 
             # We compile our model with a sampled learning rate and any custom metrics
-            lr = event['lr']
+            lr = event["lr"]
             model.compile(
                 loss=loss,
                 optimizer=optimizers.Adam(lr=lr, clipnorm=1),
@@ -140,7 +189,7 @@ class Training(object):
             )
 
             # We compile our model with a sampled learning rate and any custom metrics
-            lr = event['lr']
+            lr = event["lr"]
             model.compile(
                 loss=loss,
                 optimizer=optimizers.Adam(lr=lr, clipnorm=1),
@@ -173,10 +222,10 @@ class Training(object):
             log.info("New atx model compiled...")
             return model, train_input, test_input
 
-        if len(tf.config.list_physical_devices('GPU')) > 1:
+        if len(tf.config.list_physical_devices("GPU")) > 1:
             # Create a MirroredStrategy.
             strategy = tf.distribute.MirroredStrategy()
-            print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+            print("Number of devices: {}".format(strategy.num_replicas_in_sync))
             # Open a strategy scope.
             with strategy.scope():
                 model, train_input, test_input = get_compiled_model()
@@ -186,9 +235,14 @@ class Training(object):
 
         unixtimestamp = int(time.time())
         try:
-            label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+            label = (
+                subprocess.check_output(["git", "describe", "--always"])
+                .strip()
+                .decode()
+            )
         except Exception:
             from astronet import __version__ as current_version
+
             label = current_version
         checkpoint_path = f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
         csv_logger_file = f"{asnwd}/logs/atx/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
@@ -207,11 +261,11 @@ class Training(object):
             callbacks=[
                 time_callback,
                 SGEBreakoutCallback(
-                    threshold=44     # Stop training if running for more than threshold number of hours
+                    threshold=44  # Stop training if running for more than threshold number of hours
                 ),
                 CSVLogger(
                     csv_logger_file,
-                    separator=',',
+                    separator=",",
                     append=False,
                 ),
                 EarlyStopping(
@@ -241,8 +295,12 @@ class Training(object):
 
         model.summary(print_fn=log.info)
 
-        model.save(f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
-        model.save_weights(f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}")
+        model.save(
+            f"{asnwd}/astronet/atx/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        )
+        model.save_weights(
+            f"{asnwd}/astronet/atx/models/{self.dataset}/weights-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        )
 
         log.info(f"PER EPOCH TIMING: {time_callback.times}")
         log.info(f"AVERAGE EPOCH TIMING: {np.array(time_callback.times).mean()}")
@@ -250,37 +308,41 @@ class Training(object):
         log.info(f"PERCENT OF RAM USED: {psutil.virtual_memory().percent}")
         log.info(f"RAM USED: {psutil.virtual_memory().active / (1024*1024*1024)}")
 
-#        with tf.device("/cpu:0"):
-#            try:
-#                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
-#            except Exception:
-#                print(f"Preventing possible OOM...")
+        #        with tf.device("/cpu:0"):
+        #            try:
+        #                print(f"LL-FULL Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=X_test.shape[0])[0]}")
+        #            except Exception:
+        #                print(f"Preventing possible OOM...")
 
-        print(f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}")
-        print(f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}")
+        print(
+            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}"
+        )
+        print(
+            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
+        )
 
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_input)
         print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
 
-        if (X_test.shape[0] < 10000):
+        if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
         else:
             # Otherwise potential OOM Error may occur loading too many into memory at once
             batch_size = VALIDATION_BATCH_SIZE
 
         model_params = {}
-        model_params['name'] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        model_params['hypername'] = event['name']
-        model_params['kernel_size'] = event['kernel_size']
-        model_params['pool_size'] = event['pool_size']
-        model_params['scaledown_factor'] = event['scaledown_factor']
+        model_params["name"] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        model_params["hypername"] = event["name"]
+        model_params["kernel_size"] = event["kernel_size"]
+        model_params["pool_size"] = event["pool_size"]
+        model_params["scaledown_factor"] = event["scaledown_factor"]
 
-        model_params['z-redshift'] = self.redshift
-        model_params['balance'] = self.balance
-        model_params['avocado'] = self.avocado
-        model_params['testset'] = self.testset
-        model_params['num_classes'] = num_classes
+        model_params["z-redshift"] = self.redshift
+        model_params["balance"] = self.balance
+        model_params["avocado"] = self.avocado
+        model_params["testset"] = self.testset
+        model_params["num_classes"] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
             test_input, y_test, verbose=0, batch_size=batch_size
         )[1]
@@ -293,18 +355,22 @@ class Training(object):
             print("    {}: {}".format(key, value))
             model_params["{}".format(key)] = value
 
-        del model_params['lr']
+        del model_params["lr"]
 
         if self.redshift is not None:
-            train_results_file = f"{asnwd}/astronet/atx/models/{self.dataset}/results_with_z.json"
+            train_results_file = (
+                f"{asnwd}/astronet/atx/models/{self.dataset}/results_with_z.json"
+            )
         else:
-            train_results_file = f"{asnwd}/astronet/atx/models/{self.dataset}/results.json"
+            train_results_file = (
+                f"{asnwd}/astronet/atx/models/{self.dataset}/results.json"
+            )
 
         with open(train_results_file) as jf:
             data = json.load(jf)
             # print(data)
 
-            previous_results = data['training_result']
+            previous_results = data["training_result"]
             # appending data to optuna_result
             # print(previous_results)
             previous_results.append(model_params)
@@ -317,28 +383,53 @@ class Training(object):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Process named model')
+    parser = argparse.ArgumentParser(description="Process named model")
 
-    parser.add_argument("-d", "--dataset", default="wisdm_2010",
-            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+    parser.add_argument(
+        "-d",
+        "--dataset",
+        default="wisdm_2010",
+        help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'",
+    )
 
-    parser.add_argument("-e", "--epochs", default=20,
-            help="How many epochs to run training for")
+    parser.add_argument(
+        "-e", "--epochs", default=20, help="How many epochs to run training for"
+    )
 
-    parser.add_argument('-m', '--model', default=None,
-            help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+    parser.add_argument(
+        "-m",
+        "--model",
+        default=None,
+        help="Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>",
+    )
 
-    parser.add_argument("-z", "--redshift", default=None,
-            help="Whether to include redshift features or not")
+    parser.add_argument(
+        "-z",
+        "--redshift",
+        default=None,
+        help="Whether to include redshift features or not",
+    )
 
-    parser.add_argument('-b', '--balance', default=None,
-            help='Train using balanced classes with augmented plasticc data')
+    parser.add_argument(
+        "-b",
+        "--balance",
+        default=None,
+        help="Train using balanced classes with augmented plasticc data",
+    )
 
-    parser.add_argument('-A', '--avocado', default=None,
-            help='Train using avocado augmented plasticc data')
+    parser.add_argument(
+        "-A",
+        "--avocado",
+        default=None,
+        help="Train using avocado augmented plasticc data",
+    )
 
-    parser.add_argument('-t', '--testset', default=None,
-            help='Train using PLAsTiCC test data for representative test')
+    parser.add_argument(
+        "-t",
+        "--testset",
+        default=None,
+        help="Train using PLAsTiCC test data for representative test",
+    )
 
     try:
         args = parser.parse_args()
@@ -368,8 +459,13 @@ if __name__ == "__main__":
         redshift = True
 
     training = Training(
-        epochs=EPOCHS, dataset=dataset, model=model, redshift=redshift,
-        balance=balance, avocado=avocado, testset=testset
+        epochs=EPOCHS,
+        dataset=dataset,
+        model=model,
+        redshift=redshift,
+        balance=balance,
+        avocado=avocado,
+        testset=testset,
     )
     if dataset in ["WalkvsRun", "NetFlow"]:
         # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead

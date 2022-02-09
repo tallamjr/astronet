@@ -4,7 +4,6 @@ import json
 import logging
 import numpy as np
 import optuna
-import os
 import shutil
 import subprocess
 import sys
@@ -20,19 +19,13 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
 from astronet.metrics import WeightedLogLoss
 from astronet.atx.model import ATXModel
-from astronet.preprocess import one_hot_encode, tf_one_hot_encode
 from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
 
-try:
-    print(os.environ['ASNWD'])
-    log_filename = str(os.environ['ASNWD']) + "/astronet/atx/opt/studies.log"
-except KeyError:
-    print("Please set the environment ASNWD in 'conf/astronet.conf'")
-    sys.exit(1)
+log_filename = f"{asnwd}/astronet/atx/opt/studies.log"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -52,8 +45,8 @@ try:
     log.info("=" * shutil.get_terminal_size((80, 20))[0])
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-except:
-    print("Seems you are running from a notebook...")
+except Exception as e:
+    print(f"{e}: Seems you are running from a notebook...")
     __file__ = f"{Path().resolve().parent}/astronet/atx/opt/hypertrain.py"
 
 RANDOM_SEED = 42
@@ -77,8 +70,11 @@ class Objective(object):
 
         if self.redshift is not None:
             X_train, y_train, _, _, loss, ZX_train, _ = load_dataset(
-                self.dataset, redshift=self.redshift, augmented=self.augmented,
-                avocado=self.avocado, testset=self.testset
+                self.dataset,
+                redshift=self.redshift,
+                augmented=self.augmented,
+                avocado=self.avocado,
+                testset=self.testset,
             )
 
             # If redshift true, implies using PLAsTiCC data. PLAsTiCC data is large so we will only
@@ -93,8 +89,11 @@ class Objective(object):
 
         elif self.dataset == "plasticc":
             X_train, y_train, _, _, loss = load_dataset(
-                self.dataset, redshift=self.redshift, augmented=self.augmented,
-                avocado=self.avocado, testset=self.testset
+                self.dataset,
+                redshift=self.redshift,
+                augmented=self.augmented,
+                avocado=self.avocado,
+                testset=self.testset,
             )
             # Again, if using PLAsTiCC data, the PLAsTiCC data is large so we will only
             # work with 10% instead.
@@ -107,17 +106,30 @@ class Objective(object):
 
         else:
             X_train, y_train, _, _, loss = load_dataset(
-                self.dataset, redshift=self.redshift, augmented=self.augmented,
-                avocado=self.avocado, testset=self.testset
+                self.dataset,
+                redshift=self.redshift,
+                augmented=self.augmented,
+                avocado=self.avocado,
+                testset=self.testset,
             )
 
         num_classes = y_train.shape[1]
 
-        kernel_size = trial.suggest_categorical("kernel_size", [3, 16, 32, 48])     # --> Filter length
-        pool_size = trial.suggest_categorical("pool_size", [3, 16, 32, 48])         # --> Pooling width
-        scaledown_factor = trial.suggest_categorical("scaledown_factor", [4])     # --> Reduce number of filters down by given factor
+        kernel_size = trial.suggest_categorical(
+            "kernel_size", [3, 16, 32, 48]
+        )  # --> Filter length
+        pool_size = trial.suggest_categorical(
+            "pool_size", [3, 16, 32, 48]
+        )  # --> Pooling width
+        scaledown_factor = trial.suggest_categorical(
+            "scaledown_factor", [4]
+        )  # --> Reduce number of filters down by given factor
 
-        num_samples, timesteps, num_features = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+        (
+            num_samples,
+            timesteps,
+            num_features,
+        ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
@@ -238,35 +250,61 @@ if __name__ == "__main__":
     )
 
     import time
+
     unixtimestamp = int(time.time())
     try:
-        label = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        label = (
+            subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+        )
     except Exception:
         from astronet import __version__ as current_version
+
         label = current_version
 
-    parser = argparse.ArgumentParser(description='Optimising hyperparameters')
+    parser = argparse.ArgumentParser(description="Optimising hyperparameters")
 
-    parser.add_argument("-d", "--dataset", default="wisdm_2010",
-            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+    parser.add_argument(
+        "-d",
+        "--dataset",
+        default="wisdm_2010",
+        help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'",
+    )
 
-    parser.add_argument("-e", "--epochs", default=10,
-            help="How many epochs to run training for")
+    parser.add_argument(
+        "-e", "--epochs", default=10, help="How many epochs to run training for"
+    )
 
-    parser.add_argument("-n", "--num-trials", default=15,
-            help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs")
+    parser.add_argument(
+        "-n",
+        "--num-trials",
+        default=15,
+        help="Number of trials to run optimisation. Each trial will have N-epochs, where N equals args.epochs",
+    )
 
-    parser.add_argument("-z", "--redshift", default=None,
-            help="Whether to include redshift features or not")
+    parser.add_argument(
+        "-z",
+        "--redshift",
+        default=None,
+        help="Whether to include redshift features or not",
+    )
 
-    parser.add_argument('-a', '--augment', default=None,
-            help='Train using augmented plasticc data')
+    parser.add_argument(
+        "-a", "--augment", default=None, help="Train using augmented plasticc data"
+    )
 
-    parser.add_argument('-A', '--avocado', default=None,
-            help='Train using avocado augmented plasticc data')
+    parser.add_argument(
+        "-A",
+        "--avocado",
+        default=None,
+        help="Train using avocado augmented plasticc data",
+    )
 
-    parser.add_argument('-t', '--testset', default=None,
-            help='Train using PLAsTiCC test data for representative test')
+    parser.add_argument(
+        "-t",
+        "--testset",
+        default=None,
+        help="Train using PLAsTiCC test data for representative test",
+    )
 
     try:
         args = parser.parse_args()
@@ -299,21 +337,30 @@ if __name__ == "__main__":
     study = optuna.create_study(study_name=f"{unixtimestamp}", direction="minimize")
 
     study.optimize(
-        Objective(epochs=EPOCHS, dataset=dataset, redshift=redshift, augmented=augmented, avocado=avocado, testset=testset),
+        Objective(
+            epochs=EPOCHS,
+            dataset=dataset,
+            redshift=redshift,
+            augmented=augmented,
+            avocado=avocado,
+            testset=testset,
+        ),
         n_trials=N_TRIALS,
-        timeout=86400,     # Break out of optimisation after ~ 24 hrs
+        timeout=86400,  # Break out of optimisation after ~ 24 hrs
         n_jobs=-1,
         show_progress_bar=False,
         gc_after_trial=True,
     )
 
-    log.warn("""show_progress_bar: Flag to show progress bars \n
+    log.warn(
+        """show_progress_bar: Flag to show progress bars \n
         "or not. To disable progress bar, set this ``False``.  Currently, \n
         progress bar is experimental feature and disabled when \n
-        ``n_jobs`` != 1`.""")
+        ``n_jobs`` != 1`."""
+    )
 
     best_result = {}
-    best_result['name'] = str(unixtimestamp) + "-" + label
+    best_result["name"] = str(unixtimestamp) + "-" + label
 
     print("Number of finished trials: {}".format(len(study.trials)))
 
@@ -323,12 +370,12 @@ if __name__ == "__main__":
     print(df_study.head())
 
     print("  Value: {}".format(trial.value))
-    best_result['objective_score'] = trial.value
+    best_result["objective_score"] = trial.value
 
-    best_result['z-redshift'] = redshift
-    best_result['augmented'] = augmented
-    best_result['avocado'] = avocado
-    best_result['testset'] = testset
+    best_result["z-redshift"] = redshift
+    best_result["augmented"] = augmented
+    best_result["avocado"] = avocado
+    best_result["testset"] = testset
 
     print("  Params: ")
     for key, value in trial.params.items():
@@ -339,7 +386,9 @@ if __name__ == "__main__":
     print(best_result)
 
     if redshift:
-        hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results_with_z.json"
+        hyper_results_file = (
+            f"{asnwd}/astronet/atx/opt/runs/{dataset}/results_with_z.json"
+        )
     else:
         hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
 
@@ -347,7 +396,7 @@ if __name__ == "__main__":
         data = json.load(jf)
         print(data)
 
-        previous_results = data['optuna_result']
+        previous_results = data["optuna_result"]
         # Appending data to optuna_result
         print(previous_results)
         previous_results.append(best_result)
@@ -357,5 +406,8 @@ if __name__ == "__main__":
     with open(hyper_results_file, "w") as rf:
         json.dump(data, rf, sort_keys=True, indent=4)
 
-    with open(f"{asnwd}/astronet/atx/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl", "wb") as sf:
+    with open(
+        f"{asnwd}/astronet/atx/opt/runs/{dataset}/study-{unixtimestamp}-{label}.pkl",
+        "wb",
+    ) as sf:
         joblib.dump(study, sf)

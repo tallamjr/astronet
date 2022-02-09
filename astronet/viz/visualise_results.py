@@ -1,5 +1,4 @@
 import argparse
-import joblib
 import json
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -21,110 +20,104 @@ from sklearn.metrics import (
 )
 from tensorflow import keras
 
-from astronet.constants import astronet_working_directory as asnwd
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
-from astronet.preprocess import one_hot_encode
-from astronet.utils import astronet_logger, load_wisdm_2010, load_wisdm_2019, load_plasticc
-
-
-def _get_encoding(dataset, dataform=None):
-
-    if dataform is not None:
-        encoding_filename = f"{asnwd}/data/{dataform}-{dataset}.encoding"
-    else:
-        encoding_filename = f"{asnwd}/data/{dataset}.encoding"
-
-    with open(encoding_filename, "rb") as eb:
-        encoding = joblib.load(eb)
-    class_encoding = encoding.categories_[0]
-
-    if dataset == "plasticc":
-        class_mapping = {
-            90: "SNIa",
-            67: "SNIa-91bg",
-            52: "SNIax",
-            42: "SNII",
-            62: "SNIbc",
-            95: "SLSN-I",
-            15: "TDE",
-            64: "KN",
-            88: "AGN",
-            92: "RRL",
-            65: "M-dwarf",
-            16: "EB",
-            53: "Mira",
-            6: "mu-Lens-Single",
-        }
-
-        class_encoding
-        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-    else:
-        class_names = class_encoding
-
-    return encoding, class_encoding, class_names
+from astronet.utils import (
+    astronet_logger,
+    get_encoding,
+    load_wisdm_2010,
+    load_wisdm_2019,
+    load_plasticc,
+)
 
 
 def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
+
+    fig, _ = plt.subplots()
+
     if ax is not None:
         ax = ax or plt.gca()
-        ax.plot(event['acc'], label='train')
-        ax.plot(event['val_acc'], label='validation')
-        ax.set_title(fr'{dataset}')
+        ax.plot(event["acc"], label="train")
+        ax.plot(event["val_acc"], label="validation")
+        ax.set_title(rf"{dataset}")
 
     else:
         plt.figure(figsize=(16, 9))
-        plt.plot(event['acc'], label='train')
-        plt.plot(event['val_acc'], label='validation')
+        plt.plot(event["acc"], label="train")
+        plt.plot(event["val_acc"], label="validation")
         plt.xlabel("Epoch")
         # plt.xticks(np.arange(len(event['acc'])))
         plt.ylabel("Accuracy")
         plt.legend()
-        plt.title(fr"Training vs. Validation per Epoch - {dataset}")
+        plt.title(rf"Training vs. Validation per Epoch - {dataset}")
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-acc-{model_name}.pdf"
         except Exception:
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-acc-{model_name}.pdf"
-        plt.savefig(fname, format='pdf')
+        plt.savefig(fname, format="pdf")
         plt.clf()
+
+    return fig
 
 
 def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
+
+    fig, _ = plt.subplots()
+
     if ax is not None:
         ax = ax or plt.gca()
-        ax.plot(event['loss'], label='train')
-        ax.plot(event['val_loss'], label='validation')
-        ax.set_title(fr'{dataset}')
+        ax.plot(event["loss"], label="train")
+        ax.plot(event["val_loss"], label="validation")
+        ax.set_title(rf"{dataset}")
     else:
         plt.figure(figsize=(16, 9))
-        plt.plot(event['loss'], label='train')
-        plt.plot(event['val_loss'], label='validation')
+        plt.plot(event["loss"], label="train")
+        plt.plot(event["val_loss"], label="validation")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.legend()
-        plt.title(r'Training vs. Validation per Epoch')
+        plt.title(r"Training vs. Validation per Epoch")
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-loss-{model_name}.pdf"
         except Exception:
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-loss-{model_name}.pdf"
-        plt.savefig(fname, format='pdf')
+        plt.savefig(fname, format="pdf")
         plt.clf()
 
+    return fig
 
-def plot_confusion_matrix(architecture, dataset, model_name, y_test, y_preds, encoding, class_names, cmap=None, save=True):
+
+def plot_confusion_matrix(
+    architecture,
+    dataset,
+    model_name,
+    y_test,
+    y_preds,
+    encoding,
+    class_names,
+    cmap=None,
+    save=True,
+):
     # TODO: Update docstrings
 
     y_true = encoding.inverse_transform(y_test)
     y_pred = encoding.inverse_transform(y_preds)
 
-    sns.set(style='whitegrid', palette='muted', font_scale=1.5)
+    sns.set(style="whitegrid", palette="muted", font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(14, 10))
     ax = sns.heatmap(
@@ -138,16 +131,16 @@ def plot_confusion_matrix(architecture, dataset, model_name, y_test, y_preds, en
         ax=ax,
     )
 
-    import matplotlib.transforms
     # plt.setp( ax.xaxis.get_majorticklabels(), rotation=-45)
 
+    # import matplotlib.transforms
     # Create offset transform by 5 points in y direction
-    dy = 20 / 72.0
-    dx = 0 / 72.0
-    offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
+    # dy = 20 / 72.0
+    # dx = 0 / 72.0
+    # offset = matplotlib.transforms.ScaledTranslation(dx, dy, fig.dpi_scale_trans)
 
-    plt.ylabel('Actual')
-    plt.xlabel('Predicted')
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
 
     if dataset == "plasticc":
         wloss = WeightedLogLoss()
@@ -158,26 +151,48 @@ def plot_confusion_matrix(architecture, dataset, model_name, y_test, y_preds, en
 
     ax.set_xticklabels(class_names)
     ax.set_yticklabels(class_names)
-    plt.setp(ax.xaxis.get_majorticklabels(), rotation=-45, ha="left", rotation_mode="anchor")
-    plt.setp(ax.yaxis.get_majorticklabels(), rotation="horizontal", ha="right", rotation_mode="anchor")
+    plt.setp(
+        ax.xaxis.get_majorticklabels(), rotation=-45, ha="left", rotation_mode="anchor"
+    )
+    plt.setp(
+        ax.yaxis.get_majorticklabels(),
+        rotation="horizontal",
+        ha="right",
+        rotation_mode="anchor",
+    )
     # apply offset transform to all x ticklabels.
     # for label in ax.yaxis.get_majorticklabels():
     #     label.set_transform(label.get_transform() + offset)
     plt.tight_layout()
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
         except Exception:
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-cm-{model_name}.pdf"
-        plt.savefig(fname, format='pdf')
+        plt.savefig(fname, format="pdf")
         plt.clf()
     else:
         print(model_name)
         plt.show()
 
+    return fig
 
-def plot_multiROC(architecture, dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.Accent.colors):
+
+def plot_multiROC(
+    architecture,
+    dataset,
+    model_name,
+    model,
+    X_test,
+    y_test,
+    class_names,
+    save=True,
+    colors=plt.cm.Accent.colors,
+):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -218,43 +233,71 @@ def plot_multiROC(architecture, dataset, model_name, model, X_test, y_test, clas
 
     # Plot all ROC curves
     plt.figure(figsize=(12, 9))
-    plt.plot(fpr["micro"], tpr["micro"],
-             label='micro-Average ROC curve (area = {0:0.2f})'
-                   ''.format(roc_auc["micro"]),
-             color='deeppink', linestyle=':', linewidth=3)
+    plt.plot(
+        fpr["micro"],
+        tpr["micro"],
+        label="micro-Average ROC curve (area = {0:0.2f})" "".format(roc_auc["micro"]),
+        color="deeppink",
+        linestyle=":",
+        linewidth=3,
+    )
 
-    plt.plot(fpr["macro"], tpr["macro"],
-             label='macro-Average ROC curve (area = {0:0.2f})'
-                   ''.format(roc_auc["macro"]),
-             color='navy', linestyle=':', linewidth=3)
+    plt.plot(
+        fpr["macro"],
+        tpr["macro"],
+        label="macro-Average ROC curve (area = {0:0.2f})" "".format(roc_auc["macro"]),
+        color="navy",
+        linestyle=":",
+        linewidth=3,
+    )
 
     plt.rcParams["axes.prop_cycle"] = plt.cycler("color", colors)
     for i in range(n_classes):
-        plt.plot(fpr[i], tpr[i], lw=lw,
-                 label='ROC: {0} (area = {1:0.2f})'
-                 ''.format(class_names[i], roc_auc[i]))
+        plt.plot(
+            fpr[i],
+            tpr[i],
+            lw=lw,
+            label="ROC: {0} (area = {1:0.2f})" "".format(class_names[i], roc_auc[i]),
+        )
 
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('Multi-Class Receiver Operating Characteristic')
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Multi-Class Receiver Operating Characteristic")
     plt.legend(loc="lower right")
+
+    fig = plt.gcf()
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-roc-{model_name}.pdf"
         except Exception:
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-roc-{model_name}.pdf"
-        plt.savefig(fname, format='pdf')
+        plt.savefig(fname, format="pdf")
         plt.clf()
     else:
         print(model_name)
         plt.show()
 
+    return fig
 
-def plot_multiPR(architecture, dataset, model_name, model, X_test, y_test, class_names, save=True, colors=plt.cm.tab20.colors):
+
+def plot_multiPR(
+    architecture,
+    dataset,
+    model_name,
+    model,
+    X_test,
+    y_test,
+    class_names,
+    save=True,
+    colors=plt.cm.tab20.colors,
+):
     # TODO: Update docstrings
     # Plot linewidth.
     lw = 2
@@ -268,35 +311,42 @@ def plot_multiPR(architecture, dataset, model_name, model, X_test, y_test, class
     n_classes = len(class_names)
 
     for i in range(n_classes):
-        precision[i], recall[i], _ = precision_recall_curve(y_test[:, i],
-                                                            y_score[:, i])
+        precision[i], recall[i], _ = precision_recall_curve(y_test[:, i], y_score[:, i])
         average_precision[i] = average_precision_score(y_test[:, i], y_score[:, i])
 
     # A "micro-average": quantifying score on all classes jointly
-    precision["micro"], recall["micro"], _ = precision_recall_curve(y_test.ravel(), y_score.ravel())
-    average_precision["micro"] = average_precision_score(y_test, y_score,
-                                                         average="micro")
+    precision["micro"], recall["micro"], _ = precision_recall_curve(
+        y_test.ravel(), y_score.ravel()
+    )
+    average_precision["micro"] = average_precision_score(
+        y_test, y_score, average="micro"
+    )
     lines = []
     labels = []
-    l, = plt.plot(recall["micro"], precision["micro"], color='deeppink',
-            linestyle=':', lw=lw)
+    (l,) = plt.plot(
+        recall["micro"], precision["micro"], color="deeppink", linestyle=":", lw=lw
+    )
     lines.append(l)
-    labels.append('micro-Average Precision-Recall (area = {0:0.2f})'
-                  ''.format(average_precision["micro"]))
+    labels.append(
+        "micro-Average Precision-Recall (area = {0:0.2f})"
+        "".format(average_precision["micro"])
+    )
 
     for i, color in zip(range(n_classes), colors):
-        l, = plt.plot(recall[i], precision[i], color=color, lw=lw)
+        (l,) = plt.plot(recall[i], precision[i], color=color, lw=lw)
         lines.append(l)
-        labels.append('Precision-Recall for {0} (area = {1:0.2f})'
-                      ''.format(class_names[i], average_precision[i]))
+        labels.append(
+            "Precision-Recall for {0} (area = {1:0.2f})"
+            "".format(class_names[i], average_precision[i])
+        )
 
     fig = plt.gcf()
     fig.subplots_adjust(bottom=0.25)
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Multi-Class Precision vs. Recall')
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title("Multi-Class Precision vs. Recall")
     plt.legend(
         lines,
         labels,
@@ -310,49 +360,63 @@ def plot_multiPR(architecture, dataset, model_name, model, X_test, y_test, class
 
     if save:
         try:
-            os.makedirs(f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}", exist_ok=True)
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-pr-{model_name}.pdf"
         except Exception:
             fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-pr-{model_name}.pdf"
-        plt.savefig(fname, format='pdf', bbox_inches='tight')
+        plt.savefig(fname, format="pdf", bbox_inches="tight")
         plt.clf()
     else:
         print(model_name)
         plt.show()
 
+    return fig
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     try:
         log = astronet_logger(__file__)
         log.info("=" * shutil.get_terminal_size((80, 20))[0])
         log.info(f"File Path: {Path(__file__).absolute()}")
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")
-    except:
-        print("Seems you are running from a notebook...")
-        __file__ = f"{Path().resolve().parent}/astronet/visualise_results.py"
+    except Exception as e:
+        print(f"{e}: Seems you are running from a notebook...")
+        __file__ = f"{Path().resolve().paren.parentt}/astronet/visualise_results.py"
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
-    plt.rcParams.update({
-        "text.usetex": True,
-        "font.family": "sans-serif",
-        "font.serif": ["Computer Modern Roman"]})
+    plt.rcParams.update(
+        {
+            "text.usetex": True,
+            "font.family": "sans-serif",
+            "font.serif": ["Computer Modern Roman"],
+        }
+    )
 
     mpl.style.use("seaborn")
 
-    parser = argparse.ArgumentParser(description='Process named model')
+    parser = argparse.ArgumentParser(description="Process named model")
 
-    parser.add_argument('-a', '--architecture',
-            help='Choice of atx or t2 architecture')
+    parser.add_argument("-a", "--architecture", help="Choice of atx or t2 architecture")
 
-    parser.add_argument('-m', '--model',
-            help='Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>')
+    parser.add_argument(
+        "-m",
+        "--model",
+        help="Name of tensorflow.keras model, i.e. model-<timestamp>-<hash>",
+    )
 
-    parser.add_argument("-d", "--dataset", default="wisdm_2010",
-            help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'")
+    parser.add_argument(
+        "-d",
+        "--dataset",
+        default="wisdm_2010",
+        help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'",
+    )
 
     try:
         args = parser.parse_args()
@@ -370,33 +434,13 @@ if __name__ == '__main__':
         load_dataset = load_wisdm_2019
     elif args.dataset == "plasticc":
         load_dataset = load_plasticc
-        class_mapping = {
-            90: "SNIa",
-            67: "SNIa-91bg",
-            52: "SNIax",
-            42: "SNII",
-            62: "SNIbc",
-            95: "SLSN-I",
-            15: "TDE",
-            64: "KN",
-            88: "AGN",
-            92: "RRL",
-            65: "M-dwarf",
-            16: "EB",
-            53: "Mira",
-            6: "mu-Lens-Single",
-        }
+        dataform = "full"
 
     # Load data
     X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-    # One hot encode y
-    enc, y_train, y_val, y_test = one_hot_encode(y_train, y_val, y_test)
-    class_encoding = enc.categories_[0]
 
-    if args.dataset == "plasticc":
-        class_names = list(np.vectorize(class_mapping.get)(class_encoding))
-    else:
-        class_names = class_encoding
+    # Get inverse of one-hot encoding
+    enc, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
 
     print(X_train.shape, y_train.shape)
     print(X_val.shape, y_val.shape)
@@ -407,19 +451,23 @@ if __name__ == '__main__':
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args
-            event = next(item for item in events['training_result'] if item["name"] == args.model)
+            event = next(
+                item for item in events["training_result"] if item["name"] == args.model
+            )
             print(event)
         else:
             # Get params for best model with highest test accuracy
-            event = max(events['training_result'], key=lambda ev: ev['value'])
+            event = max(events["training_result"], key=lambda ev: ev["value"])
             print(event)
 
-    model_name = event['name']
+    model_name = event["name"]
 
     plot_acc_history(dataset, model_name, event)
     plot_loss_history(dataset, model_name, event)
 
-    model = keras.models.load_model(f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}")
+    model = keras.models.load_model(
+        f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}"
+    )
     y_pred = model.predict(X_test)
 
     plot_confusion_matrix(

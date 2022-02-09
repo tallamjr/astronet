@@ -84,4 +84,4 @@ jobs:
 
     - name: Mini-Analysis Pipeline
       run: |
-        pytest --nbval notebooks/T2-Mini-Analysis-Pipeline.ipynb
+        pytest --nbval notebooks/*.ipynb

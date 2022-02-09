@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=40.6.0", "wheel"]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 # Not necessary for packaging but every self-respecting Python
@@ -27,3 +27,36 @@ exclude = '''
                      # the root of the project
 )
 '''
+
+[tool.setuptools_scm]
+fallback_version = "0.1"
+relative_to = "setup.py"
+
+[tool.check-manifest]
+ignore-default-rules = false
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--ignore=sbin",
+    "--ignore=notebooks",
+    "--ignore-glob=**/viz/*",
+    "--color=yes",
+    "--verbose",
+    "--capture=no",
+    "--showlocals",
+    "--durations=0",
+    "--setup-show",
+    "--cov",
+    "--mpl",
+    "--nbmake",
+]
+testpaths = [
+    "astronet/tests",
+]
+
+[tool.coverage.run]
+omit = [
+    "astronet/tests/*",
+    "**/constants.py",
+]

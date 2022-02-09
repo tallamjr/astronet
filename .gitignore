@@ -27,6 +27,7 @@ logs/
 *.log
 *.pdf
 !astronet/t2/plots/**/*.pdf
+!astronet/atx/plots/**/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -163,7 +164,7 @@ dmypy.json
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
 
 # Thumbnails
 ._*
