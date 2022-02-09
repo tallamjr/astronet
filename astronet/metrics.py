@@ -73,9 +73,16 @@ class WeightedLogLoss(keras.losses.Loss):
         """
         Parameters:
         -----------
-        `y_true`: numpy.ndarray
+        y_true: numpy.ndarray
+            Actual instance labels
 
-        `y_pred`: numpy.ndarray
+        y_pred: numpy.ndarray
+            Predicted values from model.predict() function
+
+        Returns:
+        --------
+        loss: float64
+
 
         References:
         -----------
@@ -86,6 +93,15 @@ class WeightedLogLoss(keras.losses.Loss):
             return loss
         Where:
         wtable - is a numpy 1d array with (the number of times class y_true occur in the data set)/(size of data set)
+
+        Examples:
+        ---------
+        >>> print("Running predictions")
+        >>> wloss = WeightedLogLoss()
+        >>> y_preds = model.predict([X_test, Z_test])
+        >>> print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+        >>> y_preds = model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
+        >>> print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
         """
         wtable = np.sum(y_true, axis=0) / y_true.shape[0]
 
