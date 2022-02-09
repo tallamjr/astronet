@@ -38,17 +38,18 @@ ignore-default-rules = false
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
+    "--ignore=sbin",
+    "--ignore=notebooks",
+    "--ignore-glob=**/viz/*",
     "--color=yes",
     "--verbose",
     "--capture=no",
     "--showlocals",
     "--durations=0",
     "--setup-show",
+    "--cov",
     "--mpl",
     "--nbmake",
-    "--ignore=sbin",
-    "--ignore=notebooks",
-    "--ignore=astronet/tests/unit/viz/*",
 ]
 testpaths = [
     "astronet/tests",

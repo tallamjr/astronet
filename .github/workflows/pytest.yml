@@ -93,5 +93,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        pytest --cov ${{ github.workspace }}/tests/
+        pytest .
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
