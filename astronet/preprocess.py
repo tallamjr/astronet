@@ -14,30 +14,33 @@ from astronet.constants import LSST_PB_WAVELENGTHS
 def __filter_dataframe_only_supernova(
     object_list_filename: str, dataframe: pd.DataFrame
 ) -> pd.DataFrame:
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+    """Filter dataframe that contains many classes to only Supernovae types.
 
     Parameters
     ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
+    object_list_filename: str
+        Path to txt file that contains the 'object_id' of the objects to _keep_ i.e. that are
+        Supernovae.
     df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
+        DataFrame containing all objects of various classes
 
     Returns
     -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
+    filtered_dataframe: pd.DataFrame
+        Transformed datafram containing only supernovae objects
 
     Examples
     --------
+    >>> if snonly is not None:
+    ...     dataform = "snonly"
+    ...     df = __filter_dataframe_only_supernova(
+    ...         f"{asnwd}/data/plasticc/train_subset.txt",
+    ...         data,
+    ...     )
+    ... else:
+    ...     dataform = "full"
+    >>> df = data
     >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
     """
     plasticc_object_list = np.genfromtxt(object_list_filename, dtype="U")
     filtered_dataframe = dataframe[dataframe["object_id"].isin(plasticc_object_list)]
@@ -139,7 +142,10 @@ def fit_2d_gp(
 
     Examples
     --------
-    >>> fit_2d_gp
+    >>> gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
+    >>> inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
+    >>> gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+    ...
     """
     guess_length_scale = 20.0  # a parameter of the Matern32Kernel
 
@@ -259,21 +265,26 @@ def generate_gp_all_objects(
     timesteps: int = 100,
     pb_wavelengths: Dict = LSST_PB_WAVELENGTHS,
 ) -> pd.DataFrame:
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+    """Generate Gaussian Process interpolation for all objects within 'object_list'. Upon
+    completion, a dataframe is returned containing a value for each time step across each passband.
 
     Parameters
     ----------
     object_list: List[str]
         List of objects to apply the transformation to
-    df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
+    obs_transient: pd.DataFrame
+        Dataframe containing observational points with the transient section of the full light curve
+    timesteps: int
+        Number of points one would like to interpolate, i.e. how many points along the time axis
+        should the Gaussian Process be evaluated
+    pb_wavelengths: Dict
+        A mapping of passbands and the associated wavelengths, specific to each survey. Current
+        options are ZTF or LSST
 
     Returns
     -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
+    df: pd.DataFrame(data=adf, columns=obj_gps.columns)
+        Dataframe with the mean of the GP for N x timesteps
 
     Examples
     --------
@@ -331,7 +342,12 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
 
     Examples
     --------
-    >>> fit_2d_gp
+    >>> gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+    >>> number_gp = timesteps
+    >>> gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+    >>> obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
+    >>> obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
+    ...
     """
     unique_wavelengths = np.unique(gp_wavelengths)
     number_gp = len(gp_times)
@@ -379,30 +395,24 @@ def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
 def robust_scale(
     dataframe: pd.DataFrame, scale_columns: List[Union[str, int]]
 ) -> pd.DataFrame:
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+    """Standardize a dataset along axis=0 (rows)
 
     Parameters
     ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
     df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
+        Dataframe containing GP interolated values
+    scale_columns: List[Union[str, int]]
+        Which coloums to keep when applying the transformation
 
     Returns
     -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
+    <Inpace Operation>
 
     Examples
     --------
-    >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
+    >>> df = __load_plasticc_dataset_from_csv(timesteps)
+    >>> cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
+    >> robust_scale(df, cols)
     """
     from sklearn.preprocessing import RobustScaler
 
@@ -411,33 +421,22 @@ def robust_scale(
     dataframe.loc[:, scale_columns] = scaler.transform(
         dataframe[scale_columns].to_numpy()
     )
+    return dataframe
 
 
 def one_hot_encode(y_train, y_test):
-    """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
-
-    Parameters
-    ----------
-    object_list: List[str]
-        List of objects to apply the transformation to
-    df: pd.DataFrame
-        DataFrame containing the full light curve including dead points.
-
-    Returns
-    -------
-    obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-        Tuple containing the updated dataframe with only the transient section, and a list of
-        objects that the transformation was successful for. Note, some objects may cause an error
-        and hence would not be returned in the new transformed dataframe
+    """Encode categorical features as a one-hot numeric array.
 
     Examples
     --------
-    >>> object_list = list(np.unique(df["object_id"]))
-    >>> obs_transient, object_list = __transient_trim(object_list, df)
-    >>> generated_gp_dataset = generate_gp_all_objects(
-        object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-        )
-    ...
+    >>> # Load data
+    >>> X_train, y_train, X_test, y_test = load_wisdm_2010()
+    >>> # One hot encode y
+    >>> enc, y_train, y_test = one_hot_encode(y_train, y_test)
+    >>> encoding_file = f"{asnwd}/data/{dataset}.encoding"
+    >>> if not os.path.exists(encoding_file):
+    ...     with open(encoding_file, "wb") as f:
+    ...         joblib.dump(enc, f)
     """
     from sklearn.preprocessing import OneHotEncoder
 
