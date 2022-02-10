@@ -34,8 +34,6 @@ from astronet.utils import (
 def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
 
-    fig, _ = plt.subplots()
-
     if ax is not None:
         ax = ax or plt.gca()
         ax.plot(event["acc"], label="train")
@@ -52,6 +50,7 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
         plt.legend()
         plt.title(rf"Training vs. Validation per Epoch - {dataset}")
 
+    fig = plt.gcf()
     if save:
         try:
             os.makedirs(
@@ -70,8 +69,6 @@ def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=Non
 def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=None):
     # TODO: Update docstrings
 
-    fig, _ = plt.subplots()
-
     if ax is not None:
         ax = ax or plt.gca()
         ax.plot(event["loss"], label="train")
@@ -86,6 +83,7 @@ def plot_loss_history(architecture, dataset, model_name, event, save=True, ax=No
         plt.legend()
         plt.title(r"Training vs. Validation per Epoch")
 
+    fig = plt.gcf()
     if save:
         try:
             os.makedirs(
