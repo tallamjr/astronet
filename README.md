@@ -20,11 +20,11 @@
 
 ### `astronet.t2`
 
-TODO --> link to baseline CM
+![CM](./astronet/tests/unit/viz/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
 
 ### `astronet.atx`
 
-TODO --> link to baseline CM
+![CM](./astronet/tests/unit/viz/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
 
 ### MTS Benchmark Results
 |                       |        t2 |      snX | MLP        | FCN        | ResNet     | Encoder    | MCNN      | t-LeNet    | MCDCNN     | Time-CNN   | TWIESN     |
