@@ -75,7 +75,6 @@ export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/
 conda activate astronet
 which python
 export PYTHONHASHSEED=0
-conda install -c anaconda tensorflow-gpu
 # Print the contents of this file to stdout from line 15 onwards
 awk 'NR>15' $ASNWD/bin/mts-myriad
 date
