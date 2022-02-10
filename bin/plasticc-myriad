@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N t2GPU-train
+#$ -N atxGPU-train
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -102,10 +102,11 @@ if [ $architecture == "atx" ]; then
             --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
+        model="scaledown-by-4"  # atx main model
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
             --epochs 400 \
-            --model "scaledown-by-4" \    # atx main model
+            --model $model \
             --testset "" \
             --redshift "" # With or without redshift. Remove argument if without
     else
