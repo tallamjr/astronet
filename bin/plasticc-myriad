@@ -99,7 +99,8 @@ if [ $architecture == "atx" ]; then
             --epochs 40 \
             --num-trials 5 \
             --testset "" \
-            --redshift "" # With or without redshift. Remove argument if without
+            --fink ""
+            # --redshift "" # With or without redshift. Remove argument if without
     elif [ $operation == "train" ]; then
         # Train
         model="scaledown-by-4"  # atx main model
@@ -108,7 +109,8 @@ if [ $architecture == "atx" ]; then
             --epochs 400 \
             --model $model \
             --testset "" \
-            --redshift "" # With or without redshift. Remove argument if without
+            --fink ""
+            # --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
     fi
