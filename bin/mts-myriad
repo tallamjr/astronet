@@ -119,8 +119,8 @@ if [ $architecture == "atx" ]; then
         # Train
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
-            --epochs 400 \
-            --model "scaledown-by-4"     # atx main model
+            --epochs 400
+            # --model "scaledown-by-4"     # atx main model
     else
         echo "Please provide an argument for $operation"
     fi
