@@ -42,7 +42,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N mts-t2-GPU-train
+#$ -N mts-GPU
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -57,15 +57,21 @@ module unload compilers mpi
 module load compilers/gnu/4.9.2
 module load python/3.7.4
 module load cuda/10.0.130/gnu-4.9.2
-module load cudnn/6.0/cuda-8.0
-module load tensorflow/2.0.0/gpu-py37
+# module load cuda/8.0.61-patch2/gnu-4.9.2
+module load cudnn/7.4.2.24/cuda-10.0
+# module load tensorflow/2.0.0/gpu-py37
 # export LD_LIBRAY_PATH="/shared/ucl/apps/modulefiles/development/cuda/10.0.130/gnu-4.9.2:$LD_LIBRAY_PATH"
 
 # Run the application
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 source /home/zcicg57/Scratch/astronet/conf/astronet.conf
 
-export PATH="/miniconda3/envs/astronet/bin:$PATH"
+export PATH="$HOME/miniconda3/envs/astronet/bin:$PATH"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issue-1047548284
+export CUDA_VISIBLE_DEVICES=0,1 # https://stackoverflow.com/a/48079860/4521950
+# export TF_CPP_MIN_VLOG_LEVEL=3 # https://stackoverflow.com/q/66118532/4521950, https://stackoverflow.com/a/45142985/4521950
+export TF_CPP_MIN_LOG_LEVEL=2
+export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/tensorflow/issues/46479
 conda activate astronet
 which python
 export PYTHONHASHSEED=0
@@ -79,11 +85,12 @@ python -c "import tensorflow as tf; print(tf.__version__);"
 python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 # Log GPU information
 nvidia-smi
-# Architecture
-## Current options: {t2, snx}
-ARCH=$1
-echo "Using $ARCH architecture"
 
+operation=$1 # i.e. {train, hyper}
+# Architecture
+## Current options: {t2, atx}
+architecture=$2
+echo "Running $1 using $architecture architecture"
 
 declare -a arr=(
                 "ArabicDigits"
@@ -102,10 +109,43 @@ declare -a arr=(
 
 echo "${arr[SGE_TASK_ID-1]}"
 dataset="${arr[SGE_TASK_ID-1]}"
+
+if [ $architecture == "atx" ]; then
+    if [ $operation == "hyper" ]; then
+        # Hyperparameter Optimisation
+        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
+            --dataset $dataset \
+            --epochs 40
+    elif [ $operation == "train" ]; then
+        # Train
+        python $ASNWD/astronet/$architecture/train.py \
+            --dataset $dataset \
+            --epochs 400 \
+            --model "scaledown-by-4"     # atx main model
+    else
+        echo "Please provide an argument for $operation"
+    fi
+elif [ $architecture == "t2" ]; then
+    if [ $operation == "hyper" ]; then
+        # Hyperparameter Optimisation
+        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
+            --dataset $dataset \
+            --epochs 40
+    elif [ $operation == "train" ]; then
+        # Train
+        python $ASNWD/astronet/$architecture/train.py \
+            --dataset $dataset \
+            --epochs 400
+    else
+        echo "Please provide an argument for $operation"
+    fi
+else
+    echo "Please provide an argument for $architecture"
+fi
 # Hyperparameter Optimisation
 # python $ASNWD/astronet/$ARCH/opt/hypertrain.py --dataset $dataset --epochs 50
 # Train
-python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
+# python $ASNWD/astronet/$ARCH/train.py --dataset $dataset --epochs 400
 date
 duration=$SECONDS
 echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
