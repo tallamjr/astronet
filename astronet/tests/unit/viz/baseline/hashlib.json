@@ -2,5 +2,13 @@
   "test_plots.test_succeeds[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "cd01b7a39330033b18d54b507635236214cae5e24f9e09d84b56462a9ac81052",
   "test_plots.test_succeeds[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "cd01b7a39330033b18d54b507635236214cae5e24f9e09d84b56462a9ac81052",
   "test_plots.test_acc_history[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "14e29fcdb5d7d066a8b777bb478681d1fc51eeb00d1984e9c1b236ae0a90da37",
-  "test_plots.test_acc_history[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "4f08070a35384c136a862568047e53a756eba3c35dffd4a53ab2967db8df46bf"
+  "test_plots.test_acc_history[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "4f08070a35384c136a862568047e53a756eba3c35dffd4a53ab2967db8df46bf",
+  "test_plots.test_loss_history[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "8cf4da46a50ce0e7506ce7ab3e6b421cace95c538db1ef7ae89931da6eb22f76",
+  "test_plots.test_loss_history[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "d2b4e13475488efcdce4bbf28881c52786ae59dc9900ed4bbe4c16644ae8b5ea",
+  "test_plots.test_confusion_matrix[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "d5cb0c83790e03aeb339357902caed00b153e0e4f7fb73b55a114e733034334b",
+  "test_plots.test_confusion_matrix[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "e14faf2c22a6bbb8f8002c23a9c0b571f099f413a01cca67ebe8866e8012f9bd",
+  "test_plots.test_multiROC[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "1090e462365f81fc0c21ab1f196f1f0b65a0a6af9cd054a29895015f72081b73",
+  "test_plots.test_multiROC[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "9c40a0d8efa8cfffee089f59f6a6e1376826d6b728f73bf56d126d78b2324bb9",
+  "test_plots.test_multiPR[atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104]": "e641e8c95c599542eeea729083a57dae12bc5ae2971e755e30e91ffcf2ed0b77",
+  "test_plots.test_multiPR[t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428]": "cd4d70153dd1fe096ef1209c651cfa62d06e9b32f03525ff42bac6e762e38af3"
 }
