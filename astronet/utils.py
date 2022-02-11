@@ -1008,11 +1008,13 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
     ...
     """
 
-    if dataform is None:
-        print("Using WISDM data")
-        return
-    with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
-        encoding = joblib.load(eb)
+    if dataform is not None:
+        with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
+            encoding = joblib.load(eb)
+    else:
+        print("Using WISDM or MTS data")
+        with open(f"{asnwd}/data/{dataset}.encoding", "rb") as eb:
+            encoding = joblib.load(eb)
 
     from collections import Counter
     from pandas.core.common import flatten

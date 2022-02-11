@@ -101,7 +101,7 @@ class Training(object):
             )
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(
-                dataset,
+                dataset=self.dataform,
                 balance=self.balance,
                 avocado=self.avocado,
                 testset=self.testset,
@@ -111,7 +111,7 @@ class Training(object):
         num_classes = y_train.shape[1]
 
         y_train_count, y_test_count = get_data_count(
-            dataset="plasticc", dataform="testset", y_train=y_train, y_test=y_test
+            dataset=dataset, dataform=testset, y_train=y_train, y_test=y_test
         )
         log.info(f"{X_train.shape, y_train.shape}")
         log.info(f"N-TRAIN: {y_train_count}")
