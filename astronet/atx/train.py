@@ -101,7 +101,7 @@ class Training(object):
             )
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(
-                dataset=self.dataform,
+                dataset=self.dataset,
                 balance=self.balance,
                 avocado=self.avocado,
                 testset=self.testset,
