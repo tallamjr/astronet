@@ -260,9 +260,9 @@ class Training(object):
             verbose=False,
             callbacks=[
                 time_callback,
-                # SGEBreakoutCallback(
-                #     threshold=44  # Stop training if running for more than threshold number of hours
-                # ),
+                SGEBreakoutCallback(
+                    threshold=44  # Stop training if running for more than threshold number of hours
+                ),
                 CSVLogger(
                     csv_logger_file,
                     separator=",",
