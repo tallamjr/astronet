@@ -28,13 +28,6 @@ tf.random.set_seed(RANDOM_SEED)
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
 python_random.seed(RANDOM_SEED)
-plt.rcParams.update(
-    {
-        "text.usetex": True,
-        "font.family": "sans-serif",
-        "font.serif": ["Computer Modern Roman"],
-    }
-)
 
 
 @pytest.mark.parametrize(
