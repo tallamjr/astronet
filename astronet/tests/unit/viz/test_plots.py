@@ -88,144 +88,144 @@ class TestPlots:
     def test_fixtures(self, architecture, dataset, model_name, fixt):
         print("\ntest_one", architecture, dataset, model_name, fixt)
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_succeeds(self, architecture, dataset, model_name):
-    #     fig = plt.figure()
-    #     ax = fig.add_subplot(1, 1, 1)
-    #     ax.plot([1, 2, 3])
-    #     print("\ntest_one", architecture, dataset, model_name)
-    #     return fig
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_succeeds(self, architecture, dataset, model_name):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot([1, 2, 3])
+        print("\ntest_one", architecture, dataset, model_name)
+        return fig
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_acc_history(self, architecture, dataset, model_name, fixt):
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_acc_history(self, architecture, dataset, model_name, fixt):
 
-    #     X_test, y_test, Z_test, inputs = fixt
+        X_test, y_test, Z_test, inputs = fixt
 
-    #     (
-    #         event,
-    #         encoding,
-    #         class_names,
-    #         model,
-    #         y_preds,
-    #     ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt)
 
-    #     fig = plot_acc_history(
-    #         architecture,
-    #         dataset,
-    #         model_name,
-    #         event,
-    #         save=False,
-    #     )
-    #     return fig
+        fig = plot_acc_history(
+            architecture,
+            dataset,
+            model_name,
+            event,
+            save=False,
+        )
+        return fig
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_loss_history(self, architecture, dataset, model_name, fixt):
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_loss_history(self, architecture, dataset, model_name, fixt):
 
-    #     X_test, y_test, Z_test, inputs = fixt
+        X_test, y_test, Z_test, inputs = fixt
 
-    #     (
-    #         event,
-    #         encoding,
-    #         class_names,
-    #         model,
-    #         y_preds,
-    #     ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt)
 
-    #     fig = plot_loss_history(
-    #         architecture,
-    #         dataset,
-    #         model_name,
-    #         event,
-    #         save=False,
-    #     )
-    #     return fig
+        fig = plot_loss_history(
+            architecture,
+            dataset,
+            model_name,
+            event,
+            save=False,
+        )
+        return fig
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
 
-    #     cmap = sns.light_palette("Navy", as_cmap=True)
+        cmap = sns.light_palette("Navy", as_cmap=True)
 
-    #     X_test, y_test, Z_test, inputs = fixt
+        X_test, y_test, Z_test, inputs = fixt
 
-    #     (
-    #         event,
-    #         encoding,
-    #         class_names,
-    #         model,
-    #         y_preds,
-    #     ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt)
 
-    #     fig = plot_confusion_matrix(
-    #         architecture,
-    #         dataset,
-    #         model_name,
-    #         y_test,
-    #         y_preds,
-    #         encoding,
-    #         class_names,  # enc.categories_[0]
-    #         save=False,
-    #         cmap=cmap,
-    #     )
-    #     return fig
+        fig = plot_confusion_matrix(
+            architecture,
+            dataset,
+            model_name,
+            y_test,
+            y_preds,
+            encoding,
+            class_names,  # enc.categories_[0]
+            save=False,
+            cmap=cmap,
+        )
+        return fig
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_multiROC(self, architecture, dataset, model_name, fixt):
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_multiROC(self, architecture, dataset, model_name, fixt):
 
-    #     X_test, y_test, Z_test, inputs = fixt
+        X_test, y_test, Z_test, inputs = fixt
 
-    #     (
-    #         event,
-    #         encoding,
-    #         class_names,
-    #         model,
-    #         y_preds,
-    #     ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt)
 
-    #     fig = plot_multiROC(
-    #         architecture,
-    #         dataset,
-    #         model_name,
-    #         model,
-    #         inputs,
-    #         y_test,
-    #         class_names,
-    #         save=False,
-    #     )
-    #     return fig
+        fig = plot_multiROC(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            inputs,
+            y_test,
+            class_names,
+            save=False,
+        )
+        return fig
 
-    # @pytest.mark.mpl_image_compare(
-    #     hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
-    # )
-    # def test_multiPR(self, architecture, dataset, model_name, fixt):
+    @pytest.mark.mpl_image_compare(
+        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+    )
+    def test_multiPR(self, architecture, dataset, model_name, fixt):
 
-    #     X_test, y_test, Z_test, inputs = fixt
+        X_test, y_test, Z_test, inputs = fixt
 
-    #     (
-    #         event,
-    #         encoding,
-    #         class_names,
-    #         model,
-    #         y_preds,
-    #     ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt)
 
-    #     fig = plot_multiPR(
-    #         architecture,
-    #         dataset,
-    #         model_name,
-    #         model,
-    #         inputs,
-    #         y_test,
-    #         class_names,
-    #         save=False,
-    #     )
-    #     return fig
+        fig = plot_multiPR(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            inputs,
+            y_test,
+            class_names,
+            save=False,
+        )
+        return fig
