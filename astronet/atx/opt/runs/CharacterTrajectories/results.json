@@ -13,6 +13,18 @@
             "name": "1611406987-84ab4bf",
             "objective_score": 0.7226357698440552,
             "pool_size": 96
+        },
+        {
+            "augmented": null,
+            "avocado": null,
+            "kernel_size": 3,
+            "lr": 0.028291972198169656,
+            "name": "1644492352-0.3.1.dev10+g936df1b",
+            "objective_score": 0.003327651403378695,
+            "pool_size": 48,
+            "scaledown_factor": 4,
+            "testset": null,
+            "z-redshift": null
         }
     ]
 }
