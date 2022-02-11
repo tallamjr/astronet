@@ -1,18 +1,28 @@
 {
     "optuna_result": [
         {
+            "augmented": null,
+            "avocado": null,
             "kernel_size": 3,
             "lr": 0.015563679320494838,
             "name": "1611096753-41e3934",
             "objective_score": 1.9019886255264282,
-            "pool_size": 3
+            "pool_size": 3,
+            "scaledown_factor": 4,
+            "testset": null,
+            "z-redshift": null
         },
         {
+            "augmented": null,
+            "avocado": null,
             "kernel_size": 6,
             "lr": 0.010503393415804925,
             "name": "1611406986-84ab4bf",
             "objective_score": 1.428502583503723,
-            "pool_size": 6
+            "pool_size": 6,
+            "scaledown_factor": 4,
+            "testset": null,
+            "z-redshift": null
         },
         {
             "augmented": null,
