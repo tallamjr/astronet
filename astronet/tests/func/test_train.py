@@ -6,7 +6,6 @@ import tensorflow as tf
 
 from tensorflow.keras.backend import clear_session
 
-from astronet.metrics import custom_log_loss, WeightedLogLoss
 from astronet.t2.model import T2Model
 from astronet.utils import astronet_logger, load_dataset
 
@@ -88,151 +87,151 @@ def test_training_pipeline_wisdm_2010():
     assert accuracy == pytest.approx(expected_output[1], 0.1)
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
-def test_training_pipeline_plasticc():
-    clear_session()
+# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
+# def test_training_pipeline_plasticc():
+#     clear_session()
 
-    # Load WISDM-2010
-    X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc", snonly=True)
+#     # Load WISDM-2010
+#     X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc", snonly=True)
 
-    num_classes = y_train.shape[1]
+#     num_classes = y_train.shape[1]
 
-    print(X_train.shape, y_train.shape)
-    print(X_test.shape, y_test.shape)
+#     print(X_train.shape, y_train.shape)
+#     print(X_test.shape, y_test.shape)
 
-    BATCH_SIZE = 32
-    EPOCHS = 2
+#     BATCH_SIZE = 32
+#     EPOCHS = 2
 
-    print(type(X_train))
+#     print(type(X_train))
 
-    embed_dim = 32  # --> Embedding size for each token
-    num_heads = 4  # --> Number of attention heads
-    ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
+#     embed_dim = 32  # --> Embedding size for each token
+#     num_heads = 4  # --> Number of attention heads
+#     ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
 
-    # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-    num_filters = embed_dim
+#     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+#     num_filters = embed_dim
 
-    num_layers = 1  # --> N x repeated transformer blocks
-    droprate = 0.1  # --> Rate of neurons to drop
+#     num_layers = 1  # --> N x repeated transformer blocks
+#     droprate = 0.1  # --> Rate of neurons to drop
 
-    (
-        _,
-        timesteps,
-        num_features,
-    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-    input_shape = (BATCH_SIZE, timesteps, num_features)
-    print(input_shape)
+#     (
+#         _,
+#         timesteps,
+#         num_features,
+#     ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+#     input_shape = (BATCH_SIZE, timesteps, num_features)
+#     print(input_shape)
 
-    model = T2Model(
-        input_dim=input_shape,
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        ff_dim=ff_dim,
-        num_filters=num_filters,
-        num_classes=num_classes,
-        num_layers=num_layers,
-        droprate=droprate,
-    )
+#     model = T2Model(
+#         input_dim=input_shape,
+#         embed_dim=embed_dim,
+#         num_heads=num_heads,
+#         ff_dim=ff_dim,
+#         num_filters=num_filters,
+#         num_classes=num_classes,
+#         num_layers=num_layers,
+#         droprate=droprate,
+#     )
 
-    # wloss = WeightedLogLoss()
-    # wloss = custom_log_loss
+#     # wloss = WeightedLogLoss()
+#     # wloss = custom_log_loss
 
-    model.compile(
-        loss=wloss,
-        optimizer="adam",
-        metrics=["acc"],
-        run_eagerly=True,
-    )
+#     model.compile(
+#         loss=wloss,
+#         optimizer="adam",
+#         metrics=["acc"],
+#         run_eagerly=True,
+#     )
 
-    _ = model.fit(
-        X_train,
-        y_train,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        validation_data=(X_test, y_test),
-    )
+#     _ = model.fit(
+#         X_train,
+#         y_train,
+#         batch_size=BATCH_SIZE,
+#         epochs=EPOCHS,
+#         validation_data=(X_test, y_test),
+#     )
 
-    model.build_graph(input_shape)
+#     model.build_graph(input_shape)
 
-    print(model.summary())
+#     print(model.summary())
 
-    print(model.evaluate(X_test, y_test))
+#     print(model.evaluate(X_test, y_test))
 
-    loss, accuracy = model.evaluate(X_test, y_test)
-    expected_output = [0.44523268938064575, 0.6452905535697937]
-    assert accuracy == pytest.approx(expected_output[1], 0.1)
+#     loss, accuracy = model.evaluate(X_test, y_test)
+#     expected_output = [0.44523268938064575, 0.6452905535697937]
+#     assert accuracy == pytest.approx(expected_output[1], 0.1)
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
-def test_training_pipeline_full_plasticc():
-    clear_session()
+# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
+# def test_training_pipeline_full_plasticc():
+#     clear_session()
 
-    # Load WISDM-2010
-    X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc")
+#     # Load WISDM-2010
+#     X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc")
 
-    num_classes = y_train.shape[1]
+#     num_classes = y_train.shape[1]
 
-    print(X_train.shape, y_train.shape)
-    print(X_test.shape, y_test.shape)
+#     print(X_train.shape, y_train.shape)
+#     print(X_test.shape, y_test.shape)
 
-    BATCH_SIZE = 32
-    EPOCHS = 2
+#     BATCH_SIZE = 32
+#     EPOCHS = 2
 
-    print(type(X_train))
+#     print(type(X_train))
 
-    embed_dim = 32  # --> Embedding size for each token
-    num_heads = 4  # --> Number of attention heads
-    ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
+#     embed_dim = 32  # --> Embedding size for each token
+#     num_heads = 4  # --> Number of attention heads
+#     ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
 
-    # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-    num_filters = embed_dim
+#     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+#     num_filters = embed_dim
 
-    num_layers = 1  # --> N x repeated transformer blocks
-    droprate = 0.1  # --> Rate of neurons to drop
+#     num_layers = 1  # --> N x repeated transformer blocks
+#     droprate = 0.1  # --> Rate of neurons to drop
 
-    (
-        _,
-        timesteps,
-        num_features,
-    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-    input_shape = (BATCH_SIZE, timesteps, num_features)
-    print(input_shape)
+#     (
+#         _,
+#         timesteps,
+#         num_features,
+#     ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+#     input_shape = (BATCH_SIZE, timesteps, num_features)
+#     print(input_shape)
 
-    model = T2Model(
-        input_dim=input_shape,
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        ff_dim=ff_dim,
-        num_filters=num_filters,
-        num_classes=num_classes,
-        num_layers=num_layers,
-        droprate=droprate,
-    )
+#     model = T2Model(
+#         input_dim=input_shape,
+#         embed_dim=embed_dim,
+#         num_heads=num_heads,
+#         ff_dim=ff_dim,
+#         num_filters=num_filters,
+#         num_classes=num_classes,
+#         num_layers=num_layers,
+#         droprate=droprate,
+#     )
 
-    # wloss = WeightedLogLoss()
-    # wloss = custom_log_loss
+#     # wloss = WeightedLogLoss()
+#     # wloss = custom_log_loss
 
-    model.compile(
-        loss=wloss,
-        optimizer="adam",
-        metrics=["acc"],
-        run_eagerly=True,
-    )
+#     model.compile(
+#         loss=wloss,
+#         optimizer="adam",
+#         metrics=["acc"],
+#         run_eagerly=True,
+#     )
 
-    _ = model.fit(
-        X_train,
-        y_train,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        validation_data=(X_test, y_test),
-    )
+#     _ = model.fit(
+#         X_train,
+#         y_train,
+#         batch_size=BATCH_SIZE,
+#         epochs=EPOCHS,
+#         validation_data=(X_test, y_test),
+#     )
 
-    model.build_graph(input_shape)
+#     model.build_graph(input_shape)
 
-    print(model.summary())
+#     print(model.summary())
 
-    print(model.evaluate(X_test, y_test))
+#     print(model.evaluate(X_test, y_test))
 
-    loss, accuracy = model.evaluate(X_test, y_test)
-    expected_output = [0.44523268938064575, 0.6452905535697937]
-    assert accuracy == pytest.approx(expected_output[1], 0.1)
+#     loss, accuracy = model.evaluate(X_test, y_test)
+#     expected_output = [0.44523268938064575, 0.6452905535697937]
+#     assert accuracy == pytest.approx(expected_output[1], 0.1)
