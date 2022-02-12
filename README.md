@@ -42,3 +42,23 @@
 | UWave                 |  84.5255 | 90.9537 | 90.1(0.3)  | 93.4(0.3)  | 92.6(0.4)  | 90.8(0.4)  | 12.5(0.0) | 12.5(0.0)  | 84.5(1.6)  | 85.9(0.7)  | 75.4(6.3)  |
 | Wafer                 |  89.3973 | 89.3973 | 89.4(0.0)  | 98.2(0.5)  | 98.9(0.4)  | 98.6(0.2)  | 89.4(0.0) | 89.4(0.0)  | 65.8(38.1) | 94.8(2.1)  | 94.9(0.6)  |
 | WalkvsRun             | 100      | 25      | 70.0(15.8) | 100.0(0.0) | 100.0(0.0) | 100.0(0.0) | 75.0(0.0) | 60.0(24.2) | 45.0(25.8) | 100.0(0.0) | 94.4(9.1)  |
+
+#### Tests
+
+Note: some tests require large data files
+
+If a new plot is create, it should be checked and a new baseline generate like so:
+
+```bash
+$ cd astronet/tests/unit/viz
+$ pytest --mpl-generate-path=baseline --ignore-glob="*.ipynb" test_plots.py
+```
+Then the hash of the image to be stored in the SHA library file
+
+```bash
+$ pytest --mpl-generate-hash-library=astronet/tests/unit/viz/baseline/hashlib.json --ignore-glob="*.ipynb" test_plots.py
+```
+Finally, the suite is ready to be tests with:
+```bash
+$ pytest --ignore-glob="*.ipynb" test_plots.py
+```
