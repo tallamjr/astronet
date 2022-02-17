@@ -52,7 +52,9 @@ os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
 class Training(object):
-    def __init__(self, epochs, dataset, model, redshift, balance, avocado, testset):
+    def __init__(
+        self, epochs, dataset, model, redshift, balance, avocado, testset, fink
+    ):
         self.epochs = epochs
         self.dataset = dataset
         self.model = model
@@ -60,6 +62,7 @@ class Training(object):
         self.balance = balance
         self.avocado = avocado
         self.testset = testset
+        self.fink = fink
 
     def __call__(self):
         """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
@@ -105,6 +108,7 @@ class Training(object):
                 balance=self.balance,
                 avocado=self.avocado,
                 testset=self.testset,
+                fink=self.fink,
             )
             hyper_results_file = f"{asnwd}/astronet/atx/opt/runs/{dataset}/results.json"
 
@@ -342,6 +346,7 @@ class Training(object):
         model_params["balance"] = self.balance
         model_params["avocado"] = self.avocado
         model_params["testset"] = self.testset
+        model_params["fink"] = self.fink
         model_params["num_classes"] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
             test_input, y_test, verbose=0, batch_size=batch_size
@@ -431,6 +436,13 @@ if __name__ == "__main__":
         help="Train using PLAsTiCC test data for representative test",
     )
 
+    parser.add_argument(
+        "-f",
+        "--fink",
+        default=None,
+        help="Train using PLAsTiCC but only g and r bands for FINK",
+    )
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -459,6 +471,10 @@ if __name__ == "__main__":
     if redshift is not None:
         redshift = True
 
+    fink = args.fink
+    if fink is not None:
+        fink = True
+
     training = Training(
         epochs=EPOCHS,
         dataset=dataset,
@@ -467,6 +483,7 @@ if __name__ == "__main__":
         balance=balance,
         avocado=avocado,
         testset=testset,
+        fink=fink,
     )
     if dataset in ["WalkvsRun", "NetFlow"]:
         # WalkvsRun and NetFlow causes OOM errors on GPU, run on CPU instead

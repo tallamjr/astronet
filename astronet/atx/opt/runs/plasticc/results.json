@@ -70,7 +70,7 @@
             "pool_size": 3,
             "scaledown_factor": 4,
             "testset": false,
-            "z-redshift": true
+            "z-redshift": null
         }
     ]
 }

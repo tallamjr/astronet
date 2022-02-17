@@ -1009,6 +1009,7 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
     """
 
     if dataform is not None:
+        dataform = "testset"
         with open(f"{asnwd}/data/{dataform}-{dataset}.encoding", "rb") as eb:
             encoding = joblib.load(eb)
     else:
