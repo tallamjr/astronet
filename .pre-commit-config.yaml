@@ -8,6 +8,11 @@ repos:
         args: ['--maxkb=50000']
     -   id: detect-private-key
     -   id: check-symlinks
+-   repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+    -   id: isort
+        name: isort (python)
 -   repo: https://github.com/psf/black
     rev: 22.1.0
     hooks:
@@ -18,11 +23,6 @@ repos:
     -   id: flake8
         args: ["--max-line-length=131", "--ignore=F401,E221,E501,E203,E731,W503,W605"]
         exclude: sbin
--   repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-    -   id: isort
-        name: isort (python)
 # -   repo: https://github.com/pre-commit/mirrors-mypy
 #     hooks:
 #     -   id: mypy
