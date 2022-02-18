@@ -40,10 +40,10 @@ minversion = "6.0"
 addopts = [
     "--ignore=sbin",
     "--ignore=notebooks",
-    "--ignore-glob=**/viz/*",
+    "--ignore-glob=**/viz/*", # Run visualisation tests separately: $ pytest tests/unit/viz/
     "--color=yes",
     "--verbose",
-    "--capture=no",
+    "--capture=tee-sys",
     "--showlocals",
     "--durations=0",
     "--setup-show",
