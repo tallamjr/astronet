@@ -4,8 +4,9 @@ from __future__ import (
     print_function,
     unicode_literals,
 )
-import tensorflow as tf
+
 import numpy as np
+import tensorflow as tf
 
 
 class DenseLayerTest(tf.test.TestCase):

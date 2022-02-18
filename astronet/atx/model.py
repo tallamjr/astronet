@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from astronet.atx.layers import EntryFlow, MiddleFlow, ExitFlow
+from astronet.atx.layers import EntryFlow, ExitFlow, MiddleFlow
 
 
 class ATXModel(tf.keras.Model):

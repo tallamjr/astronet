@@ -1,12 +1,12 @@
+from functools import partial
+from typing import Dict, List, Union
+
 import george
-import pandas as pd
 import numpy as np
+import pandas as pd
 import scipy.optimize as op
 import tensorflow as tf
-
 from astropy.table import Table, vstack
-from functools import partial
-from typing import List, Dict, Union
 
 from astronet.constants import LSST_PB_WAVELENGTHS
 

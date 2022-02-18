@@ -4,8 +4,8 @@ from tensorflow.keras import layers
 
 from astronet.t2.transformer import (
     ConvEmbedding,
-    RelativePositionEmbedding,
     PositionalEncoding,
+    RelativePositionEmbedding,
     TransformerBlock,
 )
 

@@ -1,24 +1,23 @@
 import json
+import random as python_random
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-import random as python_random
 import seaborn as sns
 import tensorflow as tf
-
-from pathlib import Path
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.utils import get_encoding
-
 from astronet.metrics import WeightedLogLoss
+from astronet.utils import get_encoding
 from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
     plot_loss_history,
-    plot_multiROC,
     plot_multiPR,
+    plot_multiROC,
 )
 
 RANDOM_SEED = 42

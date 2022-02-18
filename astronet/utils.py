@@ -1,23 +1,22 @@
-import joblib
 import logging
-import numpy as np
 import os
-import pandas as pd
 import pickle
-import tensorflow as tf
-
-from typing import List, Dict
-from sklearn.preprocessing import OneHotEncoder
-
 from pathlib import Path
+from typing import Dict, List
+
+import joblib
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 from scipy import stats
 from sklearn import model_selection
+from sklearn.preprocessing import OneHotEncoder
 
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import (
     LSST_FILTER_MAP,
     LSST_PB_WAVELENGTHS,
     PLASTICC_CLASS_MAPPING,
-    ASTRONET_WORKING_DIRECTORY as asnwd,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
@@ -28,7 +27,6 @@ from astronet.preprocess import (
     remap_filters,
     robust_scale,
 )
-
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -1018,6 +1016,7 @@ def get_data_count(dataset, y_train, y_test, dataform=None):
             encoding = joblib.load(eb)
 
     from collections import Counter
+
     from pandas.core.common import flatten
 
     y_true_train = encoding.inverse_transform(y_train)
@@ -1733,11 +1732,11 @@ def load_dataset(
         np.random.seed(RANDOM_SEED)
         # random_state: if None, the random number generator is the RandomState instance used by np.random.
 
-        from imblearn.under_sampling import (
-            RandomUnderSampler,
-            InstanceHardnessThreshold,
-        )
         from imblearn.over_sampling import SVMSMOTE
+        from imblearn.under_sampling import (
+            InstanceHardnessThreshold,
+            RandomUnderSampler,
+        )
 
         # sampler = SVMSMOTE(sampling_strategy="not majority")
         # sampler = InstanceHardnessThreshold(sampling_strategy="not minority")

@@ -1,24 +1,23 @@
 import argparse
 import json
-import matplotlib.pyplot as plt
-import numpy as np
 import random as python_random
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 import tensorflow as tf
-
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.utils import get_encoding, find_optimal_batch_size
-
 from astronet.metrics import WeightedLogLoss
+from astronet.utils import find_optimal_batch_size, get_encoding
 from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
     plot_loss_history,
-    plot_multiROC,
     plot_multiPR,
+    plot_multiROC,
 )
 
 RANDOM_SEED = 42
@@ -109,6 +108,7 @@ class Plots(object):
             self.dataset, dataform=dataform
         )
         from collections import Counter
+
         from pandas.core.common import flatten
 
         # y_true = encoding.inverse_transform(y_train)

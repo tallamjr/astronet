@@ -1,10 +1,9 @@
+from typing import Dict, List, Union
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from pylab import rcParams
-
-from typing import List, Dict, Union
 
 rcParams["figure.figsize"] = 12, 8
 

@@ -1,16 +1,16 @@
 import argparse
-import joblib
 import json
 import logging
-import numpy as np
-import optuna
 import shutil
 import subprocess
 import sys
-import tensorflow as tf
 import warnings
-
 from pathlib import Path
+
+import joblib
+import numpy as np
+import optuna
+import tensorflow as tf
 from sklearn.model_selection import StratifiedKFold
 from tensorflow.keras import optimizers
 from tensorflow.keras.backend import clear_session
@@ -23,7 +23,11 @@ from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.custom_callbacks import DetectOverfittingCallback
 from astronet.metrics import WeightedLogLoss
 from astronet.t2.model import T2Model
-from astronet.utils import astronet_logger, load_dataset, find_optimal_batch_size
+from astronet.utils import (
+    astronet_logger,
+    find_optimal_batch_size,
+    load_dataset,
+)
 
 log_filename = f"{asnwd}/astronet/t2/opt/studies.log"
 

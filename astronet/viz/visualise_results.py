@@ -1,16 +1,16 @@
 import argparse
 import json
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import shutil
 import sys
+from pathlib import Path
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 import tensorflow as tf
-
 from numpy import interp
-from pathlib import Path
 from sklearn.metrics import (
     auc,
     average_precision_score,
@@ -25,9 +25,9 @@ from astronet.metrics import WeightedLogLoss
 from astronet.utils import (
     astronet_logger,
     get_encoding,
+    load_plasticc,
     load_wisdm_2010,
     load_wisdm_2019,
-    load_plasticc,
 )
 
 

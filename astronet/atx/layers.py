@@ -1,13 +1,13 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (
-    Conv1D,
-    SeparableConv1D,
     Add,
-    Dense,
     BatchNormalization,
-    ReLU,
-    MaxPool1D,
+    Conv1D,
+    Dense,
     GlobalAveragePooling1D,
+    MaxPool1D,
+    ReLU,
+    SeparableConv1D,
 )
 
 

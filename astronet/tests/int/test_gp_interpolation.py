@@ -1,17 +1,15 @@
-import numpy as np
 import os
+
+import numpy as np
 import pandas as pd
 import pytest
 
-from astronet.constants import (
-    LSST_PB_WAVELENGTHS,
-    LSST_FILTER_MAP,
-)
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.preprocess import predict_2d_gp, fit_2d_gp
+from astronet.constants import LSST_FILTER_MAP, LSST_PB_WAVELENGTHS
+from astronet.preprocess import fit_2d_gp, predict_2d_gp
 from astronet.utils import (
-    __transient_trim,
     __filter_dataframe_only_supernova,
+    __transient_trim,
     remap_filters,
 )
 

@@ -1,15 +1,15 @@
 import argparse
 import json
-import numpy as np
 import os
-import psutil
 import shutil
 import subprocess
 import sys
-import tensorflow as tf
 import time
-
 from pathlib import Path
+
+import numpy as np
+import psutil
+import tensorflow as tf
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
     CSVLogger,
@@ -18,19 +18,19 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
+from astronet.atx.model import ATXModel
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.custom_callbacks import (
     DetectOverfittingCallback,
-    TimeHistoryCallback,
     SGEBreakoutCallback,
+    TimeHistoryCallback,
 )
 from astronet.metrics import WeightedLogLoss
-from astronet.atx.model import ATXModel
 from astronet.utils import (
     astronet_logger,
-    load_dataset,
     find_optimal_batch_size,
     get_data_count,
+    load_dataset,
 )
 
 try:

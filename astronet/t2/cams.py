@@ -1,21 +1,21 @@
 import json
+import random as python_random
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
-import random as python_random
 import seaborn as sns
 import tensorflow as tf
-import matplotlib.ticker as ticker
-
 from keras.models import Model
 from matplotlib import rcParams
-from matplotlib.ticker import MultipleLocator, AutoMinorLocator
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from sklearn.preprocessing import minmax_scale, normalize
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.t2.model import T2Model
-from astronet.utils import get_encoding, find_optimal_batch_size
+from astronet.utils import find_optimal_batch_size, get_encoding
 
 tf.get_logger().setLevel("ERROR")
 

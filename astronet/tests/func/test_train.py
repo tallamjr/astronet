@@ -1,15 +1,14 @@
 import os
-import pytest
-import numpy as np
 import shutil
-import tensorflow as tf
+from pathlib import Path
 
+import numpy as np
+import pytest
+import tensorflow as tf
 from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
 from astronet.utils import astronet_logger, load_dataset
-
-from pathlib import Path
 
 log = astronet_logger(__file__)
 log.info("=" * shutil.get_terminal_size((80, 20))[0])

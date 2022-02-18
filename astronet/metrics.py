@@ -1,15 +1,13 @@
+import sys
+
 import joblib
 import numpy as np
 import pandas as pd
-import sys
 import tensorflow as tf
-
 from tensorflow import keras
 
-from astronet.constants import (
-    PLASTICC_WEIGHTS_DICT,
-    ASTRONET_WORKING_DIRECTORY as asnwd,
-)
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import PLASTICC_WEIGHTS_DICT
 
 # 'SettingWithCopyWarning' in Pandas: https://bit.ly/3mv3fhw
 pd.options.mode.chained_assignment = None  # default='warn'

@@ -22,7 +22,7 @@ repos:
     rev: 5.5.4
     hooks:
     -   id: isort
-        args: ["--profile", "black"]
+        args: ["--profile", "black", "--line-length=69"]
 # -   repo: https://github.com/pre-commit/mirrors-mypy
 #     hooks:
 #     -   id: mypy

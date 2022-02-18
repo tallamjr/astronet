@@ -1,10 +1,12 @@
-import tensorflow as tf
-import numpy as np
-from astronet.t2.multihead_attention import (
-    scaled_dot_product_attention,
-    MultiHeadAttention,
-)
 import os
+
+import numpy as np
+import tensorflow as tf
+
+from astronet.t2.multihead_attention import (
+    MultiHeadAttention,
+    scaled_dot_product_attention,
+)
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 

@@ -1,22 +1,24 @@
-import numpy as np
 import os
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
 import pytest
 
-from pathlib import Path
-
-from astronet.constants import (
-    LSST_PB_WAVELENGTHS,
-    LSST_FILTER_MAP,
-    ASTRONET_WORKING_DIRECTORY as asnwd,
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import LSST_FILTER_MAP, LSST_PB_WAVELENGTHS
+from astronet.preprocess import (
+    fit_2d_gp,
+    one_hot_encode,
+    predict_2d_gp,
 )
-from astronet.preprocess import predict_2d_gp, fit_2d_gp, one_hot_encode
 from astronet.utils import (
-    __transient_trim,
     __filter_dataframe_only_supernova,
+    __transient_trim,
+    load_wisdm_2010,
+    load_wisdm_2019,
     remap_filters,
 )
-from astronet.utils import load_wisdm_2010, load_wisdm_2019
 
 
 def test_one_hot_encode():

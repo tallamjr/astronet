@@ -4,7 +4,6 @@ import tensorflow as tf
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import load_dataset
 
-
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)

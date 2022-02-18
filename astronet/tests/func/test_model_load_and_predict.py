@@ -1,9 +1,9 @@
-import numpy as np
 import os
-import pytest
 import random as python_random
-import tensorflow as tf
 
+import numpy as np
+import pytest
+import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd

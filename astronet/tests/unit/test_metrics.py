@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from astronet.metrics import custom_log_loss, WeightedLogLoss
+
+from astronet.metrics import WeightedLogLoss, custom_log_loss
 
 
 def test_custom_log_loss():

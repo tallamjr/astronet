@@ -1,7 +1,6 @@
 import numpy as np
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-
 from astronet.utils import load_full_plasticc_test_from_numpy
 
 X_train, y_train, X_test, y_test, Z_train, Z_test = load_full_plasticc_test_from_numpy(

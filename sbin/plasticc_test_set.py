@@ -1,10 +1,10 @@
 import argparse
-import numpy as np
 import shutil
 import sys
-import tensorflow as tf
-
 from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
 
 from astronet.utils import astronet_logger, save_plasticc_test_set
 

@@ -1,12 +1,12 @@
-import imageio
 import io
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import subprocess
-import tensorflow as tf
 import time
 
+import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
 from IPython.display import Image as IPyImage
 from PIL import Image
 
