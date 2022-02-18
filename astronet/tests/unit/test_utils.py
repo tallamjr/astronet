@@ -71,6 +71,9 @@ def test_load_dataset():
 
 
 @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
+@pytest.mark.xfail(
+    reason="Hardcoded dataform set to 'testset' for now: see commit: fd02ac"
+)
 def test_load_dataset_with_z():
 
     dataset = "plasticc"
