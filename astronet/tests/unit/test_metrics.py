@@ -11,7 +11,7 @@ def test_custom_log_loss():
     y = np.array([[0.9, 0.1, 0.2], [0.9, 0.4, 0.1], [0.2, 0.9, 0.2]])
 
     logloss = custom_log_loss(x, y).numpy()
-    assert pytest.approx(logloss, 0.07024034167855889)
+    assert logloss == pytest.approx(0.07024034167855889)
 
     del logloss
 
@@ -26,7 +26,7 @@ def test_weighted_log_loss():
 
     logloss = WeightedLogLoss()
     logloss = logloss.call(y_true=x, y_pred=y).numpy()
-    assert pytest.approx(logloss, 0.07024034167855889)
+    assert logloss == pytest.approx(0.07024034167855889)
 
     del logloss
 
