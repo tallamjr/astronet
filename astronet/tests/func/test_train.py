@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -19,7 +20,16 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
+isa = subprocess.run(
+    f"{uname -m}",
+    check=True,
+    capture_output=True,
+    shell=True,
+    text=True,
+).stdout.strip()
 
+
+@pytest.mark.skipif(isa == "arm64", reason="Error on arm-m1")
 def test_training_pipeline_wisdm_2010():
     clear_session()
 
