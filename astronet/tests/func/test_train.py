@@ -21,7 +21,7 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 isa = subprocess.run(
-    f"{uname -m}",
+    "uname -m",
     check=True,
     capture_output=True,
     shell=True,
