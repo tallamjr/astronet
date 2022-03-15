@@ -500,7 +500,7 @@ def __load_plasticc_dataset_from_csv(timesteps, snonly=None):
 
     object_list = list(np.unique(df["object_id"]))
 
-    obs_transient = __transient_trim(object_list, df)
+    obs_transient, _ = __transient_trim(object_list, df)
     generated_gp_dataset = generate_gp_all_objects(
         object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
     )
