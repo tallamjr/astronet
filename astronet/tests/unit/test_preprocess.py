@@ -12,6 +12,7 @@ from astronet.preprocess import (
     one_hot_encode,
     predict_2d_gp,
 )
+from astronet.tests.conftest import check_isa
 from astronet.utils import (
     __filter_dataframe_only_supernova,
     __transient_trim,
@@ -21,6 +22,7 @@ from astronet.utils import (
 )
 
 
+@check_isa
 def test_one_hot_encode():
 
     X_train, y_train, X_test, y_test = load_wisdm_2010()

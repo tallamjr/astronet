@@ -1,7 +1,19 @@
+import subprocess
+
 import numpy as np
 import pytest
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+
+isa = subprocess.run(
+    "uname -m",
+    check=True,
+    capture_output=True,
+    shell=True,
+    text=True,
+).stdout.strip()
+
+check_isa = pytest.mark.skipif(isa == "arm64", reason="Error on arm-m1")
 
 
 @pytest.fixture

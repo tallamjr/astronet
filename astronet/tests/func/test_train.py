@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +8,7 @@ import tensorflow as tf
 from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
+from astronet.tests.conftest import check_isa
 from astronet.utils import astronet_logger, load_dataset
 
 log = astronet_logger(__file__)
@@ -20,16 +20,8 @@ RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
-isa = subprocess.run(
-    "uname -m",
-    check=True,
-    capture_output=True,
-    shell=True,
-    text=True,
-).stdout.strip()
 
-
-@pytest.mark.skipif(isa == "arm64", reason="Error on arm-m1")
+@check_isa
 def test_training_pipeline_wisdm_2010():
     clear_session()
 
