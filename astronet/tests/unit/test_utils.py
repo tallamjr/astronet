@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import pytest
 
@@ -10,7 +11,16 @@ from astronet.utils import (
     load_wisdm_2019,
 )
 
+isa = subprocess.run(
+    "uname -m",
+    check=True,
+    capture_output=True,
+    shell=True,
+    text=True,
+).stdout.strip()
 
+
+@pytest.mark.skipif(isa == "arm64", reason="Error on arm-m1")
 def test_load_wisdm_2010():
 
     X_train, y_train, X_test, y_test = load_wisdm_2010(timesteps=200, step=200)
