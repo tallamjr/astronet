@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import psutil
+from sklean.metrics import precision_score
 import tensorflow as tf
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
@@ -355,6 +356,9 @@ class Training(object):
             test_input, y_test, verbose=0, batch_size=batch_size
         )[0]
         model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
+
+        model_params["model_predict_precision_score"] = precision_score(y_test, y_preds, average="macro")
+
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
