@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import psutil
-from sklean.metrics import precision_score
+from sklearn.metrics import precision_score
 import tensorflow as tf
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
