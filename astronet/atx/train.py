@@ -265,9 +265,9 @@ class Training(object):
             verbose=False,
             callbacks=[
                 time_callback,
-                SGEBreakoutCallback(
-                    threshold=44  # Stop training if running for more than threshold number of hours
-                ),
+                #                SGEBreakoutCallback(
+                #                    threshold=44  # Stop training if running for more than threshold number of hours
+                #),
                 CSVLogger(
                     csv_logger_file,
                     separator=",",
@@ -358,7 +358,7 @@ class Training(object):
         model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
 
         y_test = np.argmax(y_test, axis=1)
-        y_pred = np.argmax(y_pred, axis=1)
+        y_preds = np.argmax(y_preds, axis=1)
 
         model_params["model_predict_precision_score"] = precision_score(y_test, y_preds, average="macro")
 
