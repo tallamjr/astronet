@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import psutil
-from sklearn.metrics import precision_score
+from sklearn.metrics import precision_score, recall_score
 import tensorflow as tf
 from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (
@@ -361,6 +361,7 @@ class Training(object):
         y_preds = np.argmax(y_preds, axis=1)
 
         model_params["model_predict_precision_score"] = precision_score(y_test, y_preds, average="macro")
+        model_params["model_predict_recall_score"] = recall_score(y_test, y_preds, average="macro")
 
         print("  Params: ")
         for key, value in history.history.items():
