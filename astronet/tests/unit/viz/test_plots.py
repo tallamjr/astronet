@@ -11,6 +11,7 @@ from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
+from astronet.tests.conftest import ISA
 from astronet.utils import get_encoding
 from astronet.viz.visualise_results import (
     plot_acc_history,
@@ -27,6 +28,11 @@ tf.random.set_seed(RANDOM_SEED)
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
 python_random.seed(RANDOM_SEED)
+
+if ISA == "arm64":
+    hashlib = (f"{Path(__file__).absolute().parent}/baseline/hashlib.json",)
+else:
+    hashlib = (f"{Path(__file__).absolute().parent}/baseline/m1-hashlib.json",)
 
 
 @pytest.mark.parametrize(
