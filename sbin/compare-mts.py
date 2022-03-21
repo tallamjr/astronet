@@ -14,7 +14,9 @@ from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import load_dataset
 
 
-def update_results(architectures: List[str], metric: str = "precision", save=None):
+def update_results(
+    architectures: List[str], metric: str = "precision", save: bool = False
+):
 
     datasets = [
         "ArabicDigits",
@@ -57,7 +59,7 @@ def update_results(architectures: List[str], metric: str = "precision", save=Non
         df = pd.DataFrame.from_dict(table, orient="index")
         df.columns = [f"{architecture}"]
         print(df)
-        if save is not None:
+        if save:
             filename = f"{asnwd}/results/mts-{architecture}-results-{metric}.csv"
             df.to_csv(filename)
 
@@ -82,15 +84,18 @@ def make_comparison_table(architectures: List[str], metric: str = "precision"):
 
     df_combined_arch = t2.join(atx)
 
-    # TODO: Change to respective metric file
     df_benchmark = pd.read_csv(
-        f"{asnwd}/results/mts-fawaz-results.csv", index_col="Unnamed: 0"
+        f"{asnwd}/results/mts-results-{metric}.csv", index_col="Unnamed: 0"
     )
 
     df_combined_both = df_combined_arch.join(df_benchmark)
 
+    filename = f"{asnwd}/results/mts-combined-results-{metric}.tex"
+    results = df_combined_both.to_markdown(tablefmt="latex", floatfmt=".2f")
+    print(results, file=open(filename, "w"))
+
     filename = f"{asnwd}/results/mts-combined-results-{metric}.md"
-    results = df_combined_both.to_markdown()
+    results = df_combined_both.to_markdown(floatfmt=".2f")
     print(results, file=open(filename, "w"))
 
     print(results)
@@ -122,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--save",
+        action="store_true",
         help="Whether to save results to disk or not",
     )
 
@@ -134,15 +140,18 @@ if __name__ == "__main__":
         sys.exit(0)
 
     metric = args.metric
+    save = args.save
 
     architectures = ["atx", "t2"]
     if args.architecture is not None:
         architecture = args.architecture
         architectures = [arch for arch in architectures if arch == architecture]
-        update_results(architectures, metric)
+
+        update_results(architectures, metric, save)
+
         logging.info(
             "Only updating tables. For full comparson, both architectures required"
         )
     else:
-        update_results(architectures, metric)
+        update_results(architectures, metric, save)
         results = make_comparison_table(architectures, metric)
