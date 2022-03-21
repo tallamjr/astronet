@@ -14,9 +14,7 @@ from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import load_dataset
 
 
-def update_results(
-    architectures: List[str], mode: str = "precision", save: bool = False
-):
+def update_results(architectures: List[str], metric: str = "precision", save=None):
 
     datasets = [
         "ArabicDigits",
@@ -33,8 +31,8 @@ def update_results(
         "WalkvsRun",
     ]
 
-    if mode in ["precision", "recall"]:
-        results_key = f"model_predict_{mode}_score"
+    if metric in ["precision", "recall"]:
+        results_key = f"model_predict_{metric}_score"
     else:
         results_key = "model_evaluate_on_test_acc"
 
@@ -60,13 +58,13 @@ def update_results(
         df.columns = [f"{architecture}"]
         print(df)
         if save is not None:
-            filename = f"{asnwd}/results/mts-{architecture}-results-{mode}.csv"
+            filename = f"{asnwd}/results/mts-{architecture}-results-{metric}.csv"
             df.to_csv(filename)
 
     return
 
 
-def make_comparison_table(architectures: List[str], mode: str = "precision"):
+def make_comparison_table(architectures: List[str], metric: str = "precision"):
 
     pd.set_option("display.precision", 1)
     pd.set_option("display.float_format", "{:.2f}".format)
@@ -74,7 +72,7 @@ def make_comparison_table(architectures: List[str], mode: str = "precision"):
     tables = []
     for architecture in architectures:
         df = pd.read_csv(
-            f"{asnwd}/results/mts-{architecture}-results-{mode}.csv",
+            f"{asnwd}/results/mts-{architecture}-results-{metric}.csv",
             index_col="Unnamed: 0",
         )
         tables.append(df[f"{architecture}"].multiply(100).to_frame())
@@ -91,7 +89,7 @@ def make_comparison_table(architectures: List[str], mode: str = "precision"):
 
     df_combined_both = df_combined_arch.join(df_benchmark)
 
-    filename = f"{asnwd}/results/mts-combined-results-{mode}.md"
+    filename = f"{asnwd}/results/mts-combined-results-{metric}.md"
     results = df_combined_both.to_markdown()
     print(results, file=open(filename, "w"))
 
@@ -108,7 +106,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "-m",
-        "--mode",
+        "--metric",
         type=str,
         default="precision",
         help="Choose which metric: {'precision', 'recall', 'accuracy'}",
@@ -135,16 +133,16 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(0)
 
-    mode = args.mode
+    metric = args.metric
 
     architectures = ["atx", "t2"]
     if args.architecture is not None:
         architecture = args.architecture
         architectures = [arch for arch in architectures if arch == architecture]
-        update_results(architectures, mode)
+        update_results(architectures, metric)
         logging.info(
             "Only updating tables. For full comparson, both architectures required"
         )
     else:
-        update_results(architectures, mode)
-        results = make_comparison_table(architectures, mode)
+        update_results(architectures, metric)
+        results = make_comparison_table(architectures, metric)
