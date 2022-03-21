@@ -102,6 +102,8 @@
             ],
             "model_evaluate_on_test_acc": 0.8939732313156128,
             "model_evaluate_on_test_loss": 1.7089498043060303,
+            "model_predict_precision_score": 9999,
+            "model_predict_recall_score": 9999,
             "name": "1611100310-049ac37",
             "val_acc": [
                 0.8939732313156128,
@@ -312,6 +314,8 @@
             ],
             "model_evaluate_on_test_acc": 0.8939732313156128,
             "model_evaluate_on_test_loss": 1.7089498043060303,
+            "model_predict_precision_score": 9999,
+            "model_predict_recall_score": 9999,
             "name": "1611446427-84ab4bf",
             "val_acc": [
                 0.8939732313156128,
