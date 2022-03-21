@@ -50,6 +50,8 @@
             ],
             "model_evaluate_on_test_acc": 0.06666667014360428,
             "model_evaluate_on_test_loss": 2.709141492843628,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "name": "1610386813-1d1776c",
             "num_heads": 16,
             "val_acc": [
@@ -907,6 +909,8 @@
             ],
             "model_evaluate_on_test_acc": 0.06666667014360428,
             "model_evaluate_on_test_loss": 2.7091262340545654,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "name": "1610416646-3351af1",
             "num_heads": 16,
             "val_acc": [
@@ -1736,6 +1740,8 @@
             ],
             "model_evaluate_on_test_acc": 0.06666667014360428,
             "model_evaluate_on_test_loss": 2.712047576904297,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "name": "1610743618-c295e0f",
             "num_heads": 16,
             "val_acc": [
@@ -1805,6 +1811,8 @@
             ],
             "model_evaluate_on_test_acc": 0.06666667014360428,
             "model_evaluate_on_test_loss": 2.7096643447875977,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "name": "1611000233-1405947",
             "num_heads": 8,
             "val_acc": [
@@ -2047,6 +2055,8 @@
             ],
             "model_evaluate_on_test_acc": 0.8166666626930237,
             "model_evaluate_on_test_loss": 0.6763054132461548,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "model_prediction_on_test": 0.6763054132461548,
             "name": "1622247731-0.1.dev837+g8e10b0d.d20210528",
             "num_classes": 15,
@@ -2436,6 +2446,8 @@
             ],
             "model_evaluate_on_test_acc": 0.8166666626930237,
             "model_evaluate_on_test_loss": 0.6763054132461548,
+            "model_predict_precision_score": -9999,
+            "model_predict_recall_score": -9999,
             "model_prediction_on_test": 0.6763054132461548,
             "name": "1622290283-0.1.dev842+g2e99708",
             "num_classes": 15,
