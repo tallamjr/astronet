@@ -8,7 +8,7 @@ import tensorflow as tf
 from tensorflow.keras.backend import clear_session
 
 from astronet.t2.model import T2Model
-from astronet.tests.conftest import check_isa
+from astronet.tests.conftest import SKIP_IF_M1
 from astronet.utils import astronet_logger, load_dataset
 
 log = astronet_logger(__file__)
@@ -21,7 +21,7 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 
-@check_isa
+@SKIP_IF_M1
 def test_training_pipeline_wisdm_2010():
     clear_session()
 

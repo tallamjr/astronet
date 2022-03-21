@@ -55,6 +55,10 @@ class ATXModel(tf.keras.Model):
 
         return output
 
+    def model(self):
+        x = tf.keras.Input(shape=(100, 6))
+        return tf.keras.Model(inputs=[x], outputs=self.call(x))
+
     def build_graph(self, input_shapes):
         if isinstance(
             input_shapes, tuple

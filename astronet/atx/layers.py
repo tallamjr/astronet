@@ -11,7 +11,7 @@ from tensorflow.keras.layers import (
 )
 
 
-class ConvBatchNormBlock(tf.keras.layers.Layer):
+class ConvBatchNormBlock(tf.keras.Model):
     def __init__(self, filters, kernel_size, strides=1, **kwargs):
         super(ConvBatchNormBlock, self).__init__(**kwargs)
 
@@ -35,7 +35,7 @@ class ConvBatchNormBlock(tf.keras.layers.Layer):
         return x
 
 
-class SeparableConvBatchNormBlock(tf.keras.layers.Layer):
+class SeparableConvBatchNormBlock(tf.keras.Model):
     def __init__(self, filters, kernel_size, strides=1, **kwargs):
         super(SeparableConvBatchNormBlock, self).__init__(**kwargs)
 
@@ -60,7 +60,7 @@ class SeparableConvBatchNormBlock(tf.keras.layers.Layer):
         return x
 
 
-class EntryFlow(tf.keras.layers.Layer):
+class EntryFlow(tf.keras.Model):
     def __init__(self, kernel_size, pool_size, scaledown_factor, **kwargs):
         super(EntryFlow, self).__init__(**kwargs)
         self.kernel_size = kernel_size
@@ -163,7 +163,7 @@ class EntryFlow(tf.keras.layers.Layer):
         return x
 
 
-class MiddleFlow(tf.keras.layers.Layer):
+class MiddleFlow(tf.keras.Model):
     def __init__(self, kernel_size, scaledown_factor, **kwargs):
         super(MiddleFlow, self).__init__(**kwargs)
         self.kernel_size = kernel_size
@@ -194,7 +194,7 @@ class MiddleFlow(tf.keras.layers.Layer):
         return tensor
 
 
-class ExitFlow(tf.keras.layers.Layer):
+class ExitFlow(tf.keras.Model):
     def __init__(self, num_classes, kernel_size, pool_size, scaledown_factor, **kwargs):
         super(ExitFlow, self).__init__(**kwargs)
         self.num_classes = num_classes

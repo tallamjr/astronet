@@ -3,7 +3,7 @@ import os
 import pytest
 
 from astronet.metrics import WeightedLogLoss
-from astronet.tests.conftest import check_isa
+from astronet.tests.conftest import SKIP_IF_M1
 from astronet.utils import (
     load_dataset,
     load_plasticc,
@@ -12,7 +12,7 @@ from astronet.utils import (
 )
 
 
-@check_isa
+@SKIP_IF_M1
 def test_load_wisdm_2010():
 
     X_train, y_train, X_test, y_test = load_wisdm_2010(timesteps=200, step=200)

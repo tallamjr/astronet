@@ -1,12 +1,12 @@
 astropy>=1.1.2
-george==0.3.1
+george>=0.3.1
 imbalanced-learn==0.7.0
 joblib==0.17.0
-matplotlib==3.3.2
-numpy==1.19.2
+matplotlib>=3.3.2
+numpy>=1.19.2
 optuna==2.3.0
-pandas==1.1.4
-scikit-learn==0.23.2
+pandas>=1.1.4
+scikit-learn>=0.23.2
 scipy>=1.5.0
 seaborn==0.11.0
-tensorflow==2.4.1
+# tensorflow==2.4.1
