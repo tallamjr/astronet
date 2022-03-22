@@ -49,3 +49,21 @@ Testing the behaviour of the application as per the requirement.
 This package uses `pytest` with additional options defined in `pytest.ini` file.
 
 To run, simply use `pytest .`
+
+Note: some tests require large data files
+
+If a new plot is created, it should be visually inspected and a new baseline generated like so:
+
+```bash
+$ cd astronet/tests/unit/viz
+$ pytest --mpl-generate-path=baseline --ignore-glob="*.ipynb" test_plots.py
+```
+Then, the hash of the image is to be stored in the SHA library file with:
+
+```bash
+$ pytest --mpl-generate-hash-library=astronet/tests/unit/viz/baseline/hashlib.json --ignore-glob="*.ipynb" test_plots.py
+```
+Finally, the suite is ready to be tested by running:
+```bash
+$ pytest --ignore-glob="*.ipynb" test_plots.py
+```
