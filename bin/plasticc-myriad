@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N atxGPU-train
+#$ -N t2-train-TF
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -68,6 +68,9 @@ export CUDA_VISIBLE_DEVICES=0,1 # https://stackoverflow.com/a/48079860/4521950
 # export TF_CPP_MIN_VLOG_LEVEL=3 # https://stackoverflow.com/q/66118532/4521950, https://stackoverflow.com/a/45142985/4521950
 export TF_CPP_MIN_LOG_LEVEL=2
 export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/tensorflow/issues/46479
+conda activate astronet
+conda env config vars set LD_LIBRARY_PATH=$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issuecomment-1024604306
+conda activate base # To make your changes take effect reactivating astronet environment
 conda activate astronet
 which python
 which pip
