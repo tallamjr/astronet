@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -96,7 +97,30 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
         return inputs + position_embeddings
 
 
-class TransformerBlock(layers.Layer):
+class ClusterableWeightsCA(tfmot.clustering.keras.ClusteringAlgorithm):
+    """This class provides a special lookup function for the the weights 'w'.
+    It reshapes and tile centroids the same way as the weights. This allows us
+    to find pulling indices efficiently.
+    """
+
+    def get_pulling_indices(self, weight):
+        clst_num = self.cluster_centroids.shape[0]
+        tiled_weights = tf.tile(tf.expand_dims(weight, axis=2), [1, 1, clst_num])
+        tiled_cluster_centroids = tf.tile(
+            tf.reshape(self.cluster_centroids, [1, 1, clst_num]),
+            [weight.shape[0], weight.shape[1], 1],
+        )
+
+        # We find the nearest cluster centroids and store them so that ops can build
+        # their kernels upon it
+        pulling_indices = tf.argmin(
+            tf.abs(tiled_weights - tiled_cluster_centroids), axis=2
+        )
+
+        return pulling_indices
+
+
+class TransformerBlock(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
     # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
@@ -129,3 +153,16 @@ class TransformerBlock(layers.Layer):
         )  # Residual connection, # (batch_size, input_seq_len, d_model)
 
         return out2  # (batch_size, input_seq_len, d_model)
+
+    def get_clusterable_weights(self):
+        # Cluster kernel and bias. This is just an example, clustering
+        # bias usually hurts model accuracy.
+        return [("kernel", self.kernel), ("bias", self.bias)]
+
+    def get_clusterable_algorithm(self, weight_name):
+        """Returns clustering algorithm for the custom weights 'w'."""
+        if weight_name == "kernel":
+            return ClusterableWeightsCA
+        else:
+            # We don't cluster other weights.
+            return None
