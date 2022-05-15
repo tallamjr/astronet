@@ -9,17 +9,37 @@ from tensorflow.keras import layers
 from astronet.t2.attention import MultiHeadSelfAttention
 
 
-class ConvEmbedding(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
-    def __init__(self, num_filters, **kwargs):
-        super(ConvEmbedding, self).__init__(**kwargs)
-        self.conv1d = layers.Conv1D(
-            filters=num_filters, kernel_size=1, activation="relu"
+class ClusterableWeightsCA(tfmot.clustering.keras.ClusteringAlgorithm):
+    """This class provides a special lookup function for the the weights 'w'.
+    It reshapes and tile centroids the same way as the weights. This allows us
+    to find pulling indices efficiently.
+    """
+
+    def get_pulling_indices(self, weight):
+        clst_num = self.cluster_centroids.shape[0]
+        tiled_weights = tf.tile(tf.expand_dims(weight, axis=2), [1, 1, clst_num])
+        tiled_cluster_centroids = tf.tile(
+            tf.reshape(self.cluster_centroids, [1, 1, clst_num]),
+            [weight.shape[0], weight.shape[1], 1],
         )
 
-    def call(self, inputs):
-        embedding = self.conv1d(inputs)
+        # We find the nearest cluster centroids and store them so that ops can build
+        # their kernels upon it
+        pulling_indices = tf.argmin(
+            tf.abs(tiled_weights - tiled_cluster_centroids), axis=2
+        )
 
-        return embedding
+        return pulling_indices
+
+
+class PrunableClusterableLayer(
+    tf.keras.layers.Layer,
+    tfmot.sparsity.keras.PrunableLayer,
+    tfmot.clustering.keras.ClusterableLayer,
+):
+    def get_prunable_weights(self):
+        # Prune bias also, though that usually harms model accuracy too much.
+        return [("kernel", self.kernel)]
 
     def get_clusterable_weights(self):
         # Cluster kernel and bias. This is just an example, clustering
@@ -35,7 +55,20 @@ class ConvEmbedding(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
             return None
 
 
-class PositionalEncoding(keras.layers.Layer, tfmot.clustering.keras.ClusterableLayer):
+class ConvEmbedding(PrunableClusterableLayer):
+    def __init__(self, num_filters, **kwargs):
+        super(ConvEmbedding, self).__init__(**kwargs)
+        self.conv1d = layers.Conv1D(
+            filters=num_filters, kernel_size=1, activation="relu"
+        )
+
+    def call(self, inputs):
+        embedding = self.conv1d(inputs)
+
+        return embedding
+
+
+class PositionalEncoding(PrunableClusterableLayer):
     def __init__(self, max_steps, max_dims, dtype=tf.float32, **kwargs):
         super(PositionalEncoding, self).__init__(dtype=dtype, **kwargs)
         if max_dims % 2 == 1:
@@ -49,19 +82,6 @@ class PositionalEncoding(keras.layers.Layer, tfmot.clustering.keras.ClusterableL
     def call(self, inputs):
         shape = tf.shape(inputs)
         return inputs + self.positional_embedding[:, : shape[-2], : shape[-1]]
-
-    def get_clusterable_weights(self):
-        # Cluster kernel and bias. This is just an example, clustering
-        # bias usually hurts model accuracy.
-        return [("kernel", self.kernel), ("bias", self.bias)]
-
-    def get_clusterable_algorithm(self, weight_name):
-        """Returns clustering algorithm for the custom weights 'w'."""
-        if weight_name == "kernel":
-            return ClusterableWeightsCA
-        else:
-            # We don't cluster other weights.
-            return None
 
 
 class RelativePositionEmbedding(tf.keras.layers.Layer):
@@ -123,30 +143,7 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
         return inputs + position_embeddings
 
 
-class ClusterableWeightsCA(tfmot.clustering.keras.ClusteringAlgorithm):
-    """This class provides a special lookup function for the the weights 'w'.
-    It reshapes and tile centroids the same way as the weights. This allows us
-    to find pulling indices efficiently.
-    """
-
-    def get_pulling_indices(self, weight):
-        clst_num = self.cluster_centroids.shape[0]
-        tiled_weights = tf.tile(tf.expand_dims(weight, axis=2), [1, 1, clst_num])
-        tiled_cluster_centroids = tf.tile(
-            tf.reshape(self.cluster_centroids, [1, 1, clst_num]),
-            [weight.shape[0], weight.shape[1], 1],
-        )
-
-        # We find the nearest cluster centroids and store them so that ops can build
-        # their kernels upon it
-        pulling_indices = tf.argmin(
-            tf.abs(tiled_weights - tiled_cluster_centroids), axis=2
-        )
-
-        return pulling_indices
-
-
-class TransformerBlock(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
+class TransformerBlock(PrunableClusterableLayer):
     # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
@@ -179,16 +176,3 @@ class TransformerBlock(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
         )  # Residual connection, # (batch_size, input_seq_len, d_model)
 
         return out2  # (batch_size, input_seq_len, d_model)
-
-    def get_clusterable_weights(self):
-        # Cluster kernel and bias. This is just an example, clustering
-        # bias usually hurts model accuracy.
-        return [("kernel", self.kernel), ("bias", self.bias)]
-
-    def get_clusterable_algorithm(self, weight_name):
-        """Returns clustering algorithm for the custom weights 'w'."""
-        if weight_name == "kernel":
-            return ClusterableWeightsCA
-        else:
-            # We don't cluster other weights.
-            return None
