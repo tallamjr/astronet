@@ -1,4 +1,5 @@
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -27,6 +28,14 @@ def build_model(
     add_aux_feats_to="L",
     **kwargs,
 ):
+
+    cluster_weights = tfmot.clustering.keras.cluster_weights
+    CentroidInitialization = tfmot.clustering.keras.CentroidInitialization
+
+    clustering_params = {
+        "number_of_clusters": 16,
+        "cluster_centroids_init": CentroidInitialization.LINEAR,
+    }
 
     if isinstance(input_shapes, tuple):  # A list would imply there is multiple inputs
         # Code lifted from example:
@@ -86,7 +95,9 @@ def build_model(
         if tf.keras.backend.learning_phase():
             x = layers.Dropout(droprate)(x, training=tf.keras.backend.learning_phase())
 
-        classifier = layers.Dense(num_classes, activation="softmax")(x)
+        classifier = cluster_weights(
+            layers.Dense(num_classes, activation="softmax"), **clustering_params
+        )(x)
 
     # if (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
     # Else this implies input is a list; a list of tensors, i.e. multiple inputs
@@ -134,7 +145,10 @@ def build_model(
         if tf.keras.backend.learning_phase():
             x = layers.Dropout(droprate)(x, training=tf.keras.backend.learning_phase())
 
-        classifier = layers.Dense(num_classes, activation="softmax")(x)
+        # classifier = layers.Dense(num_classes, activation="softmax")(x)
+        classifier = cluster_weights(
+            layers.Dense(num_classes, activation="softmax"), **clustering_params
+        )(x)
 
     model = tf.keras.Model(inputs, classifier)
 
