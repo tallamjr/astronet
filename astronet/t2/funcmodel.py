@@ -66,13 +66,14 @@ def build_model(
     # classifier = layers.Dense(num_classes, activation="softmax")
 
     ##############################################################
+    training = tf.keras.backend.learning_phase()
 
     # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
     if tf.is_tensor(inputs):
         x = ConvEmbedding(num_filters=num_filters, input_shape=input_dim)(inputs)
         x = PositionalEncoding(max_steps=sequence_length, max_dims=embed_dim)(x)
 
-        x = TransformerBlock(embed_dim, num_heads, ff_dim)(x, training)
+        x = TransformerBlock(embed_dim, num_heads, ff_dim)(x, training=training)
 
         x = layers.GlobalAveragePooling1D()(x)
 
@@ -119,7 +120,7 @@ def build_model(
             x
         )  # X <- X + P, where X in L x d
 
-        x = TransformerBlock(embed_dim, num_heads, ff_dim)(x, training)
+        x = TransformerBlock(embed_dim, num_heads, ff_dim)(x, training=training)
 
         x = layers.GlobalAveragePooling1D()(x)
         if training:
