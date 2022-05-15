@@ -8,6 +8,9 @@ from astronet.t2.transformer import (
     RelativePositionEmbedding,
     TransformerBlock,
 )
+from astronet.utils import astronet_logger
+
+log = astronet_logger(__file__)
 
 
 def build_model(
@@ -67,6 +70,7 @@ def build_model(
 
     ##############################################################
     training = tf.keras.backend.learning_phase()
+    log.info(f"TRAINING STATE: {training}")
 
     # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
     if tf.is_tensor(inputs):
@@ -128,4 +132,6 @@ def build_model(
 
         classifier = layers.Dense(num_classes, activation="softmax")(x)
 
-    return classifier
+    model = tf.keras.Model(inputs, classifier)
+
+    return model
