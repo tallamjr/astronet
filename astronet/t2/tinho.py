@@ -160,8 +160,6 @@ class Compress(object):
             for file_path in directory.rglob("*"):
                 archive.write(file_path, arcname=file_path.relative_to(directory))
 
-        import pdb
-
         original_model_fp = f"{Path(__file__).parent}/models/plasticc/model-1619624444-0.1.dev765+g7c90cbb.d20210428"
         final_compressed_model_fp = (
             f"{Path(__file__).parent}/compressed_final_model.zip"
@@ -172,6 +170,20 @@ class Compress(object):
         print(
             f"FINAL COMPRESSED CLUSTERED MODEL ON DISK: {check_size(final_compressed_model_fp)}"
         )
+
+        import pdb
+
+        pdb.set_trace()
+
+        def print_sparsity(model):
+            for w in model.weights:
+                n_weights = w.numpy().size
+                n_zeros = np.count_nonzero(w == 0)
+                sparsity = n_zeros / n_weights * 100.0
+                if sparsity > 0:
+                    print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
+
+        # print_sparsity(stripped_pruned_model)
 
 
 if __name__ == "__main__":
