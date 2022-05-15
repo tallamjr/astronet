@@ -229,13 +229,17 @@ class Training(object):
         time_callback = TimeHistoryCallback()
 
         train_ds = (
-            tf.data.Dataset.from_tensor_slices((train_input, y_train))
+            tf.data.Dataset.from_tensor_slices(
+                ({"input_1": train_input[0], "input_2": train_input[1]}, y_train)
+            )
             .shuffle(1000)
             .batch(BATCH_SIZE, drop_remainder=True)
             .prefetch(tf.data.AUTOTUNE)
         )
         test_ds = (
-            tf.data.Dataset.from_tensor_slices((test_input, y_test))
+            tf.data.Dataset.from_tensor_slices(
+                ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+            )
             .batch(BATCH_SIZE, drop_remainder=True)
             .prefetch(tf.data.AUTOTUNE)
         )
