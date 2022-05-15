@@ -384,6 +384,53 @@ class Training(object):
         with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
+        # PRUNE
+        import tensorflow_model_optimization as tfmot
+
+        # Helper function uses `prune_low_magnitude` to make only the
+        # Dense layers train with pruning.
+        def apply_pruning_to_dense(layer):
+            if isinstance(layer, tf.keras.layers.Dense):
+                return tfmot.sparsity.keras.prune_low_magnitude(layer)
+            return layer
+
+        # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
+        # to the layers of the model.
+        model_for_pruning = tf.keras.models.clone_model(
+            model,
+            clone_function=apply_pruning_to_dense,
+        )
+
+        model_for_pruning.summary(print_fn=logging.info)
+
+        callbacks = [
+            tfmot.sparsity.keras.UpdatePruningStep(),
+        ]
+
+        model_for_pruning.compile(
+            loss=loss,
+            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+            metrics=["acc"],
+            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+        )
+
+        model_for_pruning.fit(
+            train_ds,
+            callbacks=callbacks,
+            epochs=2,
+        )
+
+        model_for_pruning.save(
+            f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-PRUNED",
+            include_optimizer=True,
+        )
+
+        model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
+        model_for_export.save(
+            f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-EXPORT",
+            include_optimizer=True,
+        )
+
 
 if __name__ == "__main__":
 
