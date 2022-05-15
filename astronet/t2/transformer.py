@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from astronet.t2.attention import MultiHeadSelfAttention
 
 
-class ConvEmbedding(layers.Layer):
+class ConvEmbedding(layers.Layer, tfmot.clustering.keras.ClusterableLayer):
     def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
         self.conv1d = layers.Conv1D(
@@ -21,8 +21,21 @@ class ConvEmbedding(layers.Layer):
 
         return embedding
 
+    def get_clusterable_weights(self):
+        # Cluster kernel and bias. This is just an example, clustering
+        # bias usually hurts model accuracy.
+        return [("kernel", self.kernel), ("bias", self.bias)]
 
-class PositionalEncoding(keras.layers.Layer):
+    def get_clusterable_algorithm(self, weight_name):
+        """Returns clustering algorithm for the custom weights 'w'."""
+        if weight_name == "kernel":
+            return ClusterableWeightsCA
+        else:
+            # We don't cluster other weights.
+            return None
+
+
+class PositionalEncoding(keras.layers.Layer, tfmot.clustering.keras.ClusterableLayer):
     def __init__(self, max_steps, max_dims, dtype=tf.float32, **kwargs):
         super(PositionalEncoding, self).__init__(dtype=dtype, **kwargs)
         if max_dims % 2 == 1:
@@ -36,6 +49,19 @@ class PositionalEncoding(keras.layers.Layer):
     def call(self, inputs):
         shape = tf.shape(inputs)
         return inputs + self.positional_embedding[:, : shape[-2], : shape[-1]]
+
+    def get_clusterable_weights(self):
+        # Cluster kernel and bias. This is just an example, clustering
+        # bias usually hurts model accuracy.
+        return [("kernel", self.kernel), ("bias", self.bias)]
+
+    def get_clusterable_algorithm(self, weight_name):
+        """Returns clustering algorithm for the custom weights 'w'."""
+        if weight_name == "kernel":
+            return ClusterableWeightsCA
+        else:
+            # We don't cluster other weights.
+            return None
 
 
 class RelativePositionEmbedding(tf.keras.layers.Layer):
