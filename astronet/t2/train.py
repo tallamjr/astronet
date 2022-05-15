@@ -228,13 +228,24 @@ class Training(object):
 
         time_callback = TimeHistoryCallback()
 
+        train_ds = (
+            tf.data.Dataset.from_tensor_slices((train_input, y_train))
+            .shuffle(1000)
+            .batch(BATCH_SIZE, drop_remainder=True)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices((test_input, y_test))
+            .batch(BATCH_SIZE, drop_remainder=True)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
         history = model.fit(
-            train_input,
-            y_train,
+            train_ds,
             batch_size=BATCH_SIZE,
             epochs=self.epochs,
             shuffle=True,
-            validation_data=(test_input, y_test),
+            validation_data=test_ds,
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
