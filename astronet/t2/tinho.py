@@ -141,7 +141,7 @@ class Compress(object):
         print(f"COMPRESSED ORIGINAL MODEL ON DISK: {check_size(original_model_zipped)}")
 
         clustered_model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9901958-1652622376-0.5.1.dev11+g733e01d",
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9902350-1652645235-0.5.1.dev14+gef9460b",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
@@ -159,18 +159,20 @@ class Compress(object):
         clustered_stripped_model_zipped = zippify(
             clustered_stripped_model_fp, "clustered_stripped_model"
         )
-        print(f"CLUSTERED MODEL ON DISK: {check_size(clustered_stripped_model_fp)}")
         print(
-            f"COMPRESSED CLUSTERED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
+            f"CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_fp)}"
+        )
+        print(
+            f"COMPRESSED CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
         )
 
-        pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
-        pruned_model = keras.models.load_model(
-            pruned_model_fp,
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-        print(f"PRUNED MODEL ON DISK: {check_size(pruned_model_fp)}")
+        # pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
+        # pruned_model = keras.models.load_model(
+        #     pruned_model_fp,
+        #     custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        #     compile=False,
+        # )
+        # print(f"PRUNED MODEL ON DISK: {check_size(pruned_model_fp)}")
 
         pruned_stripped_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-EXPORT"
         pruned_stripped_model = keras.models.load_model(
@@ -194,36 +196,29 @@ class Compress(object):
                 if sparsity > 0:
                     print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
 
-        print_sparsity(clustered_model)
         print_sparsity(clustered_stripped_model)
-        print_sparsity(pruned_model)
         print_sparsity(pruned_stripped_model)
 
-        print("Running predictions")
-        wloss = WeightedLogLoss()
+        def run_predictions():
+            print("Running predictions")
+            wloss = WeightedLogLoss()
 
-        # ORIGINAL MODEL
-        print("ORIGINAL MODEL LOSS")
-        y_preds = original_model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = original_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+            # ORIGINAL MODEL
+            print("ORIGINAL MODEL LOSS")
+            y_preds = original_model.predict([X_test, Z_test])
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
-        # CLUSTERED-STRIPPED MODEL
-        print("CLUSTERED-STRIPPED MODEL LOSS")
-        y_preds = clustered_stripped_model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = clustered_stripped_model.predict(
-            [X_test, Z_test], batch_size=BATCH_SIZE
-        )
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+            # CLUSTERED-STRIPPED MODEL
+            print("CLUSTERED-STRIPPED MODEL LOSS")
+            y_preds = clustered_stripped_model.predict([X_test, Z_test])
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
-        # PRUNED-STRIPPED MODEL
-        print("PRUNED-STRIPPED MODEL LOSS")
-        y_preds = pruned_stripped_model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = pruned_stripped_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+            # PRUNED-STRIPPED MODEL
+            print("PRUNED-STRIPPED MODEL LOSS")
+            y_preds = pruned_stripped_model.predict([X_test, Z_test])
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+        run_predictions()
 
 
 if __name__ == "__main__":
