@@ -1,10 +1,13 @@
 import argparse
 import json
 import os
+import pathlib
 import random as python_random
 import subprocess
 import sys
 import tempfile
+import zipfile
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -94,51 +97,6 @@ class Compress(object):
         acc = event["model_evaluate_on_test_acc"]
         print(f"LogLoss on Test Set: {logloss}, Accuracy on Test Set: {acc}")
 
-        model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}",
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-
-        names = [weight.name for layer in model.layers for weight in layer.weights]
-        weights = model.get_weights()
-
-        for name, weight in zip(names, weights):
-            print(name, weight.shape)
-
-        final_model = tfmot.clustering.keras.strip_clustering(model)
-
-        print("final model")
-        final_model.summary()
-
-        original_model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-1619624444-0.1.dev765+g7c90cbb.d20210428",
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-
-        print("Running predictions")
-        wloss = WeightedLogLoss()
-
-        # ORIGINAL MODEL
-        y_preds = original_model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = original_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-
-        # FINAL STRIPPED-CLUSTERED MODEL
-        y_preds = final_model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = final_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-
-        import pathlib
-        import zipfile
-        from pathlib import Path
-
-        final_model_fp = f"{Path(__file__).parent}/final_model"
-        final_model.save(final_model_fp)
-
         def check_size(filepath):
             du = subprocess.run(
                 f"du -sh {filepath} | awk '{{print $1}}'",
@@ -149,31 +107,84 @@ class Compress(object):
             ).stdout
             return du
 
-        directory = pathlib.Path(final_model_fp)
+        def zippify(filepath, name):
 
-        with zipfile.ZipFile(
-            "compressed_final_model.zip",
-            mode="w",
-            compression=zipfile.ZIP_DEFLATED,
-            compresslevel=9,
-        ) as archive:
-            for file_path in directory.rglob("*"):
-                archive.write(file_path, arcname=file_path.relative_to(directory))
+            directory = pathlib.Path(filepath)
+            zipped_name = f"compressed_{name}.zip"
 
-        original_model_fp = f"{Path(__file__).parent}/models/plasticc/model-1619624444-0.1.dev765+g7c90cbb.d20210428"
-        final_compressed_model_fp = (
-            f"{Path(__file__).parent}/compressed_final_model.zip"
+            with zipfile.ZipFile(
+                zipped_name,
+                mode="w",
+                compression=zipfile.ZIP_DEFLATED,
+                compresslevel=9,
+            ) as archive:
+                for file_path in directory.rglob("*"):
+                    archive.write(file_path, arcname=file_path.relative_to(directory))
+
+            return zipped_name
+
+        def inspect_model(model):
+            names = [weight.name for layer in model.layers for weight in layer.weights]
+            weights = model.get_weights()
+            for name, weight in zip(names, weights):
+                print(name, weight.shape)
+
+        original_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}"
+        original_model = keras.models.load_model(
+            original_model_fp,
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
         )
-
+        inspect_model(original_model)
         print(f"ORIGINAL MODEL ON DISK: {check_size(original_model_fp)}")
-        print(f"CLUSTERED MODEL ON DISK: {check_size(final_model_fp)}")
+        original_model_zipped = zippify(original_model_fp, "original_model")
+        print(f"COMPRESSED ORIGINAL MODEL ON DISK: {check_size(original_model_zipped)}")
+
+        clustered_model = keras.models.load_model(
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9901958-1652622376-0.5.1.dev11+g733e01d",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+        inspect_model(clustered_model)
+        clustered_stripped_model = tfmot.clustering.keras.strip_clustering(
+            clustered_model
+        )
+        print("clustered stripped model")
+        clustered_stripped_model.summary()
+
+        clustered_stripped_model_fp = (
+            f"{Path(__file__).parent}/clustered_stripped_model"
+        )
+        clustered_stripped_model.save(clustered_stripped_model_fp)
+        clustered_stripped_model_zipped = zippify(
+            clustered_stripped_model_fp, "clustered_stripped_model"
+        )
+        print(f"CLUSTERED MODEL ON DISK: {check_size(clustered_stripped_model_fp)}")
         print(
-            f"FINAL COMPRESSED CLUSTERED MODEL ON DISK: {check_size(final_compressed_model_fp)}"
+            f"COMPRESSED CLUSTERED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
         )
 
-        import pdb
+        pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
+        pruned_model = keras.models.load_model(
+            pruned_model_fp,
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+        print(f"PRUNED MODEL ON DISK: {check_size(pruned_model_fp)}")
 
-        pdb.set_trace()
+        pruned_stripped_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-EXPORT"
+        pruned_stripped_model = keras.models.load_model(
+            pruned_stripped_model_fp,
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
+        pruned_stripped_model_zipped = zippify(
+            pruned_stripped_model_fp, "pruned_stripped_model"
+        )
+        print(
+            f"COMPRESSED PRUNED MODEL ON DISK: {check_size(pruned_stripped_model_zipped)}"
+        )
 
         def print_sparsity(model):
             for w in model.weights:
@@ -183,7 +194,36 @@ class Compress(object):
                 if sparsity > 0:
                     print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
 
-        # print_sparsity(stripped_pruned_model)
+        print_sparsity(clustered_model)
+        print_sparsity(clustered_stripped_model)
+        print_sparsity(pruned_model)
+        print_sparsity(pruned_stripped_model)
+
+        print("Running predictions")
+        wloss = WeightedLogLoss()
+
+        # ORIGINAL MODEL
+        print("ORIGINAL MODEL LOSS")
+        y_preds = original_model.predict([X_test, Z_test])
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+        y_preds = original_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+        # CLUSTERED-STRIPPED MODEL
+        print("CLUSTERED-STRIPPED MODEL LOSS")
+        y_preds = clustered_stripped_model.predict([X_test, Z_test])
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+        y_preds = clustered_stripped_model.predict(
+            [X_test, Z_test], batch_size=BATCH_SIZE
+        )
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+        # PRUNED-STRIPPED MODEL
+        print("PRUNED-STRIPPED MODEL LOSS")
+        y_preds = pruned_stripped_model.predict([X_test, Z_test])
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+        y_preds = pruned_stripped_model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
+        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
 
 if __name__ == "__main__":

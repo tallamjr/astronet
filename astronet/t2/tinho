@@ -23,8 +23,8 @@ dataset="plasticc"
 if [ $architecture == "atx" ]; then
     model="9887359-1641295475-0.1.dev943+gc9bafac.d20220104"    # atx
 else
-    # model="1619624444-0.1.dev765+g7c90cbb.d20210428"            # t2
-    model="9901958-1652622376-0.5.1.dev11+g733e01d"    # tinho
+    model="1619624444-0.1.dev765+g7c90cbb.d20210428"            # t2
+    # model="9901958-1652622376-0.5.1.dev11+g733e01d"    # tinho
 fi
 
 python $ASNWD/astronet/t2/tinho.py \
