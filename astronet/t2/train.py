@@ -198,7 +198,7 @@ class Training(object):
             # y_test = y_test[mask]
         else:
             # model.build_graph(input_shape)
-
+            input_shapes = input_shape
             train_input = X_train
             test_input = X_test
 
