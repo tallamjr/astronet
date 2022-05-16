@@ -174,6 +174,22 @@ class Training(object):
 
             train_input = [X_train, ZX_train]
             test_input = [X_test, ZX_test]
+
+            train_ds = (
+                tf.data.Dataset.from_tensor_slices(
+                    ({"input_1": train_input[0], "input_2": train_input[1]}, y_train)
+                )
+                .shuffle(1000)
+                .batch(BATCH_SIZE, drop_remainder=True)
+                .prefetch(tf.data.AUTOTUNE)
+            )
+            test_ds = (
+                tf.data.Dataset.from_tensor_slices(
+                    ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+                )
+                .batch(BATCH_SIZE, drop_remainder=True)
+                .prefetch(tf.data.AUTOTUNE)
+            )
             # if avocado is not None:
             # Generate random boolean mask the length of data
             # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
@@ -186,6 +202,20 @@ class Training(object):
             train_input = X_train
             test_input = X_test
 
+            train_ds = (
+                tf.data.Dataset.from_tensor_slices((train_input, y_train))
+                .shuffle(1000)
+                .batch(BATCH_SIZE, drop_remainder=True)
+                .prefetch(tf.data.AUTOTUNE)
+            )
+            test_ds = (
+                tf.data.Dataset.from_tensor_slices(test_input, y_test))
+                .batch(BATCH_SIZE, drop_remainder=True)
+                .prefetch(tf.data.AUTOTUNE)
+            )
+
+        # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
+        # original model. TODO: Include flag for choosing between the two, following run with FINK
         model = build_model(
             input_shapes,
             input_dim=input_shape,
@@ -228,21 +258,6 @@ class Training(object):
 
         time_callback = TimeHistoryCallback()
 
-        train_ds = (
-            tf.data.Dataset.from_tensor_slices(
-                ({"input_1": train_input[0], "input_2": train_input[1]}, y_train)
-            )
-            .shuffle(1000)
-            .batch(BATCH_SIZE, drop_remainder=True)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-        test_ds = (
-            tf.data.Dataset.from_tensor_slices(
-                ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
-            )
-            .batch(BATCH_SIZE, drop_remainder=True)
-            .prefetch(tf.data.AUTOTUNE)
-        )
 
         history = model.fit(
             train_ds,
