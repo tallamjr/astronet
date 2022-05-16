@@ -209,7 +209,7 @@ class Training(object):
                 .prefetch(tf.data.AUTOTUNE)
             )
             test_ds = (
-                tf.data.Dataset.from_tensor_slices(test_input, y_test))
+                tf.data.Dataset.from_tensor_slices((test_input, y_test))
                 .batch(BATCH_SIZE, drop_remainder=True)
                 .prefetch(tf.data.AUTOTUNE)
             )
@@ -257,7 +257,6 @@ class Training(object):
         csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         time_callback = TimeHistoryCallback()
-
 
         history = model.fit(
             train_ds,
