@@ -17,6 +17,9 @@ set -o pipefail -e
 SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
 python -c "import astronet as asn; print(asn.__version__)"
 
+# Tensorflow
+export TF_CPP_MIN_LOG_LEVEL=2
+
 architecture=$1
 dataset="plasticc"
 

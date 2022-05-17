@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ import seaborn as sns
 import snappy
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
+from pandas.core.common import flatten
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
@@ -24,6 +26,8 @@ from astronet.utils import find_optimal_batch_size, get_encoding
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
@@ -51,51 +55,13 @@ class Compress(object):
 
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
-        (
-            num_samples,
-            timesteps,
-            num_features,
-        ) = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-        BATCH_SIZE = find_optimal_batch_size(num_samples)
-        print(f"BATCH_SIZE:{BATCH_SIZE}")
-
-        if self.redshift is not None:
-            # inputs = [X_test, Z_test]
-            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
-        else:
-            # inputs = X_test
-            results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results.json"
-
-        with open(results_filename) as f:
-            events = json.load(f)
-            if self.model_name is not None:
-                # Get params for model chosen with cli args
-                event = next(
-                    item
-                    for item in events["training_result"]
-                    if item["name"] == self.model_name
-                )
-            else:
-                event = min(
-                    events["training_result"],
-                    key=lambda ev: ev["model_evaluate_on_test_loss"],
-                )
-
         dataform = "testset"
         encoding, class_encoding, class_names = get_encoding(
             self.dataset, dataform=dataform
         )
 
-        from collections import Counter
-
-        from pandas.core.common import flatten
-
         y_true_test = encoding.inverse_transform(y_test)
         print("N_TEST:", Counter(list(flatten(y_true_test))))
-
-        logloss = event["model_evaluate_on_test_loss"]
-        acc = event["model_evaluate_on_test_acc"]
-        print(f"LogLoss on Test Set: {logloss}, Accuracy on Test Set: {acc}")
 
         def check_size(filepath):
             du = subprocess.run(
@@ -129,6 +95,7 @@ class Compress(object):
             for name, weight in zip(names, weights):
                 print(name, weight.shape)
 
+        # ORIGINAL
         original_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}"
         original_model = keras.models.load_model(
             original_model_fp,
@@ -140,6 +107,7 @@ class Compress(object):
         original_model_zipped = zippify(original_model_fp, "original_model")
         print(f"COMPRESSED ORIGINAL MODEL ON DISK: {check_size(original_model_zipped)}")
 
+        # CLUSTERED
         clustered_model = keras.models.load_model(
             f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9902350-1652645235-0.5.1.dev14+gef9460b",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
@@ -149,9 +117,8 @@ class Compress(object):
         clustered_stripped_model = tfmot.clustering.keras.strip_clustering(
             clustered_model
         )
-        print("clustered stripped model")
-        clustered_stripped_model.summary()
 
+        # CLUSTERED-STRIPPED
         clustered_stripped_model_fp = (
             f"{Path(__file__).parent}/clustered_stripped_model"
         )
@@ -166,6 +133,7 @@ class Compress(object):
             f"COMPRESSED CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
         )
 
+        # PRUNE
         # pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
         # pruned_model = keras.models.load_model(
         #     pruned_model_fp,
@@ -196,12 +164,11 @@ class Compress(object):
                 if sparsity > 0:
                     print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
 
+        print_sparsity(original_model)
         print_sparsity(clustered_stripped_model)
         print_sparsity(pruned_stripped_model)
 
-        def run_predictions():
-            print("Running predictions")
-            wloss = WeightedLogLoss()
+        def run_predictions_lsst(X_test, Z_test, wloss):
 
             # ORIGINAL MODEL
             print("ORIGINAL MODEL LOSS")
@@ -218,7 +185,107 @@ class Compress(object):
             y_preds = pruned_stripped_model.predict([X_test, Z_test])
             print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
-        run_predictions()
+        def run_predictions_ztf(X_test, wloss):
+
+            # Only trained on red, green filters {r, g}
+            X_test = X_test[:, :, 0:3:2]
+
+            # ORIGINAL FINK MODEL
+            original_fink_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-23057-1642540624-0.1.dev963+g309c9d8"
+            original_fink_model = keras.models.load_model(
+                original_fink_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(original_fink_model)
+            print(f"ORIGINAL FINK MODEL ON DISK: {check_size(original_fink_model_fp)}")
+            original_fink_model_zipped = zippify(
+                original_fink_model_fp, "original_fink_model"
+            )
+            print(
+                f"COMPRESSED ORIGINAL FINK MODEL ON DISK: {check_size(original_fink_model_zipped)}"
+            )
+
+            print("ORIGINAL FINK MODEL LOSS")
+            y_preds = original_fink_model.predict(X_test)
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            # CLUSTERED-STRIPPED FINK MODEL
+            clustered_fink_model = keras.models.load_model(
+                f"{asnwd}/astronet/{self.architecture}/models/plasticc/model-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516",
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(clustered_fink_model)
+            clustered_stripped_fink_model = tfmot.clustering.keras.strip_clustering(
+                clustered_fink_model
+            )
+
+            clustered_stripped_fink_model_fp = (
+                f"{Path(__file__).parent}/clustered_stripped_fink_model"
+            )
+            clustered_stripped_fink_model.save(clustered_stripped_fink_model_fp)
+            clustered_stripped_fink_model_zipped = zippify(
+                clustered_stripped_fink_model_fp, "clustered_stripped_fink_model"
+            )
+            print(
+                f"CLUSTERED-STRIPPED FINK MODEL ON DISK: {check_size(clustered_stripped_fink_model_fp)}"
+            )
+            print(
+                f"COMPRESSED CLUSTERED-STRIPPED FINK MODEL ON DISK: {check_size(clustered_stripped_fink_model_zipped)}"
+            )
+
+            print("CLUSTERED-STRIPPED FINK MODEL LOSS")
+            y_preds = clustered_stripped_fink_model.predict(X_test)
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            # PRUNED FINK MODEL
+            pruned_fink_model_fp = f"{asnwd}/astronet/{self.architecture}/models/plasticc/model-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-PRUNED"
+            pruned_fink_model = keras.models.load_model(
+                pruned_fink_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(pruned_fink_model)
+            print(f"PRUNED FINK MODEL ON DISK: {check_size(pruned_fink_model_fp)}")
+            # pruned_fink_model_zipped = zippify(pruned_fink_model_fp, "pruned_fink_model")
+            # print(f"COMPRESSED PRUNED FINK MODEL ON DISK: {check_size(pruned_fink_model_zipped)}")
+
+            # print("PRUNED FINK MODEL LOSS")
+            # y_preds = pruned_stripped_fink_model.predict(X_test)
+            # print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            # PRUNED-STRIPPED FINK MODEL
+            pruned_stripped_fink_model_fp = f"{asnwd}/astronet/{self.architecture}/models/plasticc/model-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-EXPORT"
+            pruned_stripped_fink_model = keras.models.load_model(
+                pruned_stripped_fink_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(pruned_stripped_fink_model)
+            print(
+                f"PRUNED-STRIPPED FINK MODEL ON DISK: {check_size(pruned_stripped_fink_model_fp)}"
+            )
+            pruned_stripped_fink_model_zipped = zippify(
+                pruned_fink_model_fp, "pruned_stripped_fink_model"
+            )
+            print(
+                f"COMPRESSED PRUNED-STRIPPED FINK MODEL ON DISK: {check_size(pruned_stripped_fink_model_zipped)}"
+            )
+
+            print("PRUNED-STRIPPED FINK MODEL LOSS")
+            y_preds = pruned_stripped_fink_model.predict(X_test)
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            print_sparsity(original_fink_model)
+            print_sparsity(clustered_stripped_fink_model)
+            print_sparsity(pruned_stripped_fink_model)
+
+        print("Running predictions")
+        wloss = WeightedLogLoss()
+
+        # run_predictions_lsst(X_test, Z_test, wloss)
+        run_predictions_ztf(X_test, wloss)
 
 
 if __name__ == "__main__":
