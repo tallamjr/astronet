@@ -95,67 +95,6 @@ class Compress(object):
             for name, weight in zip(names, weights):
                 print(name, weight.shape)
 
-        # ORIGINAL
-        original_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}"
-        original_model = keras.models.load_model(
-            original_model_fp,
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-        inspect_model(original_model)
-        print(f"ORIGINAL MODEL ON DISK: {check_size(original_model_fp)}")
-        original_model_zipped = zippify(original_model_fp, "original_model")
-        print(f"COMPRESSED ORIGINAL MODEL ON DISK: {check_size(original_model_zipped)}")
-
-        # CLUSTERED
-        clustered_model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9902350-1652645235-0.5.1.dev14+gef9460b",
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-        inspect_model(clustered_model)
-        clustered_stripped_model = tfmot.clustering.keras.strip_clustering(
-            clustered_model
-        )
-
-        # CLUSTERED-STRIPPED
-        clustered_stripped_model_fp = (
-            f"{Path(__file__).parent}/clustered_stripped_model"
-        )
-        clustered_stripped_model.save(clustered_stripped_model_fp)
-        clustered_stripped_model_zipped = zippify(
-            clustered_stripped_model_fp, "clustered_stripped_model"
-        )
-        print(
-            f"CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_fp)}"
-        )
-        print(
-            f"COMPRESSED CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
-        )
-
-        # PRUNE
-        # pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
-        # pruned_model = keras.models.load_model(
-        #     pruned_model_fp,
-        #     custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-        #     compile=False,
-        # )
-        # print(f"PRUNED MODEL ON DISK: {check_size(pruned_model_fp)}")
-
-        pruned_stripped_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-EXPORT"
-        pruned_stripped_model = keras.models.load_model(
-            pruned_stripped_model_fp,
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-
-        pruned_stripped_model_zipped = zippify(
-            pruned_stripped_model_fp, "pruned_stripped_model"
-        )
-        print(
-            f"COMPRESSED PRUNED MODEL ON DISK: {check_size(pruned_stripped_model_zipped)}"
-        )
-
         def print_sparsity(model):
             for w in model.weights:
                 n_weights = w.numpy().size
@@ -164,15 +103,81 @@ class Compress(object):
                 if sparsity > 0:
                     print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
 
-        print_sparsity(original_model)
-        print_sparsity(clustered_stripped_model)
-        print_sparsity(pruned_stripped_model)
-
         def run_predictions_lsst(X_test, Z_test, wloss):
+            # ORIGINAL
+            original_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}"
+            original_model = keras.models.load_model(
+                original_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(original_model)
+            print(f"ORIGINAL MODEL ON DISK: {check_size(original_model_fp)}")
+            original_model_zipped = zippify(original_model_fp, "original_model")
+            print(
+                f"COMPRESSED ORIGINAL MODEL ON DISK: {check_size(original_model_zipped)}"
+            )
+
+            # CLUSTERED
+            clustered_model_fp = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-9902350-1652645235-0.5.1.dev14+gef9460b"
+
+            clustered_model = keras.models.load_model(
+                clustered_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+            inspect_model(clustered_model)
+            print(f"CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_model_fp)}")
+
+            # CLUSTERED-STRIPPED
+            clustered_stripped_model = tfmot.clustering.keras.strip_clustering(
+                clustered_model
+            )
+            clustered_stripped_model_fp = (
+                f"{Path(__file__).parent}/clustered_stripped_model"
+            )
+            clustered_stripped_model.save(clustered_stripped_model_fp)
+            clustered_stripped_model_zipped = zippify(
+                clustered_stripped_model_fp, "clustered_stripped_model"
+            )
+            print(
+                f"CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_fp)}"
+            )
+            print(
+                f"COMPRESSED CLUSTERED-STRIPPED MODEL ON DISK: {check_size(clustered_stripped_model_zipped)}"
+            )
+
+            # PRUNE
+            # pruned_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-PRUNED"
+            # pruned_model = keras.models.load_model(
+            #     pruned_model_fp,
+            #     custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            #     compile=False,
+            # )
+            # print(f"PRUNED MODEL ON DISK: {check_size(pruned_model_fp)}")
+
+            pruned_stripped_model_fp = f"{Path(__file__).parent}/models/plasticc/model-9903403-1652652371-0.5.1.dev19+g23d6486.d20220515-EXPORT"
+            pruned_stripped_model = keras.models.load_model(
+                pruned_stripped_model_fp,
+                custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+                compile=False,
+            )
+
+            pruned_stripped_model_zipped = zippify(
+                pruned_stripped_model_fp, "pruned_stripped_model"
+            )
+            print(
+                f"COMPRESSED PRUNED MODEL ON DISK: {check_size(pruned_stripped_model_zipped)}"
+            )
 
             # ORIGINAL MODEL
             print("ORIGINAL MODEL LOSS")
             y_preds = original_model.predict([X_test, Z_test])
+            print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            # CLUSTERED MODEL
+            print("CLUSTERED-STRIPPED MODEL LOSS")
+            y_preds = clustered_model.predict([X_test, Z_test])
             print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
             # CLUSTERED-STRIPPED MODEL
@@ -184,6 +189,10 @@ class Compress(object):
             print("PRUNED-STRIPPED MODEL LOSS")
             y_preds = pruned_stripped_model.predict([X_test, Z_test])
             print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+            print_sparsity(original_model)
+            print_sparsity(clustered_stripped_model)
+            print_sparsity(pruned_stripped_model)
 
         def run_predictions_ztf(X_test, wloss):
 
@@ -284,7 +293,7 @@ class Compress(object):
         print("Running predictions")
         wloss = WeightedLogLoss()
 
-        # run_predictions_lsst(X_test, Z_test, wloss)
+        run_predictions_lsst(X_test, Z_test, wloss)
         run_predictions_ztf(X_test, wloss)
 
 
