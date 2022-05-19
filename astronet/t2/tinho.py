@@ -76,7 +76,8 @@ class Compress(object):
         def zippify(filepath, name):
 
             directory = pathlib.Path(filepath)
-            zipped_name = f"compressed_{name}.zip"
+
+            zipped_name = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/tinho/compressed_{name}.zip"
 
             with zipfile.ZipFile(
                 zipped_name,
@@ -102,6 +103,13 @@ class Compress(object):
                 sparsity = n_zeros / n_weights * 100.0
                 if sparsity > 0:
                     print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
+
+        def print_clusters(model):
+            for w in model.weights:
+                n_weights = w.numpy().size
+                n_unique = len(np.unique(w))
+                if n_unique < n_weights:
+                    print("    {} - {} unique weights".format(w.name, n_unique))
 
         def run_predictions_lsst(X_test, Z_test, wloss):
             # ORIGINAL
@@ -193,6 +201,10 @@ class Compress(object):
             print_sparsity(original_model)
             print_sparsity(clustered_stripped_model)
             print_sparsity(pruned_stripped_model)
+
+            print_clusters(original_model)
+            print_clusters(clustered_stripped_model)
+            print_clusters(pruned_stripped_model)
 
         def run_predictions_ztf(X_test, wloss):
 
@@ -290,10 +302,14 @@ class Compress(object):
             print_sparsity(clustered_stripped_fink_model)
             print_sparsity(pruned_stripped_fink_model)
 
+            print_clusters(original_fink_model)
+            print_clusters(clustered_stripped_fink_model)
+            print_clusters(pruned_stripped_fink_model)
+
         print("Running predictions")
         wloss = WeightedLogLoss()
 
-        run_predictions_lsst(X_test, Z_test, wloss)
+        # run_predictions_lsst(X_test, Z_test, wloss)
         run_predictions_ztf(X_test, wloss)
 
 
