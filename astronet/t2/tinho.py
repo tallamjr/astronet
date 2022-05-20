@@ -141,9 +141,7 @@ class Compress(object):
             clustered_stripped_model = tfmot.clustering.keras.strip_clustering(
                 clustered_model
             )
-            clustered_stripped_model_fp = (
-                f"{Path(__file__).parent}/clustered_stripped_model"
-            )
+            clustered_stripped_model_fp = f"{Path(__file__).parent}/models/{self.dataset}/tinho/clustered_stripped_model"
             clustered_stripped_model.save(clustered_stripped_model_fp)
             clustered_stripped_model_zipped = zippify(
                 clustered_stripped_model_fp, "clustered_stripped_model"
@@ -172,7 +170,8 @@ class Compress(object):
             )
 
             pruned_stripped_model_zipped = zippify(
-                pruned_stripped_model_fp, "pruned_stripped_model"
+                pruned_stripped_model_fp,
+                f"{Path(__file__).parent}/models/{self.dataset}/tinho/pruned_stripped_model",
             )
             print(
                 f"COMPRESSED PRUNED MODEL ON DISK: {check_size(pruned_stripped_model_zipped)}"
@@ -242,9 +241,7 @@ class Compress(object):
                 clustered_fink_model
             )
 
-            clustered_stripped_fink_model_fp = (
-                f"{Path(__file__).parent}/clustered_stripped_fink_model"
-            )
+            clustered_stripped_fink_model_fp = f"{Path(__file__).parent}/models/{self.dataset}/tinho/clustered_stripped_fink_model"
             clustered_stripped_fink_model.save(clustered_stripped_fink_model_fp)
             clustered_stripped_fink_model_zipped = zippify(
                 clustered_stripped_fink_model_fp, "clustered_stripped_fink_model"
