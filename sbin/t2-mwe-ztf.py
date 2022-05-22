@@ -293,7 +293,10 @@ def t2_probs(
     X = np.asarray(X).astype("float32")
     X = np.expand_dims(X, axis=0)
 
-    y_preds = model.predict(X)
+    # y_preds = model.predict(X)
+    y_preds = model(
+        X
+    )  # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True) --> t2-mwe-ztf-compressed-model-nopredict.lnprofile
 
     class_names = [
         "mu-Lens-Single",
@@ -367,8 +370,10 @@ if __name__ == "__main__":
     lmodel = LiteModel.from_saved_model(model_path)
 
     # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)    # t2-mwe-ztf-original-model.lnprofile
-    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True)   # t2-mwe-ztf-compressed-model.lnprofile
-    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=lmodel, prettyprint=True)   # t2-mwe-ztf-clustered-tflite-model.lnprofile
     t2_probs(
-        candid, jd, fid, magpsf, sigmapsf, model=clmodel, prettyprint=True
-    )  # t2-mwe-ztf-compressed-clustered-tflite-model.lnprofile
+        candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True
+    )  # t2-mwe-ztf-compressed-model.lnprofile
+    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=lmodel, prettyprint=True)   # t2-mwe-ztf-clustered-tflite-model.lnprofile
+    # t2_probs(
+    #     candid, jd, fid, magpsf, sigmapsf, model=clmodel, prettyprint=True
+    # )  # t2-mwe-ztf-compressed-clustered-tflite-model.lnprofile
