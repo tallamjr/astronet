@@ -8,9 +8,6 @@ from fink_client.visualisation import extract_field
 import astronet
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
-# %load -r 37-255 processor.py
-from astronet.preprocess import generate_gp_all_objects, robust_scale
-
 warnings.filterwarnings("ignore")
 
 import os
