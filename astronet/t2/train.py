@@ -25,7 +25,10 @@ from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
 )
-from astronet.metrics import WeightedLogLoss
+from astronet.metrics import (
+    DistributedWeightedLogLoss,
+    WeightedLogLoss,
+)
 from astronet.t2.funcmodel import build_model
 from astronet.t2.model import T2Model
 from astronet.utils import (
@@ -91,6 +94,19 @@ class Training(object):
             )
         ...
         """
+        unixtimestamp = int(time.time())
+        try:
+            label = (
+                subprocess.check_output(["git", "describe", "--always"])
+                .strip()
+                .decode()
+            )
+        except Exception:
+            from astronet import __version__ as current_version
+
+            label = current_version
+        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
@@ -168,8 +184,66 @@ class Training(object):
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
+        input_shapes = (
+            [input_shape, ZX_train.shape] if self.redshift is not None else input_shape
+        )
+
+        if len(tf.config.list_physical_devices("GPU")) > 1:
+            # Create a MirroredStrategy.
+            strategy = tf.distribute.MirroredStrategy()
+            print("Number of devices: {}".format(strategy.num_replicas_in_sync))
+            BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
+            VALIDATION_BATCH_SIZE = (
+                VALIDATION_BATCH_SIZE * strategy.num_replicas_in_sync
+            )
+            # Open a strategy scope.
+            with strategy.scope():
+
+                def compute_loss(sample_weight=None):
+
+                    # If you are using a `Loss` class instead, set reduction to `NONE` so that
+                    # we can do the reduction afterwards and divide by global batch size.
+                    per_example_loss = DistributedWeightedLogLoss()
+
+                    # Compute loss that is scaled by sample_weight and by global batch size.
+                    return tf.nn.compute_average_loss(
+                        per_example_loss,
+                        sample_weight=sample_weight,
+                        global_batch_size=BATCH_SIZE,
+                    )
+
+                loss = compute_loss()
+
+                # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
+                # original model. TODO: Include flag for choosing between the two, following run with FINK
+                model = build_model(
+                    input_shapes,
+                    input_dim=input_shape,
+                    embed_dim=embed_dim,
+                    num_heads=num_heads,
+                    ff_dim=ff_dim,
+                    num_filters=num_filters,
+                    num_classes=num_classes,
+                    num_layers=num_layers,
+                    droprate=droprate,
+                    num_aux_feats=num_aux_feats,
+                    add_aux_feats_to="L",
+                    # Either add features to M dimension or L dimension. Adding to L allows for
+                    # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
+                    # fc_neurons=fc_neurons,
+                )
+
+                # We compile our model with a sampled learning rate and any custom metrics
+                lr = event["lr"]
+                model.compile(
+                    loss=loss,
+                    optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+                    metrics=["acc"],
+                    run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+                )
+
         if self.redshift is not None:
-            input_shapes = [input_shape, ZX_train.shape]
+            # input_shapes = [input_shape, ZX_train.shape]
             # model.build_graph(input_shapes)
 
             train_input = [X_train, ZX_train]
@@ -198,7 +272,7 @@ class Training(object):
             # y_test = y_test[mask]
         else:
             # model.build_graph(input_shape)
-            input_shapes = input_shape
+            # input_shapes = input_shape
             train_input = X_train
             test_input = X_test
 
@@ -213,48 +287,6 @@ class Training(object):
                 .batch(BATCH_SIZE, drop_remainder=True)
                 .prefetch(tf.data.AUTOTUNE)
             )
-
-        # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
-        # original model. TODO: Include flag for choosing between the two, following run with FINK
-        model = build_model(
-            input_shapes,
-            input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
-            num_filters=num_filters,
-            num_classes=num_classes,
-            num_layers=num_layers,
-            droprate=droprate,
-            num_aux_feats=num_aux_feats,
-            add_aux_feats_to="L",
-            # Either add features to M dimension or L dimension. Adding to L allows for
-            # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-            # fc_neurons=fc_neurons,
-        )
-
-        # We compile our model with a sampled learning rate and any custom metrics
-        lr = event["lr"]
-        model.compile(
-            loss=loss,
-            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
-            metrics=["acc"],
-            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
-        )
-
-        unixtimestamp = int(time.time())
-        try:
-            label = (
-                subprocess.check_output(["git", "describe", "--always"])
-                .strip()
-                .decode()
-            )
-        except Exception:
-            from astronet import __version__ as current_version
-
-            label = current_version
-        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         time_callback = TimeHistoryCallback()
 
