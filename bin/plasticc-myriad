@@ -18,7 +18,7 @@
 #$ -m base
 
 # Request a number of GPU cards, in this case 2 (the maximum)
-#$ -l gpu=1
+#$ -l gpu=2
 
 # Request a V100 node only
 #$ -ac allow=EF
@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N t2-train-tfmot-wClusteringFINK
+#$ -N t2-train-tfmot-wClusteringFINK-GPU2
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
