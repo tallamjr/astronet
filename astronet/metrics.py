@@ -124,9 +124,14 @@ class DistributedWeightedLogLoss(keras.losses.Loss):
 
     # initialize instance attributes
     def __init__(
-        self, reduction=tf.keras.losses.Reduction.NONE, name="weighted_log_loss"
+        self,
+        global_batch_size,
+        reduction=tf.keras.losses.Reduction.NONE,
+        name="weighted_log_loss",
     ):
-        super().__init__(reduction=reduction, name=name)
+        super().__init__(
+            global_batch_size=global_batch_size, reduction=reduction, name=name
+        )
 
     # compute loss
     def call(self, y_true, y_pred):
@@ -179,7 +184,9 @@ class DistributedWeightedLogLoss(keras.losses.Loss):
             )
         )
 
-        return loss
+        return tf.nn.compute_average_loss(
+            loss, global_batch_size=self.global_batch_size
+        )
 
 
 class WeightedLogLossTF(keras.losses.Loss):

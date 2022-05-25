@@ -278,12 +278,13 @@ class Training(object):
             with strategy.scope():
                 # If you are using a `Loss` class instead, set reduction to `NONE` so that
                 # we can do the reduction afterwards and divide by global batch size.
-                loss_obj = DistributedWeightedLogLoss(
-                    reduction=tf.keras.losses.Reduction.NONE
+                loss = DistributedWeightedLogLoss(
+                    reduction=tf.keras.losses.Reduction.NONE,
+                    global_batch_size=BATCH_SIZE,
                 )
 
                 # Compute loss that is scaled by global batch size.
-                loss = tf.reduce_sum(loss_obj()) * (1.0 / BATCH_SIZE)
+                # loss = tf.reduce_sum(loss_obj()) * (1.0 / BATCH_SIZE)
 
                 # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
                 # original model. TODO: Include flag for choosing between the two, following run with FINK
