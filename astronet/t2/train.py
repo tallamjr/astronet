@@ -184,9 +184,87 @@ class Training(object):
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
-        input_shapes = (
-            [input_shape, ZX_train.shape] if self.redshift is not None else input_shape
-        )
+        def get_compiled_model_and_data(loss):
+
+            # input_shapes = (
+            #     [input_shape, ZX_train.shape] if self.redshift is not None else input_shape
+            # )
+            if self.redshift is not None:
+                input_shapes = [input_shape, ZX_train.shape]
+                # model.build_graph(input_shapes)
+
+                train_input = [X_train, ZX_train]
+                test_input = [X_test, ZX_test]
+
+                train_ds = (
+                    tf.data.Dataset.from_tensor_slices(
+                        (
+                            {"input_1": train_input[0], "input_2": train_input[1]},
+                            y_train,
+                        )
+                    )
+                    .shuffle(1000)
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                test_ds = (
+                    tf.data.Dataset.from_tensor_slices(
+                        ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+                    )
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                # if avocado is not None:
+                # Generate random boolean mask the length of data
+                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                # test_input = [X_test[mask], ZX_test[mask]]
+                # y_test = y_test[mask]
+            else:
+                # model.build_graph(input_shape)
+                input_shapes = input_shape
+                train_input = X_train
+                test_input = X_test
+
+                train_ds = (
+                    tf.data.Dataset.from_tensor_slices((train_input, y_train))
+                    .shuffle(1000)
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                test_ds = (
+                    tf.data.Dataset.from_tensor_slices((test_input, y_test))
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+
+            model = build_model(
+                input_shapes,
+                input_dim=input_shape,
+                embed_dim=embed_dim,
+                num_heads=num_heads,
+                ff_dim=ff_dim,
+                num_filters=num_filters,
+                num_classes=num_classes,
+                num_layers=num_layers,
+                droprate=droprate,
+                num_aux_feats=num_aux_feats,
+                add_aux_feats_to="L",
+                # Either add features to M dimension or L dimension. Adding to L allows for
+                # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
+                # fc_neurons=fc_neurons,
+            )
+
+            # We compile our model with a sampled learning rate and any custom metrics
+            # lr = event["lr"]
+            model.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+            )
+
+            return model, train_ds, test_ds
 
         if len(tf.config.list_physical_devices("GPU")) > 1:
             # Create a MirroredStrategy.
@@ -209,77 +287,9 @@ class Training(object):
 
                 # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
                 # original model. TODO: Include flag for choosing between the two, following run with FINK
-                model = build_model(
-                    input_shapes,
-                    input_dim=input_shape,
-                    embed_dim=embed_dim,
-                    num_heads=num_heads,
-                    ff_dim=ff_dim,
-                    num_filters=num_filters,
-                    num_classes=num_classes,
-                    num_layers=num_layers,
-                    droprate=droprate,
-                    num_aux_feats=num_aux_feats,
-                    add_aux_feats_to="L",
-                    # Either add features to M dimension or L dimension. Adding to L allows for
-                    # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-                    # fc_neurons=fc_neurons,
-                )
-
-                # We compile our model with a sampled learning rate and any custom metrics
-                lr = event["lr"]
-                model.compile(
-                    loss=loss,
-                    optimizer=optimizers.Adam(lr=lr, clipnorm=1),
-                    metrics=["acc"],
-                    run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
-                )
-
-        if self.redshift is not None:
-            # input_shapes = [input_shape, ZX_train.shape]
-            # model.build_graph(input_shapes)
-
-            train_input = [X_train, ZX_train]
-            test_input = [X_test, ZX_test]
-
-            train_ds = (
-                tf.data.Dataset.from_tensor_slices(
-                    ({"input_1": train_input[0], "input_2": train_input[1]}, y_train)
-                )
-                .shuffle(1000)
-                .batch(BATCH_SIZE, drop_remainder=True)
-                .prefetch(tf.data.AUTOTUNE)
-            )
-            test_ds = (
-                tf.data.Dataset.from_tensor_slices(
-                    ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
-                )
-                .batch(BATCH_SIZE, drop_remainder=True)
-                .prefetch(tf.data.AUTOTUNE)
-            )
-            # if avocado is not None:
-            # Generate random boolean mask the length of data
-            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-            # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
-            # test_input = [X_test[mask], ZX_test[mask]]
-            # y_test = y_test[mask]
+                model, train_ds, test_ds = get_compiled_model_and_data(loss)
         else:
-            # model.build_graph(input_shape)
-            # input_shapes = input_shape
-            train_input = X_train
-            test_input = X_test
-
-            train_ds = (
-                tf.data.Dataset.from_tensor_slices((train_input, y_train))
-                .shuffle(1000)
-                .batch(BATCH_SIZE, drop_remainder=True)
-                .prefetch(tf.data.AUTOTUNE)
-            )
-            test_ds = (
-                tf.data.Dataset.from_tensor_slices((test_input, y_test))
-                .batch(BATCH_SIZE, drop_remainder=True)
-                .prefetch(tf.data.AUTOTUNE)
-            )
+            model, train_ds, test_ds = get_compiled_model_and_data(loss)
 
         time_callback = TimeHistoryCallback()
 
@@ -348,14 +358,14 @@ class Training(object):
         #                print(f"Preventing possible OOM...")
 
         print(
-            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}"
+            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0)[0]}"
         )
         print(
-            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
+            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(test_input)
+        y_preds = model.predict(test_ds)
         print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
 
         if X_test.shape[0] < 10000:
@@ -380,10 +390,10 @@ class Training(object):
         model_params["fink"] = self.fink
         model_params["num_classes"] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_input, y_test, verbose=0, batch_size=batch_size
+            test_ds, y_test, verbose=0, batch_size=batch_size
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_input, y_test, verbose=0, batch_size=batch_size
+            test_ds, y_test, verbose=0, batch_size=batch_size
         )[0]
         model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
 
@@ -452,7 +462,7 @@ class Training(object):
 
         model_for_pruning.compile(
             loss=loss,
-            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
+            optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
             metrics=["acc"],
             run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
         )
