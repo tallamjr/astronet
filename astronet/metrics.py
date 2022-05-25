@@ -183,7 +183,8 @@ class DistributedWeightedLogLoss(keras.losses.Loss):
             )
         )
 
-        return tf.reduce_sum(loss * (1.0 / self.global_batch_size))
+        return loss
+        # return tf.reduce_sum(loss * (1.0 / self.global_batch_size))
 
         # return tf.nn.compute_average_loss(
         #     loss, global_batch_size=self.global_batch_size
