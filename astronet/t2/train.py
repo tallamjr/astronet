@@ -279,7 +279,7 @@ class Training(object):
                 # If you are using a `Loss` class instead, set reduction to `NONE` so that
                 # we can do the reduction afterwards and divide by global batch size.
                 loss = DistributedWeightedLogLoss(
-                    reduction=tf.keras.losses.Reduction.NONE,
+                    reduction=tf.keras.losses.Reduction.AUTO,
                     global_batch_size=BATCH_SIZE,
                 )
 
