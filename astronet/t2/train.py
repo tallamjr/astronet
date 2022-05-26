@@ -177,12 +177,12 @@ class Training(object):
             num_features,
         ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
-        print(f"BATCH_SIZE:{BATCH_SIZE}")
+        log.info(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
-        print(f"input_shape:{input_shape}")
+        log.info(f"input_shape:{input_shape}")
 
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
-        print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+        log.info(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
         def get_compiled_model_and_data(loss):
 
@@ -269,7 +269,7 @@ class Training(object):
         if len(tf.config.list_physical_devices("GPU")) > 1:
             # Create a MirroredStrategy.
             strategy = tf.distribute.MirroredStrategy()
-            print("Number of devices: {}".format(strategy.num_replicas_in_sync))
+            log.info("Number of devices: {}".format(strategy.num_replicas_in_sync))
             BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
             VALIDATION_BATCH_SIZE = (
                 VALIDATION_BATCH_SIZE * strategy.num_replicas_in_sync
@@ -358,16 +358,16 @@ class Training(object):
         #            except Exception:
         #                print(f"Preventing possible OOM...")
 
-        print(
+        log.info(
             f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0)[0]}"
         )
-        print(
+        log.info(
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_ds)
-        print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
+        log.info(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
