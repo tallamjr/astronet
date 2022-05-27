@@ -359,10 +359,10 @@ class Training(object):
         #                print(f"Preventing possible OOM...")
 
         log.info(
-            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0)[0]}"
+            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_ds, verbose=0)[0]}"
         )
         log.info(
-            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
+            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
         wloss = WeightedLogLoss()
@@ -391,10 +391,10 @@ class Training(object):
         model_params["fink"] = self.fink
         model_params["num_classes"] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_ds, y_test, verbose=0, batch_size=batch_size
+            test_ds, verbose=0, batch_size=batch_size
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_ds, y_test, verbose=0, batch_size=batch_size
+            test_ds, verbose=0, batch_size=batch_size
         )[0]
         model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
 
