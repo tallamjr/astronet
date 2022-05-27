@@ -58,9 +58,19 @@ class PrunableClusterableLayer(
 class ConvEmbedding(PrunableClusterableLayer):
     def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
+        self.num_filters = num_filters
         self.conv1d = layers.Conv1D(
             filters=num_filters, kernel_size=1, activation="relu"
         )
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "num_filters": self.num_filters,
+            }
+        )
+        return config
 
     def call(self, inputs):
         embedding = self.conv1d(inputs)
@@ -71,6 +81,9 @@ class ConvEmbedding(PrunableClusterableLayer):
 class PositionalEncoding(PrunableClusterableLayer):
     def __init__(self, max_steps, max_dims, dtype=tf.float32, **kwargs):
         super(PositionalEncoding, self).__init__(dtype=dtype, **kwargs)
+        self.max_steps = max_steps
+        self.max_dims = max_dims
+
         if max_dims % 2 == 1:
             max_dims += 1  # max_dims must be even
         p, i = np.meshgrid(np.arange(max_steps), np.arange(max_dims // 2))
@@ -78,6 +91,16 @@ class PositionalEncoding(PrunableClusterableLayer):
         pos_emb[0, :, ::2] = np.sin(p / 10000 ** (2 * i / max_dims)).T
         pos_emb[0, :, 1::2] = np.cos(p / 10000 ** (2 * i / max_dims)).T
         self.positional_embedding = tf.constant(pos_emb.astype(self.dtype))
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "max_steps": self.max_steps,
+                "max_dims": self.max_dims,
+            }
+        )
+        return config
 
     def call(self, inputs):
         shape = tf.shape(inputs)
@@ -147,6 +170,10 @@ class TransformerBlock(PrunableClusterableLayer):
     # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.ff_dim = ff_dim
+
         self.att = MultiHeadSelfAttention(embed_dim, num_heads)
         self.ffn = keras.Sequential(
             [
@@ -158,6 +185,17 @@ class TransformerBlock(PrunableClusterableLayer):
         self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = layers.Dropout(rate)
         self.dropout2 = layers.Dropout(rate)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "embed_dim": self.embed_dim,
+                "num_heads": self.num_heads,
+                "ff_dim": self.ff_dim,
+            }
+        )
+        return config
 
     def call(self, inputs, training):
 
