@@ -365,9 +365,9 @@ class Training(object):
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
-        wloss = WeightedLogLoss()
+        # wloss = WeightedLogLoss()
         y_preds = model.predict(test_ds)
-        log.info(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
+        log.info(f"LL-Test Model Predictions: {loss(y_test, y_preds).numpy():.8f}")
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
@@ -396,7 +396,7 @@ class Training(object):
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
             test_ds, verbose=0, batch_size=batch_size
         )[0]
-        model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
+        model_params["model_prediction_on_test"] = loss(y_test, y_preds).numpy()
 
         y_test = np.argmax(y_test, axis=1)
         y_preds = np.argmax(y_preds, axis=1)
