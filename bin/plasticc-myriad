@@ -133,7 +133,7 @@ elif [ $architecture == "t2" ]; then
         # model="1613517996-0a72904" # t2 fink model, g & r bands only, no z
         python $ASNWD/astronet/$architecture/train.py \
             --dataset $dataset \
-            --epochs 400 \
+            --epochs 4 \
             --model $model \
             --testset "" \
             --fink ""
