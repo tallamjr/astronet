@@ -1,0 +1,96 @@
+Metal device set to: Apple M1 Pro
+0.5.1.dev33+gb326d80
+/Users/tallamjr/github/tallamjr/origin/astronet/astronet/__init__.py
+X_TEST: (869864, 100, 6), Y_TEST: (869864, 14)
+Running predictions
+ORIGINAL MODEL LL-Test: 0.97
+TFLITE CLUSTERED-STRIPPED MODEL LL-Test: 0.95
+SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: 0.95
+TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: 0.95
+COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: 0.95
+Wrote profile results to t2-ztf-logloss-check.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 358.32 s
+File: t2-ztf-logloss-check.py
+Function: predict_original_model at line 110
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   110                                           @profile
+   111                                           def predict_original_model(X_test, wloss):
+   112                                               # ORIGINAL MODEL
+   113         1    5916255.0 5916255.0      1.7      model = get_model()
+   114         1  352289609.0 352289609.0     98.3      y_preds = model.predict(X_test)
+   115         1     114168.0 114168.0      0.0      print(f"ORIGINAL MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+Total time: 427.192 s
+File: t2-ztf-logloss-check.py
+Function: predict_compressed_clustered_model at line 118
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   118                                           @profile
+   119                                           def predict_compressed_clustered_model(X_test, wloss):
+   120                                               # COMPRESSED CLUSTERED-STRIPPED MODEL
+   121         1          1.0      1.0      0.0      model_name = "tinho/compressed_clustered_stripped_fink_model"
+   122         1    3760845.0 3760845.0      0.9      cmodel = get_compressed_model(model_name)
+   123         1  423352267.0 423352267.0     99.1      y_preds = cmodel.predict(X_test)
+   124         2          6.0      3.0      0.0      print(
+   125         1      78561.0  78561.0      0.0          f"COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   126                                               )
+
+Total time: 327.147 s
+File: t2-ztf-logloss-check.py
+Function: predict_clustered_tflite_model at line 129
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   129                                           @profile
+   130                                           def predict_clustered_tflite_model(X_test, wloss):
+   131                                               # TFLITE CLUSTERED-STRIPPED MODEL
+   132         1          0.0      0.0      0.0      model_name = "tinho/clustered_stripped_fink_model"
+   133         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   134         1    5419864.0 5419864.0      1.7      lmodel = LiteModel.from_saved_model(model_path)
+   135         1  321626299.0 321626299.0     98.3      y_preds = lmodel.predict(X_test)
+   136         2          6.0      3.0      0.0      print(
+   137         1     100381.0 100381.0      0.0          f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   138                                               )
+
+Total time: 486.384 s
+File: t2-ztf-logloss-check.py
+Function: predict_compressed_clustered_tflite_model at line 141
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   141                                           @profile
+   142                                           def predict_compressed_clustered_tflite_model(X_test, wloss):
+   143                                               # TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
+   144         1          1.0      1.0      0.0      model_name = "tinho/compressed_clustered_stripped_fink_model"
+   145         1    5651555.0 5651555.0      1.2      clmodel = get_compressed_lite_model(model_name)
+   146         1  480649483.0 480649483.0     98.8      y_preds = clmodel.predict(X_test)
+   147         2          6.0      3.0      0.0      print(
+   148         1      83153.0  83153.0      0.0          f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   149                                               )
+
+Total time: 325.137 s
+File: t2-ztf-logloss-check.py
+Function: predict_saved_clustered_tflite_model at line 152
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   152                                           @profile
+   153                                           def predict_saved_clustered_tflite_model(X_test, wloss):
+   154                                               # SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
+   155                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   156         1          1.0      1.0      0.0      model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
+   157         1       1088.0   1088.0      0.0      clmodel = LiteModel.from_file(model_path=model_path)
+   158         1  325050108.0 325050108.0    100.0      y_preds = clmodel.predict(X_test)
+   159         2          7.0      3.5      0.0      print(
+   160         1      85366.0  85366.0      0.0          f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   161                                               )
+
+
+systemMemory: 32.00 GB
+maxCacheSize: 10.67 GB
+
