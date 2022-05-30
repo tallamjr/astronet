@@ -1,4 +1,5 @@
 import random
+import subprocess
 import warnings
 import zipfile
 
@@ -35,7 +36,7 @@ class LiteModel:
         return LiteModel(tf.lite.Interpreter(model_path=model_path))
 
     @classmethod
-    def from_saved_model(cls, model_path):
+    def from_saved_model(cls, model_path, tflite_file_path=None):
         converter = tf.lite.TFLiteConverter.from_saved_model(model_path)
         converter.target_spec.supported_ops = [
             tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
@@ -44,6 +45,11 @@ class LiteModel:
         converter.experimental_enable_resource_variables = True
         converter.experimental_new_converter = True
         tflite_model = converter.convert()
+
+        if tflite_file_path is not None:
+            with open(tflite_file_path, "wb") as f:
+                f.write(tflite_model)
+
         return LiteModel(tf.lite.Interpreter(model_content=tflite_model))
 
     def __init__(self, interpreter):
@@ -88,9 +94,35 @@ def extract_fields(alert: Dict):
     return (magpsf, sigmapsf, jd, candid, fid)
 
 
+def check_size(filepath):
+    du = subprocess.run(
+        f"du -sh {filepath} | awk '{{print $1}}'",
+        check=True,
+        capture_output=True,
+        shell=True,
+        text=True,
+    ).stdout
+    return du
+
+
+def zippify_tflite(tflite_file_path):
+
+    zipped_name = f"{asnwd}/sbin/lnprof/{tflite_file_path}.zip"
+
+    with zipfile.ZipFile(
+        zipped_name,
+        mode="w",
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9,
+    ) as archive:
+        archive.write(tflite_file_path)
+
+    return zipped_name
+
+
 @profile
 def get_model(model_name: str = "model-23057-1642540624-0.1.dev963+g309c9d8"):
-    # Load pre-trained model
+    # Load original keras model
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
 
     model = tf.keras.models.load_model(
@@ -100,40 +132,71 @@ def get_model(model_name: str = "model-23057-1642540624-0.1.dev963+g309c9d8"):
     )
 
     return model
-
-
-@profile
-def get_compressed_lite_model(model_name: str = "23057-1642540624-0.1.dev963+g309c9d8"):
-    # Load pre-trained model
-    model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-
-    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
-        for file in archive.namelist():
-            archive.extract(file, model_path)
-
-    lmodel = LiteModel.from_saved_model(model_path)
-
-    return lmodel
 
 
 @profile
 def get_compressed_model(model_name: str = "23057-1642540624-0.1.dev963+g309c9d8"):
-    # Load pre-trained model
+    # Load compressed clustered keras model i.e. was keras model but saved as .zip file on disk
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
 
     with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
         for file in archive.namelist():
             archive.extract(file, model_path)
 
-    model = tf.keras.models.load_model(
+    ccmodel = tf.keras.models.load_model(
         model_path,
         custom_objects={"WeightedLogLoss": WeightedLogLoss()},
         compile=False,
     )
-    return model
+    return ccmodel
 
 
 @profile
+def get_compressed_to_lite_model(
+    model_name: str = "23057-1642540624-0.1.dev963+g309c9d8",
+):
+    # Load compressed clustered model and convert it to a TFLite model, i.e. was keras model but
+    # saved as .zip file on disk
+    model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+
+    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+        for file in archive.namelist():
+            archive.extract(file, model_path)
+
+    cc2lmodel = LiteModel.from_saved_model(model_path)
+
+    return cc2lmodel
+
+
+@profile
+def get_lite_model(
+    model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+):
+    # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+    model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
+    clmodel = LiteModel.from_file(model_path=model_path)
+
+    return clmodel
+
+
+@profile
+def get_compressed_lite_model(
+    model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+):
+    # Load compressed clustered model TFLite model, i.e. was .tflife model/file but saved as .zip
+    # file on disk
+    model_path = f"{asnwd}/sbin/lnprof/__clustered_stripped_fink_model.tflite"
+
+    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+        for file in archive.namelist():
+            archive.extract(file, model_path)
+
+    cclmodel = LiteModel.from_file(model_path=model_path)
+
+    return cclmodel
+
+
+# @profile
 def t2_probs(
     candid: np.int64,
     jd: np.ndarray,
@@ -359,19 +422,37 @@ if __name__ == "__main__":
 
     # COMPRESSED CLUSTERED-STRIPPED MODEL
     model_name = "tinho/compressed_clustered_stripped_fink_model"
-    cmodel = get_compressed_model(model_name)
+    ccmodel = get_compressed_model(model_name)
 
-    # TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
-    clmodel = get_compressed_lite_model(model_name)
+    # CLUSTERED-STRIPPED MODEL --> TFLITE
+    # model_name = "tinho/clustered_stripped_fink_model"
+    # model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    # c2lmodel = LiteModel.from_saved_model(model_path)
 
-    # TFLITE CLUSTERED-STRIPPED MODEL
-    model_name = "tinho/clustered_stripped_fink_model"
+    # COMPRESSED CLUSTERED-STRIPPED MODEL --> TFLITE
+    cc2lmodel = get_compressed_to_lite_model(model_name)
+
+    # CLUSTERED-STRIPPED TFLITE MODEL
+    clmodel = get_lite_model()
+
+    # COMPRESSED CLUSTERED-STRIPPED TFLITE  MODEL
+    model_name = "tinho/compressed_clcmodel"
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-    lmodel = LiteModel.from_saved_model(model_path)
+    tflite_file_path = "clustered_stripped_fink_model.tflite"
+
+    # ccmodel = LiteModel.from_saved_model(model_path, tflite_file_path=tflite_file_path)
+    # cclmodel_zipped = zippify_tflite(tflite_file_path)
+    # print(
+    #     f"COMPRESSED TFLITE CLUSTERED-STRIPPED MODEL SIZE: {check_size(cclmodel_zipped)}"
+    # )
+    cclmodel = get_compressed_lite_model()
 
     # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)    # t2-mwe-ztf-original-model.lnprofile
-    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True)  # t2-mwe-ztf-compressed-model.lnprofile
+    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True)   # t2-mwe-ztf-compressed-model.lnprofile
     # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=lmodel, prettyprint=True)   # t2-mwe-ztf-clustered-tflite-model.lnprofile
-    t2_probs(
-        candid, jd, fid, magpsf, sigmapsf, model=clmodel, prettyprint=True
-    )  # t2-mwe-ztf-compressed-clustered-tflite-model.lnprofile
+    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=clmodel, prettyprint=True)  # t2-mwe-ztf-compressed-clustered-tflite-model.lnprofile
+
+    # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cclmodel, prettyprint=True)   # t2-mwe-ztf-compressed-tflite-model.lnprofile
+    # t2_probs(
+    #     candid, jd, fid, magpsf, sigmapsf, model=clmodel, prettyprint=True
+    # )  # t2-mwe-ztf-compressed-tflite-model.lnprofile
