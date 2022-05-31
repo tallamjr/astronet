@@ -190,8 +190,10 @@ def get_compressed_lite_model(
     with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
         for file in archive.namelist():
             archive.extract(file, model_path)
-
-    cclmodel = LiteModel.from_file(model_path=model_path)
+    # zipfile.ZipFile('hello.zip', mode='w').write("hello.csv")
+    cclmodel = LiteModel.from_file(
+        model_path=f"{model_path}/clustered_stripped_fink_model.tflite"
+    )
 
     return cclmodel
 
