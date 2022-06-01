@@ -74,8 +74,8 @@ elif [ $architecture == "t2" ]; then
             --epochs 1 \
             --model $model \
             --testset "" \
-            --redshift "" # With or without redshift. Remove argument if without
-            # --fink ""
+            --fink ""
+            # --redshift "" # With or without redshift. Remove argument if without
     else
         echo "Please provide an argument for $operation"
     fi
