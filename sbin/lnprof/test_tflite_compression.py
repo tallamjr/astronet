@@ -44,6 +44,7 @@ class LiteModel:
         ]
         converter.experimental_enable_resource_variables = True
         converter.experimental_new_converter = True
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
         tflite_model = converter.convert()
 
         if tflite_file_path is not None:
@@ -96,9 +97,6 @@ def get_compressed_lite_model(
         for file in archive.namelist():
             archive.extract(file, model_path)
 
-    import pdb
-
-    pdb.set_trace()
     cclmodel = LiteModel.from_file(
         model_path=f"{model_path}/clustered_stripped_fink_model.tflite"
     )
@@ -106,7 +104,20 @@ def get_compressed_lite_model(
     return cclmodel
 
 
+def get_clustered_model_to_lite(
+    tflite_file_path="clustered_stripped_fink_model_quantized.tflite",
+):
+
+    model_path = (
+        f"{asnwd}/astronet/t2/models/plasticc/tinho/clustered_stripped_fink_model"
+    )
+    c2lmodel = LiteModel.from_saved_model(model_path, tflite_file_path=tflite_file_path)
+
+    return c2lmodel
+
+
 if __name__ == "__main__":
 
     model = get_lite_model()
     model = get_compressed_lite_model()
+    model = get_clustered_model_to_lite()
