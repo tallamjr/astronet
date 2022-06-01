@@ -238,6 +238,9 @@ class Training(object):
                     .prefetch(tf.data.AUTOTUNE)
                 )
 
+            # train_ds = train_ds.take(3)
+            # test_ds = test_ds.take(3)
+
             model = build_model(
                 input_shapes,
                 input_dim=input_shape,
@@ -366,8 +369,20 @@ class Training(object):
         )
 
         # wloss = WeightedLogLoss()
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=True)
+            .prefetch(tf.data.AUTOTUNE)
+            # .take(3)
+        )
         y_preds = model.predict(test_ds)
-        log.info(f"LL-Test Model Predictions: {loss(y_test, y_preds).numpy():.8f}")
+        log.info(f"{y_preds.shape}, {type(y_preds)}")
+        y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
+        # (Pdb) x = np.concatenate([x for x, y in test_ds], axis=0)
+        # (Pdb) x.shape
+        # (868352, 100, 2)
+        # y = np.concatenate([y for x, y in ds], axis=0)
+        log.info(f"LL-Test Model Predictions: {loss(y_test_np, y_preds).numpy():.8f}")
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
@@ -396,9 +411,9 @@ class Training(object):
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
             test_ds, verbose=0, batch_size=batch_size
         )[0]
-        model_params["model_prediction_on_test"] = loss(y_test, y_preds).numpy()
+        model_params["model_prediction_on_test"] = loss(y_test_np, y_preds).numpy()
 
-        y_test = np.argmax(y_test, axis=1)
+        y_test = np.argmax(y_test_np, axis=1)
         y_preds = np.argmax(y_preds, axis=1)
 
         model_params["model_predict_precision_score"] = precision_score(
