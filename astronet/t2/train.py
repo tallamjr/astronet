@@ -379,6 +379,7 @@ class Training(object):
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
         y_preds = y_preds[0] if len(tf.config.list_physical_devices("GPU")) > 1 else y_preds
+        log.info(f"{y_preds.shape}, {type(y_preds)}")
 
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
         # (Pdb) x = np.concatenate([x for x, y in test_ds], axis=0)
