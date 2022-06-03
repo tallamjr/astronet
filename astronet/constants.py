@@ -1,4 +1,5 @@
 import os
+import platform
 from pathlib import Path
 
 try:
@@ -7,6 +8,10 @@ except Exception as e:
     print(f"Environment variable not set:{e}.\nDefining relative to constants.py file")
     ASTRONET_WORKING_DIRECTORY = Path(__file__).absolute().parent.parent
 
+SYSTEM = platform.system()
+# Linux: Linux
+# Mac: Darwin
+# Windows: Windows
 # ================================================== PLASTICC ==================================== #
 PLASTICC_CLASS_MAPPING = {
     90: "SNIa",
