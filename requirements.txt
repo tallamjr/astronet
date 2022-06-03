@@ -1,5 +1,5 @@
-tensorflow>=2.8.0; sys_platform == "linux"
-tensorflow-macos>=2.8.0; sys_platform == "darwin"
+tensorflow>2.8.0; sys_platform == "linux"
+tensorflow-macos==2.8.0; sys_platform == "darwin"
 tensorflow-metal; sys_platform == "darwin"
 astropy>=1.1.2
 george>=0.3.1
