@@ -238,6 +238,14 @@ class Training(object):
                     .prefetch(tf.data.AUTOTUNE)
                 )
 
+                #def user_reader_func(datasets):
+                #    # shuffle the datasets splits
+                #    datasets = datasets.shuffle(NUM_CORES)
+                    # read datasets in parallel and interleave their elements
+                #    return datasets.interleave(lambda x: x, num_parallel_calls=AUTOTUNE)
+
+                #    dataset = dataset.snapshot("/path/to/snapshot/dir", reader_func=user_reader_func)
+
             # train_ds = train_ds.take(3)
             # test_ds = test_ds.take(3)
 
@@ -378,8 +386,8 @@ class Training(object):
         y_preds = model.predict(test_ds)
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
-        y_preds = y_preds[0] if len(tf.config.list_physical_devices("GPU")) > 1 else y_preds
-        log.info(f"{y_preds.shape}, {type(y_preds)}")
+        # y_preds = y_preds[0] if len(tf.config.list_physical_devices("GPU")) > 1 else y_preds
+        # log.info(f"{y_preds.shape}, {type(y_preds)}")
 
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
         # (Pdb) x = np.concatenate([x for x, y in test_ds], axis=0)
@@ -392,7 +400,8 @@ class Training(object):
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
         else:
             # Otherwise potential OOM Error may occur loading too many into memory at once
-            batch_size = VALIDATION_BATCH_SIZE
+            batch_size = int(VALIDATION_BATCH_SIZE / strategy.num_replicas_in_sync) if len(tf.config.list_physical_devices("GPU")) > 1 else VALIDATION_BATCH_SIZE
+            log.info(f"EVALUATE VALIDATION_BATCH_SIZE : {batch_size}")
 
         model_params = {}
         model_params["name"] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
@@ -457,52 +466,53 @@ class Training(object):
         with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
 
-        # PRUNE
-        import tensorflow_model_optimization as tfmot
+        if len(tf.config.list_physical_devices("GPU")) < 2:
+            # PRUNE
+            import tensorflow_model_optimization as tfmot
 
-        # Helper function uses `prune_low_magnitude` to make only the
-        # Dense layers train with pruning.
-        def apply_pruning_to_dense(layer):
-            if isinstance(layer, tf.keras.layers.Dense):
-                return tfmot.sparsity.keras.prune_low_magnitude(layer)
-            return layer
+            # Helper function uses `prune_low_magnitude` to make only the
+            # Dense layers train with pruning.
+            def apply_pruning_to_dense(layer):
+                if isinstance(layer, tf.keras.layers.Dense):
+                    return tfmot.sparsity.keras.prune_low_magnitude(layer)
+                return layer
 
-        # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
-        # to the layers of the model.
-        model_for_pruning = tf.keras.models.clone_model(
-            model,
-            clone_function=apply_pruning_to_dense,
-        )
+            # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
+            # to the layers of the model.
+            model_for_pruning = tf.keras.models.clone_model(
+                model,
+                clone_function=apply_pruning_to_dense,
+            )
 
-        model_for_pruning.summary(print_fn=logging.info)
+            model_for_pruning.summary(print_fn=logging.info)
 
-        callbacks = [
-            tfmot.sparsity.keras.UpdatePruningStep(),
-        ]
+            callbacks = [
+                tfmot.sparsity.keras.UpdatePruningStep(),
+            ]
 
-        model_for_pruning.compile(
-            loss=loss,
-            optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
-            metrics=["acc"],
-            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
-        )
+            model_for_pruning.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+            )
 
-        model_for_pruning.fit(
-            train_ds,
-            callbacks=callbacks,
-            epochs=2,
-        )
+            model_for_pruning.fit(
+                train_ds,
+                callbacks=callbacks,
+                epochs=2,
+            )
 
-        model_for_pruning.save(
-            f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-PRUNED",
-            include_optimizer=True,
-        )
+            model_for_pruning.save(
+                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-PRUNED",
+                include_optimizer=True,
+            )
 
-        model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
-        model_for_export.save(
-            f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-EXPORT",
-            include_optimizer=True,
-        )
+            model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
+            model_for_export.save(
+                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-EXPORT",
+                include_optimizer=True,
+            )
 
 
 if __name__ == "__main__":
