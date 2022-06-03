@@ -21,6 +21,7 @@ from tensorflow.keras.callbacks import (
 )
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import SYSTEM
 from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
@@ -203,7 +204,7 @@ class Training(object):
                             y_train,
                         )
                     )
-                    .shuffle(1000)
+                    .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
@@ -228,7 +229,7 @@ class Training(object):
 
                 train_ds = (
                     tf.data.Dataset.from_tensor_slices((train_input, y_train))
-                    .shuffle(1000)
+                    .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
@@ -238,16 +239,9 @@ class Training(object):
                     .prefetch(tf.data.AUTOTUNE)
                 )
 
-                #def user_reader_func(datasets):
-                #    # shuffle the datasets splits
-                #    datasets = datasets.shuffle(NUM_CORES)
-                    # read datasets in parallel and interleave their elements
-                #    return datasets.interleave(lambda x: x, num_parallel_calls=AUTOTUNE)
-
-                #    dataset = dataset.snapshot("/path/to/snapshot/dir", reader_func=user_reader_func)
-
-            # train_ds = train_ds.take(3)
-            # test_ds = test_ds.take(3)
+            if SYSTEM == "Darwin":
+                train_ds = train_ds.take(3)
+                test_ds = test_ds.take(3)
 
             model = build_model(
                 input_shapes,
@@ -381,8 +375,11 @@ class Training(object):
             tf.data.Dataset.from_tensor_slices(y_test)
             .batch(BATCH_SIZE, drop_remainder=True)
             .prefetch(tf.data.AUTOTUNE)
-            # .take(3)
         )
+
+        if SYSTEM == "Darwin":
+            y_test_ds = y_test_ds.take(3)
+
         y_preds = model.predict(test_ds)
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
@@ -400,7 +397,11 @@ class Training(object):
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
         else:
             # Otherwise potential OOM Error may occur loading too many into memory at once
-            batch_size = int(VALIDATION_BATCH_SIZE / strategy.num_replicas_in_sync) if len(tf.config.list_physical_devices("GPU")) > 1 else VALIDATION_BATCH_SIZE
+            batch_size = (
+                int(VALIDATION_BATCH_SIZE / strategy.num_replicas_in_sync)
+                if len(tf.config.list_physical_devices("GPU")) > 1
+                else VALIDATION_BATCH_SIZE
+            )
             log.info(f"EVALUATE VALIDATION_BATCH_SIZE : {batch_size}")
 
         model_params = {}
