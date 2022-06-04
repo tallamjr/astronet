@@ -180,6 +180,17 @@ def get_lite_model(
 
 
 @profile
+def get_quantized_lite_model(
+    model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+):
+    # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+    model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+    cqlmodel = LiteModel.from_file(model_path=model_path)
+
+    return cqlmodel
+
+
+@profile
 def get_compressed_lite_model(
     model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
 ):
@@ -422,6 +433,9 @@ if __name__ == "__main__":
     # ORIGINAL MODEL
     model = get_model()
 
+    # ORIGINAL MODEL
+    model = get_model()
+
     # COMPRESSED CLUSTERED-STRIPPED MODEL
     model_name = "tinho/compressed_clustered_stripped_fink_model"
     ccmodel = get_compressed_model(model_name)
@@ -436,6 +450,9 @@ if __name__ == "__main__":
 
     # CLUSTERED-STRIPPED TFLITE MODEL
     clmodel = get_lite_model()
+
+    # CLUSTERED-STRIPPED QUANTIZED TFLITE MODEL
+    clmodel = get_quantized_lite_model()
 
     # COMPRESSED CLUSTERED-STRIPPED TFLITE  MODEL
     model_name = "tinho/compressed_clcmodel"
