@@ -143,7 +143,7 @@ def plot_confusion_matrix(
     if dataset == "plasticc":
         wloss = WeightedLogLoss()
         wloss = wloss(y_test, y_preds).numpy()
-        plt.title(f"Test Set Confusion Matrix; Log Loss = {wloss:.3f}")
+        plt.title(f"Test Set Confusion Matrix, Log Loss = {wloss:.3f}")
     else:
         plt.title(f"Test Set Confusion Matrix -- {dataset}")
 
@@ -185,8 +185,8 @@ def plot_multiROC(
     dataset,
     model_name,
     model,
-    X_test,
     y_test,
+    y_score,
     class_names,
     save=True,
     colors=plt.cm.Accent.colors,
@@ -199,7 +199,7 @@ def plot_multiROC(
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
-    y_score = model.predict(X_test)
+    # y_score = model.predict(X_test)
     n_classes = len(class_names)
     # print(enc.categories_[0][0])
     # print(type(enc.categories_[0]))
@@ -290,8 +290,8 @@ def plot_multiPR(
     dataset,
     model_name,
     model,
-    X_test,
     y_test,
+    y_score,
     class_names,
     save=True,
     colors=plt.cm.tab20.colors,
@@ -305,7 +305,7 @@ def plot_multiPR(
     precision = dict()
     recall = dict()
     average_precision = dict()
-    y_score = model.predict(X_test)
+    # y_score = model.predict(X_test)
     n_classes = len(class_names)
 
     for i in range(n_classes):
