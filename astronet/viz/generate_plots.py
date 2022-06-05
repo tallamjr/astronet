@@ -1,17 +1,28 @@
 import argparse
 import json
+import os
 import random as python_random
+import shutil
 import sys
+import time
+from collections import Counter
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import tensorflow as tf
+from pandas.core.common import flatten
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
-from astronet.utils import find_optimal_batch_size, get_encoding
+from astronet.utils import (
+    astronet_logger,
+    find_optimal_batch_size,
+    get_encoding,
+)
 from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
@@ -20,9 +31,22 @@ from astronet.viz.visualise_results import (
     plot_multiROC,
 )
 
+try:
+    log = astronet_logger(__file__)
+    log.info("=" * shutil.get_terminal_size((80, 20))[0])
+    log.info(f"File Path: {Path(__file__).absolute()}")
+    log.info(f"Parent of Directory Path: {Path().absolute().parent}")
+except Exception as e:
+    print(f"{e}: Seems you are running from a notebook...")
+    __file__ = f"{Path().resolve().parent}/astronet/viz/generate_plots.py"
+    log = astronet_logger(__file__)
+
+np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
+
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
+os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 # The below is necessary for starting core Python generated random numbers
 # in a well-defined state.
@@ -39,22 +63,17 @@ plt.rcParams.update(
 
 class Plots(object):
     # TODO: Update docstrings
-    def __init__(self, architecture, dataset, model_name, redshift, savefigs=True):
+    def __init__(self, architecture, dataset, model_name, redshift, ztf, savefigs=True):
         self.architecture = architecture
         self.dataset = dataset
         self.model_name = model_name
         self.redshift = redshift
         self.savefigs = savefigs
+        self.ztf = ztf
 
     def __call__(self):
-        # architecture = "t2"
-        # dataset = "plasticc"
-        # X_train, y_train, X_test, y_test, loss, Z_train, Z_test = load_dataset(
-        #                                                                         dataset,
-        #                                                                         redshift=True,
-        #                                                                         avocado=None,
-        #                                                                         testset=True
-        #                                                         )
+
+        start = time.time()
         X_test = np.load(
             f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
         )
@@ -65,6 +84,7 @@ class Plots(object):
             f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
         )
 
+        X_test = X_test[:, :, 0:3:2] if self.ztf is not None else X_test
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
         (
@@ -72,14 +92,30 @@ class Plots(object):
             timesteps,
             num_features,
         ) = X_test.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         print(f"BATCH_SIZE:{BATCH_SIZE}")
 
         if self.redshift is not None:
-            inputs = [X_test, Z_test]
+            test_input = [X_test, Z_test]
+            test_ds = (
+                tf.data.Dataset.from_tensor_slices(
+                    ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+                )
+                .batch(BATCH_SIZE, drop_remainder=False)
+                .prefetch(tf.data.AUTOTUNE)
+            )
+
             results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
+
         else:
-            inputs = X_test
+            test_input = X_test
+            test_ds = (
+                tf.data.Dataset.from_tensor_slices((test_input, y_test))
+                .batch(BATCH_SIZE, drop_remainder=False)
+                .prefetch(tf.data.AUTOTUNE)
+            )
+
             results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results.json"
 
         with open(results_filename) as f:
@@ -107,13 +143,6 @@ class Plots(object):
         encoding, class_encoding, class_names = get_encoding(
             self.dataset, dataform=dataform
         )
-        from collections import Counter
-
-        from pandas.core.common import flatten
-
-        # y_true = encoding.inverse_transform(y_train)
-        # y_true = encoding.inverse_transform(y_train)
-        # print("N_TRAIN:", Counter(list(flatten(y_true))))
 
         y_true_test = encoding.inverse_transform(y_test)
         print("N_TEST:", Counter(list(flatten(y_true_test))))
@@ -122,19 +151,28 @@ class Plots(object):
         acc = event["model_evaluate_on_test_acc"]
         print(f"LogLoss on Test Set: {logloss}, Accuracy on Test Set: {acc}")
 
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
         print("Running predictions")
         wloss = WeightedLogLoss()
-        y_preds = model.predict([X_test, Z_test])
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-        y_preds = model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
-        print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+        if LOCAL_DEBUG is not None:
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
+        y_preds = model.predict(test_ds)
+        y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
+
+        loss = wloss(y_test_np, y_preds).numpy()
+        print(f"LL-Test: {loss:.3f}")
+
         # Causes OOM with all samples -->
         # y_preds = model.predict([X_test, Z_test], batch_size=num_samples)
         # print(f"LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-
-        # Train predictions
-        # y_preds_train = model.predict([X_train, Z_train])
-        # print(f"LL-Train: {wloss(y_train, y_preds_train).numpy():.2f}")
 
         print("Plotting figures...")
         cmap = sns.light_palette("Navy", as_cmap=True)
@@ -142,41 +180,51 @@ class Plots(object):
             self.architecture,
             self.dataset,
             self.model_name,
-            y_test,
+            y_test_np,
             y_preds,
             encoding,
             class_names,  # enc.categories_[0]
             save=self.savefigs,
             cmap=cmap,
         )
+        log.info("CM DONE...")
 
         plot_acc_history(
             self.architecture, self.dataset, self.model_name, event, save=self.savefigs
         )
+        log.info("ACC DONE...")
+
         plot_loss_history(
             self.architecture, self.dataset, self.model_name, event, save=self.savefigs
         )
+        log.info("LOSS DONE...")
 
         plot_multiROC(
             self.architecture,
             self.dataset,
             self.model_name,
             model,
-            inputs,
-            y_test,
+            y_test_np,
+            y_preds,
             class_names,
             save=self.savefigs,
         )
+        log.info("ROC DONE...")
+
         plot_multiPR(
             self.architecture,
             self.dataset,
             self.model_name,
             model,
-            inputs,
-            y_test,
+            y_test_np,
+            y_preds,
             class_names,
             save=self.savefigs,
         )
+        log.info("PR DONE...")
+
+        end = time.time()
+        log.info(f"PLOTS GENERATED IN {(end - start) / 60:.2f} MINUTES")
 
 
 if __name__ == "__main__":
@@ -213,6 +261,13 @@ if __name__ == "__main__":
         help="Whether to include redshift features or not",
     )
 
+    parser.add_argument(
+        "-f",
+        "--ztf",
+        default=None,
+        help="Model trained on ZTF-esque data or not",
+    )
+
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -224,13 +279,19 @@ if __name__ == "__main__":
     dataset = args.dataset
     model_name = args.model
     redshift = args.redshift
+    ztf = args.ztf
+
     if redshift is not None:
         redshift = True
+
+    if ztf is not None:
+        ztf = True
 
     plotting = Plots(
         architecture=architecture,
         dataset=dataset,
         model_name=model_name,
         redshift=redshift,
+        ztf=ztf,
     )
     plotting()
