@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N t2-train-tfmot-wClusteringFINK-GPU2
+#$ -N t2-train-tfmot-wClusteringUGRIZY-GPU2
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
@@ -136,8 +136,8 @@ elif [ $architecture == "t2" ]; then
             --epochs 400 \
             --model $model \
             --testset "" \
-            --fink ""
-            # --redshift "" # With or without redshift. Remove argument if without
+            --redshift "" # With or without redshift. Remove argument if without
+            # --fink ""
     else
         echo "Please provide an argument for $operation"
     fi
