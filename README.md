@@ -18,6 +18,10 @@
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
 
+### `astronet.t2.tinho`
+
+![CM](./astronet/tests/unit/viz/baseline/model-cm-31367-1654360237-0.5.1.dev78+g702e399.d20220604.png)
+
 ### `astronet.t2`
 
 ![CM](./astronet/tests/unit/viz/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
@@ -99,6 +103,7 @@ Then, the hash of the image is to be stored in the SHA library file with:
 ```bash
 $ pytest --mpl-generate-hash-library=astronet/tests/unit/viz/baseline/hashlib.json --ignore-glob="*.ipynb" test_plots.py
 ```
+
 Finally, the suite is ready to be tested by running:
 ```bash
 $ pytest --ignore-glob="*.ipynb" test_plots.py

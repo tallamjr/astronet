@@ -40,6 +40,7 @@ else:
     (
         ("atx", "plasticc", "9887359-1641295475-0.1.dev943+gc9bafac.d20220104"),
         ("t2", "plasticc", "1619624444-0.1.dev765+g7c90cbb.d20210428"),
+        ("t2", "plasticc", "31367-1654360237-0.5.1.dev78+g702e399.d20220604.png"),
     ),
 )
 class TestPlots:
