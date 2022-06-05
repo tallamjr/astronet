@@ -153,7 +153,6 @@ def predict_compressed_clustered_tflite_model(X_test, wloss):
 def predict_saved_clustered_tflite_model(X_test, wloss):
     # SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-    # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
     model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
     clmodel = LiteModel.from_file(model_path=model_path)
     y_preds = clmodel.predict(X_test)
@@ -166,8 +165,8 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
 def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     # SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-    # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
-    model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+    # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+    model_path = f"{asnwd}/sbin/lnprof/quantized.tflite"
     clmodel = LiteModel.from_file(model_path=model_path)
     y_preds = clmodel.predict(X_test)
     print(
@@ -195,10 +194,10 @@ if __name__ == "__main__":
     print("Running predictions")
     wloss = WeightedLogLoss()
 
-    predict_original_model(X_test, wloss)
+    # predict_original_model(X_test, wloss)
     # predict_clustered_tflite_model(X_test, wloss)
 
-    predict_saved_clustered_tflite_model(X_test, wloss)
+    # predict_saved_clustered_tflite_model(X_test, wloss)
     predict_saved_clustered_quantized_tflite_model(X_test, wloss)
 
     # predict_compressed_clustered_tflite_model(X_test, wloss)
