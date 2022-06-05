@@ -12,6 +12,7 @@ SYSTEM = platform.system()
 # Linux: Linux
 # Mac: Darwin
 # Windows: Windows
+LOCAL_DEBUG = os.environ.get("LOCAL_DEBUG")
 # ================================================== PLASTICC ==================================== #
 PLASTICC_CLASS_MAPPING = {
     90: "SNIa",
