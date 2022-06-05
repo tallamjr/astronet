@@ -1,6 +1,7 @@
-tensorflow>2.4.1; sys_platform == "linux"
-tensorflow-macos>2.4.1; sys_platform == "darwin"
+tensorflow>2.8.0; sys_platform == "linux"
+tensorflow-macos==2.8.0; sys_platform == "darwin"
 tensorflow-metal; sys_platform == "darwin"
+tensorflow-model-optimization>=0.7.2
 astropy>=1.1.2
 george>=0.3.1
 imbalanced-learn==0.7.0

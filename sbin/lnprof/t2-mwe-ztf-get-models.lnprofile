@@ -1,0 +1,136 @@
+Metal device set to: Apple M1 Pro
+0.5.1.dev33+gb326d80
+/Users/tallamjr/github/tallamjr/origin/astronet/astronet/__init__.py
+30
+candid                                     1786156252415010024
+schemavsn                                                  3.3
+publisher                                                 Fink
+objectId                                          ZTF18acmulej
+candidate    (2459540.65625, 2, 1786156252415, 19.284673690...
+Name: 30, dtype: object
+Wrote profile results to t2-mwe-ztf.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 1.1856 s
+File: t2-mwe-ztf.py
+Function: get_model at line 123
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   123                                           @profile
+   124                                           def get_model(model_name: str = "model-23057-1642540624-0.1.dev963+g309c9d8"):
+   125                                               # Load original keras model
+   126         1          5.0      5.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   127
+   128         2    1185552.0 592776.0    100.0      model = tf.keras.models.load_model(
+   129         1          1.0      1.0      0.0          model_path,
+   130         1         42.0     42.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   131         1          1.0      1.0      0.0          compile=False,
+   132                                               )
+   133
+   134         1          1.0      1.0      0.0      return model
+
+Total time: 0.739251 s
+File: t2-mwe-ztf.py
+Function: get_compressed_model at line 137
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   137                                           @profile
+   138                                           def get_compressed_model(model_name: str = "23057-1642540624-0.1.dev963+g309c9d8"):
+   139                                               # Load compressed clustered keras model i.e. was keras model but saved as .zip file on disk
+   140         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   141
+   142         1       2816.0   2816.0      0.4      with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   143         7         14.0      2.0      0.0          for file in archive.namelist():
+   144         6       3562.0    593.7      0.5              archive.extract(file, model_path)
+   145
+   146         2     732847.0 366423.5     99.1      ccmodel = tf.keras.models.load_model(
+   147         1          0.0      0.0      0.0          model_path,
+   148         1          9.0      9.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   149         1          0.0      0.0      0.0          compile=False,
+   150                                               )
+   151         1          2.0      2.0      0.0      return ccmodel
+
+Total time: 1.15084 s
+File: t2-mwe-ztf.py
+Function: get_compressed_to_lite_model at line 154
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   154                                           @profile
+   155                                           def get_compressed_to_lite_model(
+   156                                               model_name: str = "23057-1642540624-0.1.dev963+g309c9d8",
+   157                                           ):
+   158                                               # Load compressed clustered model and convert it to a TFLite model, i.e. was keras model but
+   159                                               # saved as .zip file on disk
+   160         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   161
+   162         1        270.0    270.0      0.0      with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   163         7         13.0      1.9      0.0          for file in archive.namelist():
+   164         6       2730.0    455.0      0.2              archive.extract(file, model_path)
+   165
+   166         1    1147820.0 1147820.0     99.7      cc2lmodel = LiteModel.from_saved_model(model_path)
+   167
+   168         1          1.0      1.0      0.0      return cc2lmodel
+
+Total time: 0.000997 s
+File: t2-mwe-ztf.py
+Function: get_lite_model at line 171
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   171                                           @profile
+   172                                           def get_lite_model(
+   173                                               model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+   174                                           ):
+   175                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   176         1          2.0      2.0      0.2      model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
+   177         1        994.0    994.0     99.7      clmodel = LiteModel.from_file(model_path=model_path)
+   178
+   179         1          1.0      1.0      0.1      return clmodel
+
+Total time: 0.000869 s
+File: t2-mwe-ztf.py
+Function: get_quantized_lite_model at line 182
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   182                                           @profile
+   183                                           def get_quantized_lite_model(
+   184                                               model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+   185                                           ):
+   186                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   187         1          0.0      0.0      0.0      model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+   188         1        869.0    869.0    100.0      cqlmodel = LiteModel.from_file(model_path=model_path)
+   189
+   190         1          0.0      0.0      0.0      return cqlmodel
+
+Total time: 0.001706 s
+File: t2-mwe-ztf.py
+Function: get_compressed_lite_model at line 193
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   193                                           @profile
+   194                                           def get_compressed_lite_model(
+   195                                               model_name: str = "23057-1642540624-0.1.dev963+g309c9d8", tflite_file_path=None
+   196                                           ):
+   197                                               # Load compressed clustered model TFLite model, i.e. was .tflife model/file but saved as .zip
+   198                                               # file on disk
+   199         1          0.0      0.0      0.0      model_path = f"{asnwd}/sbin/lnprof/__clustered_stripped_fink_model.tflite"
+   200
+   201         1        453.0    453.0     26.6      with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   202         2          9.0      4.5      0.5          for file in archive.namelist():
+   203         1       1082.0   1082.0     63.4              archive.extract(file, model_path)
+   204                                               # zipfile.ZipFile('hello.zip', mode='w').write("hello.csv")
+   205         2        161.0     80.5      9.4      cclmodel = LiteModel.from_file(
+   206         1          1.0      1.0      0.1          model_path=f"{model_path}/clustered_stripped_fink_model.tflite"
+   207                                               )
+   208
+   209         1          0.0      0.0      0.0      return cclmodel
+
+
+systemMemory: 32.00 GB
+maxCacheSize: 10.67 GB
+

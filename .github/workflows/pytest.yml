@@ -90,7 +90,8 @@ jobs:
         pip install pytest-cov
         pip install nbmake
         pip install pytest-mpl
-        pip install tensorflow==2.4.1
+        pip install model-profiler
+        pip install tensorflow>=2.4.1
 
     - name: Run pytest
       run: |

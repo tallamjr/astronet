@@ -21,11 +21,16 @@ from tensorflow.keras.callbacks import (
 )
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import SYSTEM
 from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
 )
-from astronet.metrics import WeightedLogLoss
+from astronet.metrics import (
+    DistributedWeightedLogLoss,
+    WeightedLogLoss,
+)
+from astronet.t2.funcmodel import build_model
 from astronet.t2.model import T2Model
 from astronet.utils import (
     astronet_logger,
@@ -90,6 +95,19 @@ class Training(object):
             )
         ...
         """
+        unixtimestamp = int(time.time())
+        try:
+            label = (
+                subprocess.check_output(["git", "describe", "--always"])
+                .strip()
+                .decode()
+            )
+        except Exception:
+            from astronet import __version__ as current_version
+
+            label = current_version
+        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
@@ -160,79 +178,133 @@ class Training(object):
             num_features,
         ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
         BATCH_SIZE = find_optimal_batch_size(num_samples)
-        print(f"BATCH_SIZE:{BATCH_SIZE}")
+        log.info(f"BATCH_SIZE:{BATCH_SIZE}")
         input_shape = (BATCH_SIZE, timesteps, num_features)
-        print(f"input_shape:{input_shape}")
+        log.info(f"input_shape:{input_shape}")
 
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
-        print(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+        log.info(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
-        model = T2Model(
-            input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
-            num_filters=num_filters,
-            num_classes=num_classes,
-            num_layers=num_layers,
-            droprate=droprate,
-            num_aux_feats=num_aux_feats,
-            add_aux_feats_to="L",
-            # Either add features to M dimension or L dimension. Adding to L allows for
-            # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-            # fc_neurons=fc_neurons,
-        )
+        def get_compiled_model_and_data(loss):
 
-        # We compile our model with a sampled learning rate and any custom metrics
-        lr = event["lr"]
-        model.compile(
-            loss=loss,
-            optimizer=optimizers.Adam(lr=lr, clipnorm=1),
-            metrics=["acc"],
-            run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
-        )
+            # input_shapes = (
+            #     [input_shape, ZX_train.shape] if self.redshift is not None else input_shape
+            # )
+            if self.redshift is not None:
+                input_shapes = [input_shape, ZX_train.shape]
+                # model.build_graph(input_shapes)
 
-        if self.redshift is not None:
-            input_shapes = [input_shape, ZX_train.shape]
-            model.build_graph(input_shapes)
+                train_input = [X_train, ZX_train]
+                test_input = [X_test, ZX_test]
 
-            train_input = [X_train, ZX_train]
-            test_input = [X_test, ZX_test]
-            # if avocado is not None:
-            # Generate random boolean mask the length of data
-            # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-            # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
-            # test_input = [X_test[mask], ZX_test[mask]]
-            # y_test = y_test[mask]
-        else:
-            model.build_graph(input_shape)
+                train_ds = (
+                    tf.data.Dataset.from_tensor_slices(
+                        (
+                            {"input_1": train_input[0], "input_2": train_input[1]},
+                            y_train,
+                        )
+                    )
+                    .shuffle(1000, seed=RANDOM_SEED)
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                test_ds = (
+                    tf.data.Dataset.from_tensor_slices(
+                        ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+                    )
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                # if avocado is not None:
+                # Generate random boolean mask the length of data
+                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
+                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
+                # test_input = [X_test[mask], ZX_test[mask]]
+                # y_test = y_test[mask]
+            else:
+                # model.build_graph(input_shape)
+                input_shapes = input_shape
+                train_input = X_train
+                test_input = X_test
 
-            train_input = X_train
-            test_input = X_test
+                train_ds = (
+                    tf.data.Dataset.from_tensor_slices((train_input, y_train))
+                    .shuffle(1000, seed=RANDOM_SEED)
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
+                test_ds = (
+                    tf.data.Dataset.from_tensor_slices((test_input, y_test))
+                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .prefetch(tf.data.AUTOTUNE)
+                )
 
-        unixtimestamp = int(time.time())
-        try:
-            label = (
-                subprocess.check_output(["git", "describe", "--always"])
-                .strip()
-                .decode()
+            if SYSTEM == "Darwin":
+                train_ds = train_ds.take(3)
+                test_ds = test_ds.take(3)
+
+            model = build_model(
+                input_shapes,
+                input_dim=input_shape,
+                embed_dim=embed_dim,
+                num_heads=num_heads,
+                ff_dim=ff_dim,
+                num_filters=num_filters,
+                num_classes=num_classes,
+                num_layers=num_layers,
+                droprate=droprate,
+                num_aux_feats=num_aux_feats,
+                add_aux_feats_to="L",
+                # Either add features to M dimension or L dimension. Adding to L allows for
+                # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
+                # fc_neurons=fc_neurons,
             )
-        except Exception:
-            from astronet import __version__ as current_version
 
-            label = current_version
-        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
+            # We compile our model with a sampled learning rate and any custom metrics
+            # lr = event["lr"]
+            model.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+            )
+
+            return model, train_ds, test_ds
+
+        if len(tf.config.list_physical_devices("GPU")) > 1:
+            # Create a MirroredStrategy.
+            strategy = tf.distribute.MirroredStrategy()
+            log.info("Number of devices: {}".format(strategy.num_replicas_in_sync))
+            BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
+            VALIDATION_BATCH_SIZE = (
+                VALIDATION_BATCH_SIZE * strategy.num_replicas_in_sync
+            )
+            # Open a strategy scope.
+            with strategy.scope():
+                # If you are using a `Loss` class instead, set reduction to `NONE` so that
+                # we can do the reduction afterwards and divide by global batch size.
+                loss = DistributedWeightedLogLoss(
+                    reduction=tf.keras.losses.Reduction.AUTO,
+                    # global_batch_size=BATCH_SIZE,
+                )
+
+                # Compute loss that is scaled by global batch size.
+                # loss = tf.reduce_sum(loss_obj()) * (1.0 / BATCH_SIZE)
+
+                # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
+                # original model. TODO: Include flag for choosing between the two, following run with FINK
+                model, train_ds, test_ds = get_compiled_model_and_data(loss)
+        else:
+            model, train_ds, test_ds = get_compiled_model_and_data(loss)
 
         time_callback = TimeHistoryCallback()
 
         history = model.fit(
-            train_input,
-            y_train,
+            train_ds,
             batch_size=BATCH_SIZE,
             epochs=self.epochs,
             shuffle=True,
-            validation_data=(test_input, y_test),
+            validation_data=test_ds,
             validation_batch_size=VALIDATION_BATCH_SIZE,
             verbose=False,
             callbacks=[
@@ -291,22 +363,46 @@ class Training(object):
         #            except Exception:
         #                print(f"Preventing possible OOM...")
 
-        print(
-            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_input, y_test, verbose=0)[0]}"
+        log.info(
+            f"LL-BATCHED-32 Model Evaluate: {model.evaluate(test_ds, verbose=0)[0]}"
         )
-        print(
-            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_input, y_test, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
+        log.info(
+            f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
-        wloss = WeightedLogLoss()
-        y_preds = model.predict(test_input)
-        print(f"LL-Test Model Predictions: {wloss(y_test, y_preds).numpy():.8f}")
+        # wloss = WeightedLogLoss()
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=True)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if SYSTEM == "Darwin":
+            y_test_ds = y_test_ds.take(3)
+
+        y_preds = model.predict(test_ds)
+
+        log.info(f"{y_preds.shape}, {type(y_preds)}")
+        # y_preds = y_preds[0] if len(tf.config.list_physical_devices("GPU")) > 1 else y_preds
+        # log.info(f"{y_preds.shape}, {type(y_preds)}")
+
+        y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
+        # (Pdb) x = np.concatenate([x for x, y in test_ds], axis=0)
+        # (Pdb) x.shape
+        # (868352, 100, 2)
+        # y = np.concatenate([y for x, y in ds], axis=0)
+        log.info(f"LL-Test Model Predictions: {loss(y_test_np, y_preds).numpy():.8f}")
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
         else:
             # Otherwise potential OOM Error may occur loading too many into memory at once
-            batch_size = VALIDATION_BATCH_SIZE
+            batch_size = (
+                int(VALIDATION_BATCH_SIZE / strategy.num_replicas_in_sync)
+                if len(tf.config.list_physical_devices("GPU")) > 1
+                else VALIDATION_BATCH_SIZE
+            )
+            log.info(f"EVALUATE VALIDATION_BATCH_SIZE : {batch_size}")
 
         model_params = {}
         model_params["name"] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
@@ -324,14 +420,14 @@ class Training(object):
         model_params["fink"] = self.fink
         model_params["num_classes"] = num_classes
         model_params["model_evaluate_on_test_acc"] = model.evaluate(
-            test_input, y_test, verbose=0, batch_size=batch_size
+            test_ds, verbose=0, batch_size=batch_size
         )[1]
         model_params["model_evaluate_on_test_loss"] = model.evaluate(
-            test_input, y_test, verbose=0, batch_size=batch_size
+            test_ds, verbose=0, batch_size=batch_size
         )[0]
-        model_params["model_prediction_on_test"] = wloss(y_test, y_preds).numpy()
+        model_params["model_prediction_on_test"] = loss(y_test_np, y_preds).numpy()
 
-        y_test = np.argmax(y_test, axis=1)
+        y_test = np.argmax(y_test_np, axis=1)
         y_preds = np.argmax(y_preds, axis=1)
 
         model_params["model_predict_precision_score"] = precision_score(
@@ -370,6 +466,54 @@ class Training(object):
 
         with open(train_results_file, "w") as rf:
             json.dump(data, rf, sort_keys=True, indent=4)
+
+        if len(tf.config.list_physical_devices("GPU")) < 2:
+            # PRUNE
+            import tensorflow_model_optimization as tfmot
+
+            # Helper function uses `prune_low_magnitude` to make only the
+            # Dense layers train with pruning.
+            def apply_pruning_to_dense(layer):
+                if isinstance(layer, tf.keras.layers.Dense):
+                    return tfmot.sparsity.keras.prune_low_magnitude(layer)
+                return layer
+
+            # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
+            # to the layers of the model.
+            model_for_pruning = tf.keras.models.clone_model(
+                model,
+                clone_function=apply_pruning_to_dense,
+            )
+
+            model_for_pruning.summary(print_fn=logging.info)
+
+            callbacks = [
+                tfmot.sparsity.keras.UpdatePruningStep(),
+            ]
+
+            model_for_pruning.compile(
+                loss=loss,
+                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                metrics=["acc"],
+                run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
+            )
+
+            model_for_pruning.fit(
+                train_ds,
+                callbacks=callbacks,
+                epochs=2,
+            )
+
+            model_for_pruning.save(
+                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-PRUNED",
+                include_optimizer=True,
+            )
+
+            model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
+            model_for_export.save(
+                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-EXPORT",
+                include_optimizer=True,
+            )
 
 
 if __name__ == "__main__":

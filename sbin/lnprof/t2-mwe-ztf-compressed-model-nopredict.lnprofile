@@ -1,0 +1,302 @@
+Metal device set to: Apple M1 Pro
+0.5.1.dev33+gb326d80
+/Users/tallamjr/github/tallamjr/origin/astronet/astronet/__init__.py
+30
+candid                                     1786156252415010024
+schemavsn                                                  3.3
+publisher                                                 Fink
+objectId                                          ZTF18acmulej
+candidate    (2459540.65625, 2, 1786156252415, 19.284673690...
+Name: 30, dtype: object
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.001,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.001,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.108,
+    "SNII": 0.038,
+    "SNIa": 0.167,
+    "SNIa-91bg": 0.191,
+    "SNIax": 0.188,
+    "SNIbc": 0.3,
+    "TDE": 0.002,
+    "mu-Lens-Single": 0.004
+}
+Wrote profile results to t2-mwe-ztf.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 5.99091 s
+File: t2-mwe-ztf.py
+Function: get_model at line 90
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    90                                           @profile
+    91                                           def get_model(model_name: str = "model-23057-1642540624-0.1.dev963+g309c9d8"):
+    92                                               # Load pre-trained model
+    93         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    94
+    95         2    5990867.0 2995433.5    100.0      model = tf.keras.models.load_model(
+    96         1          0.0      0.0      0.0          model_path,
+    97         1         45.0     45.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    98         1          1.0      1.0      0.0          compile=False,
+    99                                               )
+   100
+   101         1          1.0      1.0      0.0      return model
+
+Total time: 5.6422 s
+File: t2-mwe-ztf.py
+Function: get_compressed_lite_model at line 104
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   104                                           @profile
+   105                                           def get_compressed_lite_model(model_name: str = "23057-1642540624-0.1.dev963+g309c9d8"):
+   106                                               # Load pre-trained model
+   107         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   108
+   109         1        236.0    236.0      0.0      with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   110         7         17.0      2.4      0.0          for file in archive.namelist():
+   111         6       2315.0    385.8      0.0              archive.extract(file, model_path)
+   112
+   113         1    5639630.0 5639630.0    100.0      lmodel = LiteModel.from_saved_model(model_path)
+   114
+   115         1          1.0      1.0      0.0      return lmodel
+
+Total time: 3.65258 s
+File: t2-mwe-ztf.py
+Function: get_compressed_model at line 118
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   118                                           @profile
+   119                                           def get_compressed_model(model_name: str = "23057-1642540624-0.1.dev963+g309c9d8"):
+   120                                               # Load pre-trained model
+   121         1          2.0      2.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   122
+   123         1       2293.0   2293.0      0.1      with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   124         7         13.0      1.9      0.0          for file in archive.namelist():
+   125         6       3054.0    509.0      0.1              archive.extract(file, model_path)
+   126
+   127         2    3647208.0 1823604.0     99.9      model = tf.keras.models.load_model(
+   128         1          0.0      0.0      0.0          model_path,
+   129         1         14.0     14.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   130         1          0.0      0.0      0.0          compile=False,
+   131                                               )
+   132         1          1.0      1.0      0.0      return model
+
+Total time: 0.38136 s
+File: t2-mwe-ztf.py
+Function: t2_probs at line 135
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   135                                           @profile
+   136                                           def t2_probs(
+   137                                               candid: np.int64,
+   138                                               jd: np.ndarray,
+   139                                               fid: np.ndarray,
+   140                                               magpsf: np.int64,
+   141                                               sigmapsf: np.int64,
+   142                                               model: tf.keras.Model,
+   143                                               prettyprint=None,
+   144                                           ) -> Dict:
+   145                                               """Compute probabilities of alerts in relation to PLAsTiCC classes using the Time-Series
+   146                                               Transformer model
+   147
+   148                                               Parameters
+   149                                               ----------
+   150                                               candid: np.int64,
+   151                                                   Candidate IDs
+   152                                               jd: np.ndarray,
+   153                                                   JD times (float)
+   154                                               fid: np.ndarray,
+   155                                                   Filter IDs (int)
+   156                                               magpsf: np.ndarray,
+   157                                                   Magnitude from PSF-fit photometry
+   158                                               sigmapsf: np.ndarray,
+   159                                                   1-sigma error of PSF-fit
+   160                                               model: tensorflow.python.keras.saving.saved_model.load.T2Model
+   161                                                   Pre-compiled T2 model
+   162
+   163                                               Returns
+   164                                               ----------
+   165                                               probabilities: dict
+   166                                                   Dict containing np.array of float probabilities
+   167
+   168                                               Examples
+   169                                               ----------
+   170                                               >>> import pyspark.pandas as ps
+   171                                               >>> psdf = ps.read_parquet('sample.parquet')
+   172                                               >>> import random
+   173                                               >>> r = random.randint(0,len(psdf))
+   174                                               >>> alert = psdf.iloc[r]
+   175                                               >>> print(alert.head())
+   176                                               candid                                     1786552611115010001
+   177                                               schemavsn                                                  3.3
+   178                                               publisher                                                 Fink
+   179                                               objectId                                          ZTF18aaqfhlj
+   180                                               candidate    (2459541.0526157, 2, 1786552611115, 19.1966800...
+   181                                               Name: 221, dtype: object
+   182                                               >>> alert = alert.to_dict()
+   183
+   184                                               >>> from fink_client.visualisation import extract_field
+   185                                               # Get flux and error
+   186                                               >>> magpsf = extract_field(alert, 'magpsf')
+   187                                               >>> sigmapsf = extract_field(alert, 'sigmapsf')
+   188
+   189                                               >>> jd = extract_field(alert, "jd")
+   190
+   191                                               # For rescaling dates to start at 0 --> 30
+   192                                               # dates = np.array([jd[0] - i for i in jd])
+   193
+   194                                               # FINK candidate ID (int64)
+   195                                               >>> candid = alert["candid"]
+   196
+   197                                               # filter bands
+   198                                               >>> fid = extract_field(alert, "fid")
+   199
+   200                                               >>> model_name = "23057-1642540624-0.1.dev963+g309c9d8"
+   201                                               >>> model = get_model(model_name=model_name)
+   202
+   203                                               >>> t2_probs(candid, jd, fid, magpsf, sigmapsf, model)
+   204                                               {
+   205                                                   "AGN": 0.0,
+   206                                                   "EB": 0.017,
+   207                                                   "KN": 0.0,
+   208                                                   "M-dwarf": 0.891,
+   209                                                   "Mira": 0.002,
+   210                                                   "RRL": 0.004,
+   211                                                   "SLSN-I": 0.0,
+   212                                                   "SNII": 0.078,
+   213                                                   "SNIa": 0.001,
+   214                                                   "SNIa-91bg": 0.006,
+   215                                                   "SNIax": 0.001,
+   216                                                   "SNIbc": 0.001,
+   217                                                   "TDE": 0.0,
+   218                                                   "mu-Lens-Single": 0.0
+   219                                               }
+   220                                               """
+   221
+   222         1          2.0      2.0      0.0      ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
+   223
+   224         1          1.0      1.0      0.0      ZTF_PB_WAVELENGTHS = {
+   225         1          1.0      1.0      0.0          "ztfg": 4804.79,
+   226         1          1.0      1.0      0.0          "ztfr": 6436.92,
+   227         1          1.0      1.0      0.0          "ztfi": 7968.22,
+   228                                               }
+   229
+   230                                               # Rescale dates to _start_ at 0
+   231         1         16.0     16.0      0.0      dates = np.array([jd[0] - i for i in jd])
+   232
+   233         1          4.0      4.0      0.0      mjd, flux, flux_error, filters = ([] for i in range(4))
+   234
+   235                                               # Loop over each filter
+   236         1          1.0      1.0      0.0      filter_color = ZTF_FILTER_MAP
+   237         4          4.0      1.0      0.0      for filt in filter_color.keys():
+   238         3         30.0     10.0      0.0          mask = np.where(fid == filt)[0]
+   239
+   240                                                   # Skip if no data
+   241         3          3.0      1.0      0.0          if len(mask) == 0:
+   242         1          1.0      1.0      0.0              continue
+   243
+   244         2         18.0      9.0      0.0          maskNotNone = magpsf[mask] != None
+   245         2          8.0      4.0      0.0          mjd.append(dates[mask][maskNotNone])
+   246         2          4.0      2.0      0.0          flux.append(magpsf[mask][maskNotNone])
+   247         2          2.0      1.0      0.0          flux_error.append(sigmapsf[mask][maskNotNone])
+   248         2          2.0      1.0      0.0          filters.append(filt)
+   249
+   250         2        868.0    434.0      0.2      df_tmp = pd.DataFrame.from_dict(
+   251         1          1.0      1.0      0.0          {
+   252         1          1.0      1.0      0.0              "mjd": mjd,
+   253         1          1.0      1.0      0.0              "object_id": candid,
+   254         1          1.0      1.0      0.0              "flux": flux,
+   255         1          1.0      1.0      0.0              "flux_error": flux_error,
+   256         1          1.0      1.0      0.0              "filters": filters,
+   257                                                   }
+   258                                               )
+   259
+   260         1       2180.0   2180.0      0.6      df_tmp = df_tmp.apply(pd.Series.explode).reset_index()
+   261
+   262                                               # Re-compute flux and flux error
+   263         2         28.0     14.0      0.0      data = [
+   264                                                   mag2fluxcal_snana(*args)
+   265         1        255.0    255.0      0.1          for args in zip(df_tmp["flux"].explode(), df_tmp["flux_error"].explode())
+   266                                               ]
+   267         1         15.0     15.0      0.0      flux, error = np.transpose(data)
+   268
+   269                                               # make a Pandas DataFrame with exploded series
+   270         2        345.0    172.5      0.1      pdf = pd.DataFrame.from_dict(
+   271         1          1.0      1.0      0.0          {
+   272         1        460.0    460.0      0.1              "filter": df_tmp["filters"].replace({1: "ztfg", 2: "ztfr"}),
+   273         1          1.0      1.0      0.0              "flux": flux,
+   274         1          1.0      1.0      0.0              "flux_error": error,
+   275         1         31.0     31.0      0.0              "mjd": df_tmp["mjd"],
+   276         1         27.0     27.0      0.0              "object_id": df_tmp["object_id"],
+   277                                                   }
+   278                                               )
+   279
+   280         1        401.0    401.0      0.1      pdf = pdf.filter(["object_id", "mjd", "flux", "flux_error", "filter"])
+   281                                               # pdf = pdf.dropna()
+   282                                               # pdf = pdf.reset_index()
+   283
+   284         1          2.0      2.0      0.0      if not isinstance(candid, list):
+   285         1          1.0      1.0      0.0          object_list = [candid]
+   286         2      24237.0  12118.5      6.4      df_gp_mean = generate_gp_all_objects(
+   287         1          1.0      1.0      0.0          object_list, pdf, pb_wavelengths=ZTF_PB_WAVELENGTHS
+   288                                               )
+   289
+   290         1          5.0      5.0      0.0      cols = set(list(ZTF_PB_WAVELENGTHS.keys())) & set(df_gp_mean.columns)
+   291         1     136091.0 136091.0     35.7      robust_scale(df_gp_mean, cols)
+   292         1      11323.0  11323.0      3.0      X = df_gp_mean[cols]
+   293         1         23.0     23.0      0.0      X = np.asarray(X).astype("float32")
+   294         1         15.0     15.0      0.0      X = np.expand_dims(X, axis=0)
+   295
+   296                                               # y_preds = model.predict(X)
+   297         2     203884.0 101942.0     53.5      y_preds = model(
+   298         1          1.0      1.0      0.0          X
+   299                                               )  # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True) --> t2-mwe-ztf-compressed-model-nopredict.lnprofile
+   300
+   301         1          1.0      1.0      0.0      class_names = [
+   302         1          2.0      2.0      0.0          "mu-Lens-Single",
+   303         1          1.0      1.0      0.0          "TDE",
+   304         1          1.0      1.0      0.0          "EB",
+   305         1          1.0      1.0      0.0          "SNII",
+   306         1          1.0      1.0      0.0          "SNIax",
+   307         1          1.0      1.0      0.0          "Mira",
+   308         1          1.0      1.0      0.0          "SNIbc",
+   309         1          1.0      1.0      0.0          "KN",
+   310         1          1.0      1.0      0.0          "M-dwarf",
+   311         1          1.0      1.0      0.0          "SNIa-91bg",
+   312         1          1.0      1.0      0.0          "AGN",
+   313         1          1.0      1.0      0.0          "SNIa",
+   314         1          1.0      1.0      0.0          "RRL",
+   315         1          1.0      1.0      0.0          "SLSN-I",
+   316                                               ]
+   317
+   318         1          1.0      1.0      0.0      keys = class_names
+   319         1        829.0    829.0      0.2      values = y_preds.tolist()
+   320         1          8.0      8.0      0.0      predictions = dict(zip(keys, values[0]))
+   321
+   322         1          1.0      1.0      0.0      if prettyprint is not None:
+   323         1          6.0      6.0      0.0          import json
+   324
+   325         2          5.0      2.5      0.0          print(
+   326         2        106.0     53.0      0.0              json.dumps(
+   327         2         41.0     20.5      0.0                  json.loads(
+   328         1         43.0     43.0      0.0                      json.dumps(predictions), parse_float=lambda x: round(float(x), 3)
+   329                                                           ),
+   330         1          1.0      1.0      0.0                  indent=4,
+   331         1          1.0      1.0      0.0                  sort_keys=True,
+   332                                                       )
+   333                                                   )
+   334
+   335         1          1.0      1.0      0.0      return predictions
+
+
+systemMemory: 32.00 GB
+maxCacheSize: 10.67 GB
+

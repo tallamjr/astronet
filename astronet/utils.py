@@ -17,6 +17,7 @@ from astronet.constants import (
     LSST_FILTER_MAP,
     LSST_PB_WAVELENGTHS,
     PLASTICC_CLASS_MAPPING,
+    SYSTEM,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
@@ -83,16 +84,88 @@ def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
     return logger
 
 
+def tfrecords():
+
+    # x = train_input[0:5000, :, :]
+    # x = tf.convert_to_tensor(x)
+    # x = tf.io.serialize_tensor(x)
+    # x = x.numpy()
+    # x = tf.train.BytesList(value=[x])
+    # x = tf.train.Feature(bytes_list=x)
+
+    # y = y_train[0:5000, :]
+    # y = tf.convert_to_tensor(y)
+    # y = tf.io.serialize_tensor(y)
+    # y = y.numpy()
+    # y = tf.train.BytesList(value=[y])
+    # y = tf.train.Feature(bytes_list=y)
+
+    # xy = tf.train.Features(feature={"x": x, "y": y})
+    # xy = tf.train.Example(features=xy)
+    # xy = xy.SerializeToString()
+
+    # import pdb
+
+    # pdb.set_trace()
+    # pth = "xy.tfrecords"
+
+    # with tf.io.TFRecordWriter(
+    #     pth, options=tf.io.TFRecordOptions(compression_type="ZLIB")
+    # ) as writer:
+    #     writer.write(xy)
+
+    # ds = tf.data.TFRecordDataset(pth, compression_type="ZLIB")
+
+    # def _parse_example(xy):
+    #     ex = tf.io.parse_single_example(
+    #         xy,
+    #         {
+    #             "x": tf.io.FixedLenFeature([], tf.string),
+    #             "y": tf.io.FixedLenFeature([], tf.string),
+    #         },
+    #     )
+    #     # x = tf.io.parse_tensor(ex["x"], tf.double)
+    #     # y = tf.io.parse_tensor(ex["y"], tf.double)
+    #     return ex["x"], ex["y"]
+
+    # ds = ds.map(_parse_example)
+
+    # for xy in ds.take(1):
+    #     print(xy)
+
+    # train_ds = (
+    #     ds.shuffle(1000)
+    #     .batch(BATCH_SIZE, drop_remainder=True)
+    #     .prefetch(tf.data.AUTOTUNE)
+    # )
+    # test_ds = ds.batch(BATCH_SIZE, drop_remainder=True).prefetch(tf.data.AUTOTUNE)
+
+    # def decode_fn(record_bytes):
+    #     return tf.io.parse_single_example(
+    #         # Data
+    #         record_bytes,
+    #         # Schema
+    #         {
+    #             "x": tf.io.FixedLenFeature([], dtype=tf.float32),
+    #             "y": tf.io.FixedLenFeature([], dtype=tf.float32),
+    #         },
+    #     )
+
+    # for batch in tf.data.TFRecordDataset(["example.tfrecords"]).map(decode_fn):
+    #     print("x = {x:.4f},  y = {y:.4f}".format(**batch))
+    pass
+
+
 def find_optimal_batch_size(training_set_length: int) -> int:
     """Determine optimal batch size to use. Ideally leave a large remainder such that the GPU is
     full for most of the time.
     """
 
-    if training_set_length < 10000:
+    if training_set_length < 10000 or SYSTEM == "Darwin":
         batch_size_list = [16, 32, 64]
     else:
-        batch_size_list = [96, 128, 256]
-        # batch_size_list = [512, 1024, 2028, 4096]
+        # batch_size_list = [96, 128, 256]
+        batch_size_list = [2048, 4096]
     ratios = []
     for batch_size in batch_size_list:
 
@@ -1272,16 +1345,16 @@ def load_full_plasticc_test_from_numpy(timesteps=100, redshift=None):
 
     try:
         X_full_test_no_99 = np.load(
-            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
+            f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy",
             # mmap_mode='r'
         )
 
         y_full_test_no_99 = np.load(
-            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
+            f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy",
         )
 
         Z_full_test_no_99 = np.load(
-            f"{asnwd}/data/plasticc/test_set/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
+            f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy",
         )
 
     except IOError:

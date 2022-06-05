@@ -2,18 +2,75 @@ import math
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_model_optimization as tfmot
 from tensorflow import keras
 from tensorflow.keras import layers
 
 from astronet.t2.attention import MultiHeadSelfAttention
 
 
-class ConvEmbedding(layers.Layer):
+class ClusterableWeightsCA(tfmot.clustering.keras.ClusteringAlgorithm):
+    """This class provides a special lookup function for the the weights 'w'.
+    It reshapes and tile centroids the same way as the weights. This allows us
+    to find pulling indices efficiently.
+    """
+
+    def get_pulling_indices(self, weight):
+        clst_num = self.cluster_centroids.shape[0]
+        tiled_weights = tf.tile(tf.expand_dims(weight, axis=2), [1, 1, clst_num])
+        tiled_cluster_centroids = tf.tile(
+            tf.reshape(self.cluster_centroids, [1, 1, clst_num]),
+            [weight.shape[0], weight.shape[1], 1],
+        )
+
+        # We find the nearest cluster centroids and store them so that ops can build
+        # their kernels upon it
+        pulling_indices = tf.argmin(
+            tf.abs(tiled_weights - tiled_cluster_centroids), axis=2
+        )
+
+        return pulling_indices
+
+
+class PrunableClusterableLayer(
+    tf.keras.layers.Layer,
+    tfmot.sparsity.keras.PrunableLayer,
+    tfmot.clustering.keras.ClusterableLayer,
+):
+    def get_prunable_weights(self):
+        # Prune bias also, though that usually harms model accuracy too much.
+        return [("kernel", self.kernel)]
+
+    def get_clusterable_weights(self):
+        # Cluster kernel and bias. This is just an example, clustering
+        # bias usually hurts model accuracy.
+        return [("kernel", self.kernel), ("bias", self.bias)]
+
+    def get_clusterable_algorithm(self, weight_name):
+        """Returns clustering algorithm for the custom weights 'w'."""
+        if weight_name == "kernel":
+            return ClusterableWeightsCA
+        else:
+            # We don't cluster other weights.
+            return None
+
+
+class ConvEmbedding(PrunableClusterableLayer):
     def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
+        self.num_filters = num_filters
         self.conv1d = layers.Conv1D(
             filters=num_filters, kernel_size=1, activation="relu"
         )
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "num_filters": self.num_filters,
+            }
+        )
+        return config
 
     def call(self, inputs):
         embedding = self.conv1d(inputs)
@@ -21,9 +78,12 @@ class ConvEmbedding(layers.Layer):
         return embedding
 
 
-class PositionalEncoding(keras.layers.Layer):
+class PositionalEncoding(PrunableClusterableLayer):
     def __init__(self, max_steps, max_dims, dtype=tf.float32, **kwargs):
         super(PositionalEncoding, self).__init__(dtype=dtype, **kwargs)
+        self.max_steps = max_steps
+        self.max_dims = max_dims
+
         if max_dims % 2 == 1:
             max_dims += 1  # max_dims must be even
         p, i = np.meshgrid(np.arange(max_steps), np.arange(max_dims // 2))
@@ -31,6 +91,16 @@ class PositionalEncoding(keras.layers.Layer):
         pos_emb[0, :, ::2] = np.sin(p / 10000 ** (2 * i / max_dims)).T
         pos_emb[0, :, 1::2] = np.cos(p / 10000 ** (2 * i / max_dims)).T
         self.positional_embedding = tf.constant(pos_emb.astype(self.dtype))
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "max_steps": self.max_steps,
+                "max_dims": self.max_dims,
+            }
+        )
+        return config
 
     def call(self, inputs):
         shape = tf.shape(inputs)
@@ -96,10 +166,14 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
         return inputs + position_embeddings
 
 
-class TransformerBlock(layers.Layer):
+class TransformerBlock(PrunableClusterableLayer):
     # TODO: Update docstrings
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super(TransformerBlock, self).__init__()
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.ff_dim = ff_dim
+
         self.att = MultiHeadSelfAttention(embed_dim, num_heads)
         self.ffn = keras.Sequential(
             [
@@ -111,6 +185,17 @@ class TransformerBlock(layers.Layer):
         self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
         self.dropout1 = layers.Dropout(rate)
         self.dropout2 = layers.Dropout(rate)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "embed_dim": self.embed_dim,
+                "num_heads": self.num_heads,
+                "ff_dim": self.ff_dim,
+            }
+        )
+        return config
 
     def call(self, inputs, training):
 
