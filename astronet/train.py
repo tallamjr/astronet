@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -26,12 +27,11 @@ from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
 )
+from astronet.fetch_models import fetch_model
 from astronet.metrics import (
     DistributedWeightedLogLoss,
     WeightedLogLoss,
 )
-from astronet.t2.funcmodel import build_model
-from astronet.t2.model import T2Model
 from astronet.utils import (
     astronet_logger,
     find_optimal_batch_size,
@@ -40,12 +40,12 @@ from astronet.utils import (
 
 try:
     log = astronet_logger(__file__)
-    log.info("=" * shutil.get_terminal_size((80, 20))[0])
+    log.info("\n" + "=" * (shutil.get_terminal_size((80, 20))[0]))
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except Exception as e:
     print(f"{e}: Seems you are running from a notebook...")
-    __file__ = f"{Path().resolve().parent}/astronet/t2/train.py"
+    __file__ = f"{Path().resolve().parent}/astronet/train.py"
     log = astronet_logger(__file__)
 
 np.set_printoptions(suppress=True, formatter={"float_kind": "{:0.2f}".format})
@@ -56,15 +56,18 @@ tf.random.set_seed(RANDOM_SEED)
 os.environ["TF_DETERMINISTIC_OPS"] = "1"
 
 
+warnings.filterwarnings("ignore")
+
+
 class Training(object):
     def __init__(
-        self, epochs, dataset, model, redshift, augmented, avocado, testset, fink
+        self, epochs, dataset, model, redshift, architecture, avocado, testset, fink
     ):
+        self.architecture = architecture
         self.epochs = epochs
         self.dataset = dataset
         self.model = model
         self.redshift = redshift
-        self.augmented = augmented
         self.avocado = avocado
         self.testset = testset
         self.fink = fink
@@ -95,82 +98,50 @@ class Training(object):
             )
         ...
         """
-        unixtimestamp = int(time.time())
-        try:
-            label = (
-                subprocess.check_output(["git", "describe", "--always"])
-                .strip()
-                .decode()
-            )
-        except Exception:
-            from astronet import __version__ as current_version
 
-            label = current_version
-        checkpoint_path = f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        csv_logger_file = f"{asnwd}/logs/t2/training-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}.log"
+        def build_label():
+            UNIXTIMESTAMP = int(time.time())
+            try:
+                VERSION = (
+                    subprocess.check_output(["git", "describe", "--always"])
+                    .strip()
+                    .decode()
+                )
+            except Exception:
+                from astronet import __version__ as current_version
+
+                VERSION = current_version
+            JOB_ID = os.environ.get("JOB_ID")
+            LABEL = f"{UNIXTIMESTAMP}-{JOB_ID}-{VERSION}"
+
+            return LABEL
+
+        LABEL = build_label()
+        checkpoint_path = (
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
+        )
+        csv_logger_file = f"{asnwd}/logs/{self.architecture}/training-{LABEL}.log"
 
         if self.redshift is not None:
             X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
                 dataset=self.dataset,
                 redshift=self.redshift,
-                augmented=self.augmented,
-                avocado=self.avocado,
                 testset=self.testset,
             )
-            hyper_results_file = (
-                f"{asnwd}/astronet/t2/opt/runs/{self.dataset}/results_with_z.json"
-            )
-            num_aux_feats = ZX_train.shape[1]
+            hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
         else:
             X_train, y_train, X_test, y_test, loss = load_dataset(
                 dataset,
-                augmented=self.augmented,
-                avocado=self.avocado,
                 testset=self.testset,
                 fink=self.fink,
             )
-            hyper_results_file = f"{asnwd}/astronet/t2/opt/runs/{dataset}/results.json"
-            num_aux_feats = 0
+            hyper_results_file = (
+                f"{asnwd}/astronet/{self.architecture}/opt/runs/{dataset}/results.json"
+            )
 
         num_classes = y_train.shape[1]
 
         log.info(f"{X_train.shape, y_train.shape}")
-
-        with open(hyper_results_file) as f:
-            events = json.load(f)
-            if self.model is not None:
-                # Get params for model chosen with cli args
-                event = next(
-                    item
-                    for item in events["optuna_result"]
-                    if item["name"] == self.model
-                )
-            #            elif self.balance is not None:
-            #                event = min(
-            #                    (item for item in events["optuna_result"] if item["balanced_classes"] is not None),
-            #                    key=lambda ev: ev["objective_score"],
-            #                )
-            else:
-                # event = min(
-                #     (item for item in events["optuna_result"] if item["balanced_classes"] is None),
-                #     key=lambda ev: ev["objective_score"],
-                # )
-                event = min(
-                    events["optuna_result"], key=lambda ev: ev["objective_score"]
-                )
-
-        embed_dim = event["embed_dim"]  # --> Embedding size for each token
-        num_heads = event["num_heads"]  # --> Number of attention heads
-        ff_dim = event[
-            "ff_dim"
-        ]  # --> Hidden layer size in feed forward network inside transformer
-
-        # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-        num_filters = embed_dim
-
-        num_layers = event["num_layers"]  # --> N x repeated transformer blocks
-        droprate = event["droprate"]  # --> Rate of neurons to drop
-        # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
 
         (
             num_samples,
@@ -182,14 +153,8 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         log.info(f"input_shape:{input_shape}")
 
-        VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
-        log.info(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
+        def get_compiled_model_and_data(loss, hyper_results_file):
 
-        def get_compiled_model_and_data(loss):
-
-            # input_shapes = (
-            #     [input_shape, ZX_train.shape] if self.redshift is not None else input_shape
-            # )
             if self.redshift is not None:
                 input_shapes = [input_shape, ZX_train.shape]
                 # model.build_graph(input_shapes)
@@ -215,12 +180,6 @@ class Training(object):
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
-                # if avocado is not None:
-                # Generate random boolean mask the length of data
-                # use p 0.90 for False and 0.10 for True, i.e down-sample by 90%
-                # mask = np.random.choice([False, True], len(X_test), p=[0.90, 0.10])
-                # test_input = [X_test[mask], ZX_test[mask]]
-                # y_test = y_test[mask]
             else:
                 # model.build_graph(input_shape)
                 input_shapes = input_shape
@@ -243,33 +202,27 @@ class Training(object):
                 train_ds = train_ds.take(3)
                 test_ds = test_ds.take(3)
 
-            model = build_model(
-                input_shapes,
-                input_dim=input_shape,
-                embed_dim=embed_dim,
-                num_heads=num_heads,
-                ff_dim=ff_dim,
-                num_filters=num_filters,
+            model, event = fetch_model(
+                model=self.model,
+                hyper_results_file=hyper_results_file,
+                input_shapes=input_shapes,
+                architecture=self.architecture,
                 num_classes=num_classes,
-                num_layers=num_layers,
-                droprate=droprate,
-                num_aux_feats=num_aux_feats,
-                add_aux_feats_to="L",
-                # Either add features to M dimension or L dimension. Adding to L allows for
-                # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-                # fc_neurons=fc_neurons,
             )
 
             # We compile our model with a sampled learning rate and any custom metrics
-            # lr = event["lr"]
+            learning_rate = event["lr"]
             model.compile(
                 loss=loss,
-                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                optimizer=optimizers.Adam(learning_rate=learning_rate, clipnorm=1),
                 metrics=["acc"],
                 run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
             )
 
-            return model, train_ds, test_ds
+            return model, train_ds, test_ds, event
+
+        VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
+        log.info(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
 
         if len(tf.config.list_physical_devices("GPU")) > 1:
             # Create a MirroredStrategy.
@@ -293,9 +246,13 @@ class Training(object):
 
                 # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
                 # original model. TODO: Include flag for choosing between the two, following run with FINK
-                model, train_ds, test_ds = get_compiled_model_and_data(loss)
+                model, train_ds, test_ds, event = get_compiled_model_and_data(
+                    loss, hyper_results_file
+                )
         else:
-            model, train_ds, test_ds = get_compiled_model_and_data(loss)
+            model, train_ds, test_ds, event = get_compiled_model_and_data(
+                loss, hyper_results_file
+            )
 
         time_callback = TimeHistoryCallback()
 
@@ -344,13 +301,6 @@ class Training(object):
 
         model.summary(print_fn=logging.info)
 
-        model.save(
-            f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        )
-        model.save_weights(
-            f"{asnwd}/astronet/t2/models/{self.dataset}/weights-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
-        )
-
         log.info(f"PER EPOCH TIMING: {time_callback.times}")
         log.info(f"AVERAGE EPOCH TIMING: {np.array(time_callback.times).mean()}")
 
@@ -370,7 +320,6 @@ class Training(object):
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
-        # wloss = WeightedLogLoss()
         y_test_ds = (
             tf.data.Dataset.from_tensor_slices(y_test)
             .batch(BATCH_SIZE, drop_remainder=True)
@@ -383,15 +332,18 @@ class Training(object):
         y_preds = model.predict(test_ds)
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
-        # y_preds = y_preds[0] if len(tf.config.list_physical_devices("GPU")) > 1 else y_preds
-        # log.info(f"{y_preds.shape}, {type(y_preds)}")
 
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
-        # (Pdb) x = np.concatenate([x for x, y in test_ds], axis=0)
-        # (Pdb) x.shape
-        # (868352, 100, 2)
-        # y = np.concatenate([y for x, y in ds], axis=0)
-        log.info(f"LL-Test Model Predictions: {loss(y_test_np, y_preds).numpy():.8f}")
+        WLOSS = loss(y_test_np, y_preds).numpy()
+        log.info(f"LL-Test Model Predictions: {WLOSS:.8f}")
+
+        LABEL += f"-LL{WLOSS:.3f}"  # Append loss to label str, LABEL = UNIXTIMESTAMP + JOB_ID + VERSION
+        model.save(
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
+        )
+        model.save_weights(
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/weights-{LABEL}"
+        )
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
@@ -405,7 +357,7 @@ class Training(object):
             log.info(f"EVALUATE VALIDATION_BATCH_SIZE : {batch_size}")
 
         model_params = {}
-        model_params["name"] = f"{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}"
+        model_params["name"] = f"{LABEL}"
         model_params["hypername"] = event["name"]
         model_params["embed_dim"] = event["embed_dim"]
         model_params["ff_dim"] = event["ff_dim"]
@@ -414,7 +366,6 @@ class Training(object):
         model_params["droprate"] = event["droprate"]
         # model_params['fc_neurons'] = event['fc_neurons']
         model_params["z-redshift"] = self.redshift
-        model_params["augmented"] = self.augmented
         model_params["avocado"] = self.avocado
         model_params["testset"] = self.testset
         model_params["fink"] = self.fink
@@ -445,13 +396,9 @@ class Training(object):
         del model_params["lr"]
 
         if self.redshift is not None:
-            train_results_file = (
-                f"{asnwd}/astronet/t2/models/{self.dataset}/results_with_z.json"
-            )
+            train_results_file = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
         else:
-            train_results_file = (
-                f"{asnwd}/astronet/t2/models/{self.dataset}/results.json"
-            )
+            train_results_file = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results.json"
 
         with open(train_results_file) as jf:
             data = json.load(jf)
@@ -491,9 +438,10 @@ class Training(object):
                 tfmot.sparsity.keras.UpdatePruningStep(),
             ]
 
+            learning_rate = event["lr"]
             model_for_pruning.compile(
                 loss=loss,
-                optimizer=optimizers.Adam(lr=event["lr"], clipnorm=1),
+                optimizer=optimizers.Adam(learning_rate=learning_rate, clipnorm=1),
                 metrics=["acc"],
                 run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
             )
@@ -505,13 +453,13 @@ class Training(object):
             )
 
             model_for_pruning.save(
-                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-PRUNED",
+                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-PRUNED",
                 include_optimizer=True,
             )
 
             model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
             model_for_export.save(
-                f"{asnwd}/astronet/t2/models/{self.dataset}/model-{os.environ.get('JOB_ID')}-{unixtimestamp}-{label}-EXPORT",
+                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-EXPORT",
                 include_optimizer=True,
             )
 
@@ -519,6 +467,10 @@ class Training(object):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Process named model")
+
+    parser.add_argument(
+        "-a", "--architecture", default="tinho", help="Which architecture to train on"
+    )
 
     parser.add_argument(
         "-d",
@@ -543,10 +495,6 @@ if __name__ == "__main__":
         "--redshift",
         default=None,
         help="Whether to include redshift features or not",
-    )
-
-    parser.add_argument(
-        "-a", "--augment", default=None, help="Train using augmented plasticc data"
     )
 
     parser.add_argument(
@@ -577,13 +525,10 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(0)
 
+    architecture = args.architecture
     dataset = args.dataset
     EPOCHS = int(args.epochs)
     model = args.model
-
-    augmented = args.augment
-    if augmented is not None:
-        augmented = True
 
     avocado = args.avocado
     if avocado is not None:
@@ -603,10 +548,10 @@ if __name__ == "__main__":
 
     training = Training(
         epochs=EPOCHS,
+        architecture=architecture,
         dataset=dataset,
         model=model,
         redshift=redshift,
-        augmented=augmented,
         avocado=avocado,
         testset=testset,
         fink=fink,

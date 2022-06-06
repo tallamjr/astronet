@@ -24,63 +24,64 @@ python -c "import tensorflow as tf; print(tf.__version__);"
 python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
 
 operation=$1 # i.e. {train, hyper}
-
 # Architecture
-## Current options: {t2, atx}
+## Current options: {tinho, t2, atx}
 architecture=$2
 echo "Running $1 using $architecture architecture"
 
 dataset="plasticc"
 
-if [ $architecture == "atx" ]; then
-    if [ $operation == "hyper" ]; then
-        # Hyperparameter Optimisation
-        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
-            --dataset $dataset \
-            --epochs 40 \
-            --num-trials 5 \
-            --testset "" \
-            --fink ""
-            # --redshift "" # With or without redshift. Remove argument if without
-    elif [ $operation == "train" ]; then
-        # Train
-        model="scaledown-by-4"  # atx main model
-        python $ASNWD/astronet/$architecture/train.py \
-            --dataset $dataset \
-            --epochs 400 \
-            --model $model \
-            --testset "" \
-            --fink ""
-            # --redshift "" # With or without redshift. Remove argument if without
-    else
-        echo "Please provide an argument for $operation"
-    fi
-elif [ $architecture == "t2" ]; then
-    if [ $operation == "hyper" ]; then
-        # Hyperparameter Optimisation
-        python $ASNWD/astronet/$architecture/opt/hypertrain.py \
-            --dataset $dataset \
-            --epochs 40 \
-            --num-trials 5 \
-            --testset "" \
-            --fink ""
-            # --redshift "" # With or without redshift. Remove argument if without
-    elif [ $operation == "train" ]; then
-        # Train
-        model="1613517996-0a72904" # t2 main model, all passbands
-        # model="1613517996-0a72904" # t2 fink model, g & r bands only, no z
-        python $ASNWD/astronet/$architecture/train.py \
-            --dataset $dataset \
-            --epochs 1 \
-            --model $model \
-            --testset "" \
-            --fink ""
-            # --redshift "" # With or without redshift. Remove argument if without
-    else
-        echo "Please provide an argument for $operation"
-    fi
+# if [ $architecture == "atx" ]; then
+#     if [ $operation == "hyper" ]; then
+#         # Hyperparameter Optimisation
+#         python $ASNWD/astronet/$architecture/opt/hypertrain.py \
+#             --dataset $dataset \
+#             --epochs 40 \
+#             --num-trials 5 \
+#             --testset "" \
+#             --fink ""
+#             # --redshift "" # With or without redshift. Remove argument if without
+#     elif [ $operation == "train" ]; then
+#         # Train
+#         model="scaledown-by-4"  # atx main model
+#         python $ASNWD/astronet/$architecture/train.py \
+#             --dataset $dataset \
+#             --epochs 400 \
+#             --model $model \
+#             --testset "" \
+#             --fink ""
+#             # --redshift "" # With or without redshift. Remove argument if without
+#     else
+#         echo "Please provide an argument for $operation"
+#     fi
+if [ $operation == "hyper" ]; then
+    # Hyperparameter Optimisation
+    python $ASNWD/astronet/$architecture/opt/hypertrain.py \
+        --architecture $architecture \
+        --dataset $dataset \
+        --epochs 40 \
+        --num-trials 5 \
+        --testset "" \
+        --fink ""
+        # --redshift "" # With or without redshift. Remove argument if without
+elif [ $operation == "train" ]; then
+    # Train
+    case "$architecture" in
+     "atx") model="scaledown-by-4" ;;
+     *) model="1613517996-0a72904" ;; # t2 and tinho use same starting hyperparameters
+    esac
+    # model="1613517996-0a72904" # t2 main model, all passbands
+    # model="1613517996-0a72904" # t2 fink model, g & r bands only, no z
+    python $ASNWD/astronet/train.py \
+        --architecture $architecture \
+        --dataset $dataset \
+        --epochs 1 \
+        --model $model \
+        --testset "" \
+        --fink ""
+        # --redshift "" # With or without redshift. Remove argument if without
 else
-    echo "Please provide an argument for $architecture"
+    echo "Please provide an argument for $operation"
 fi
 date
 duration=$SECONDS
