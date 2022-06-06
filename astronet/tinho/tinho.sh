@@ -30,7 +30,7 @@ else
     # model="9901958-1652622376-0.5.1.dev11+g733e01d"    # tinho
 fi
 
-python $ASNWD/astronet/t2/tinho.py \
+python $ASNWD/astronet/t2/compress.py \
     --architecture $architecture \
     --dataset $dataset \
     --model $model \

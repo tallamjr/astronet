@@ -3,7 +3,6 @@ import pytest
 import tensorflow as tf
 import tensorflow.keras.backend as K
 
-from astronet.t2.funcmodel import build_model
 from astronet.t2.model import T2Model
 
 
@@ -82,8 +81,7 @@ def test_model_size(
     num_filters = embed_dim
 
     input_shape = (None, 100, 6)
-    model = build_model(
-        input_shapes=input_shape,
+    model = T2Model(
         input_dim=input_shape,
         embed_dim=embed_dim,
         num_heads=num_heads,
