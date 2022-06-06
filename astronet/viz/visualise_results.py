@@ -180,6 +180,96 @@ def plot_confusion_matrix(
     return fig
 
 
+def plot_confusion_matrix_against_baseline(
+    architecture,
+    dataset,
+    model_name,
+    test_ds,
+    y_test,
+    y_preds,
+    encoding,
+    class_names,
+    cmap=None,
+    save=True,
+):
+    # TODO: Update docstrings
+
+    np.set_printoptions(formatter={"all": lambda x: "{:+}".format(x)})
+    # https://stackoverflow.com/a/21132866/4521950
+    baseline = f"{asnwd}/astronet/{architecture}/models/{dataset}/tinho/clustered_stripped_fink_model"
+
+    baseline_model = keras.models.load_model(
+        baseline,
+        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        compile=False,
+    )
+
+    y_true = encoding.inverse_transform(y_test)
+    y_pred = encoding.inverse_transform(y_preds)
+
+    baseline_y_preds = baseline_model.predict(test_ds, verbose=2)
+    baseline_y_pred = encoding.inverse_transform(baseline_y_preds)
+
+    sns.set(style="whitegrid", palette="muted", font_scale=1.5)
+
+    cm = confusion_matrix(y_true, y_pred)
+    cm = cm / np.sum(cm, axis=1, keepdims=1)
+
+    cmb = confusion_matrix(y_true, baseline_y_pred)
+    cmb = cmb / np.sum(cmb, axis=1, keepdims=1)
+
+    fig, ax = plt.subplots(figsize=(14, 10))
+    ax = sns.heatmap(
+        np.subtract(cmb, cm),
+        annot=True,
+        # fmt="d",
+        fmt=".2f",
+        # cmap=sns.diverging_palette(220, 20, n=7),
+        cmap=cmap,
+        cbar=True,
+        ax=ax,
+    )
+
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
+
+    if dataset == "plasticc":
+        wloss = WeightedLogLoss()
+        wloss = wloss(y_test, y_preds).numpy()
+        plt.title(f"Test Set Confusion Matrix, Log Loss = {wloss:.3f}")
+    else:
+        plt.title(f"Test Set Confusion Matrix -- {dataset}")
+
+    ax.set_xticklabels(class_names)
+    ax.set_yticklabels(class_names)
+    plt.setp(
+        ax.xaxis.get_majorticklabels(), rotation=-45, ha="left", rotation_mode="anchor"
+    )
+    plt.setp(
+        ax.yaxis.get_majorticklabels(),
+        rotation="horizontal",
+        ha="right",
+        rotation_mode="anchor",
+    )
+    plt.tight_layout()
+    if save:
+        try:
+            os.makedirs(
+                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
+                exist_ok=True,
+            )
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-cm-{model_name}-CMB.pdf"
+        except Exception:
+            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-cm-{model_name}-CMB.pdf"
+        plt.savefig(fname, format="pdf")
+        plt.clf()
+    else:
+        print(model_name)
+        plt.show()
+
+    return fig
+
+
 def plot_multiROC(
     architecture,
     dataset,

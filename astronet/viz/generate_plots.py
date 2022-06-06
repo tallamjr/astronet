@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import tensorflow as tf
+import tensorflow_addons as tfa
 from pandas.core.common import flatten
 from tensorflow import keras
 
@@ -26,6 +27,7 @@ from astronet.utils import (
 from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
+    plot_confusion_matrix_against_baseline,
     plot_loss_history,
     plot_multiPR,
     plot_multiROC,
@@ -33,7 +35,7 @@ from astronet.viz.visualise_results import (
 
 try:
     log = astronet_logger(__file__)
-    log.info("=" * shutil.get_terminal_size((80, 20))[0])
+    log.info("\n" + "=" * (shutil.get_terminal_size((80, 20))[0]))
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except Exception as e:
@@ -161,10 +163,13 @@ class Plots(object):
         wloss = WeightedLogLoss()
 
         if LOCAL_DEBUG is not None:
+            log.info("LOCAL_DEBUG set, reducing dataset size...")
             test_ds = test_ds.take(300)
             y_test_ds = y_test_ds.take(300)
 
-        y_preds = model.predict(test_ds)
+        # initialize tqdm callback with default parameters
+        tqdm_callback = tfa.callbacks.TQDMProgressBar()
+        y_preds = model.predict(test_ds, callbacks=[tqdm_callback], verbose=2)
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
 
         loss = wloss(y_test_np, y_preds).numpy()
@@ -188,6 +193,21 @@ class Plots(object):
             cmap=cmap,
         )
         log.info("CM DONE...")
+
+        # cmap = sns.light_palette("purple", as_cmap=True)
+        # plot_confusion_matrix_against_baseline(
+        #     self.architecture,
+        #     self.dataset,
+        #     self.model_name,
+        #     test_ds,
+        #     y_test_np,
+        #     y_preds,
+        #     encoding,
+        #     class_names,  # enc.categories_[0]
+        #     save=self.savefigs,
+        #     cmap=cmap,
+        # )
+        # log.info("CMB DONE...")
 
         plot_acc_history(
             self.architecture, self.dataset, self.model_name, event, save=self.savefigs
