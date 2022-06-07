@@ -79,8 +79,8 @@ class TestInference:
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
         (
-            ("atx", "plasticc", "206145-1644662345-0.3.1.dev36+gfd02ace"),
-            ("t2", "plasticc", "1619802068-0.1.dev779+ga930d1d"),
+            # TODO: ("atx", "plasticc", "XXX"), --> Missing model ID. Need to reproduce 0.929 result
+            ("t2", "plasticc", "UGRIZY-noZ-1619802068-0.1.dev779+ga930d1d-LL0.873"),
         ),
     )
     def test_inference_UGRIZY_noZ(
@@ -137,6 +137,8 @@ class TestInference:
 
         if architecture == "atx":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.969, 0.01)
+        if architecture == "t2":
+            assert wloss(y_test, y_preds).numpy() == pytest.approx(0.968, 0.01)
         if architecture == "tinho":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.836, 0.01)
 
