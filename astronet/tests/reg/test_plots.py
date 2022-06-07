@@ -29,7 +29,7 @@ tf.random.set_seed(RANDOM_SEED)
 # in a well-defined state.
 python_random.seed(RANDOM_SEED)
 
-hashlib = (f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json",)
+hashlib = f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json"
 
 
 @pytest.mark.parametrize(
