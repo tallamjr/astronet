@@ -86,11 +86,15 @@ class TestInference:
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
         (
-            ("tinho", "plasticc", "clustered_stripped_fink_model.tflite"),
+            (
+                "tinho",
+                "plasticc",
+                "model-GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
+            ),
             (
                 "tinho-quantized",
                 "plasticc",
-                "clustered_stripped_fink_model_quantized.tflite",
+                "quantized-model-GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
             ),
         ),
     )
@@ -109,9 +113,9 @@ class TestInference:
         y_preds = model.predict(x_test)
 
         if architecture == "tinho":
-            assert wloss(y_test, y_preds).numpy() == pytest.approx(0.95, 0.01)
+            assert wloss(y_test, y_preds).numpy() < np.array(0.95)
         if architecture == "tinho-quantized":
-            assert wloss(y_test, y_preds).numpy() == pytest.approx(0.94, 0.01)
+            assert wloss(y_test, y_preds).numpy() < np.array(0.94)
 
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
