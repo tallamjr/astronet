@@ -118,7 +118,11 @@ class TestInference:
                 "plasticc",
                 "GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
             ),
-            ("tinho", "plasticc", "GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836"),
+            (
+                "tinho",
+                "plasticc",
+                "GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
+            ),
         ),
     )
     def test_inference_GR_noZ(self, architecture, dataset, model_name, fixt_GR_noZ):
