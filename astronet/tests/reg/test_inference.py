@@ -32,12 +32,16 @@ class TestInference:
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
         (
-            ("atx", "plasticc", "9887359-1641295475-0.1.dev943+gc9bafac.d20220104"),
+            (
+                "atx",
+                "plasticc",
+                "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
+            ),
             ("t2", "plasticc", "1619624444-0.1.dev765+g7c90cbb.d20210428"),
             (
                 "tinho",
                 "plasticc",
-                "UGRIZY-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
+                "UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
             ),
         ),
     )
@@ -99,7 +103,14 @@ class TestInference:
 
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
-        (("tinho", "plasticc", "GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836"),),
+        (
+            (
+                "atx",
+                "plasticc",
+                "GR-noZ-206145-1644662345-0.3.1.dev36+gfd02ace-LL0.969",
+            ),
+            ("tinho", "plasticc", "GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836"),
+        ),
     )
     def test_inference_GR_noZ(self, architecture, dataset, model_name, fixtztf):
 
@@ -115,6 +126,8 @@ class TestInference:
         wloss = WeightedLogLoss()
         y_preds = model.predict(test_ds)
 
+        if architecture == "atx":
+            assert wloss(y_test, y_preds).numpy() == pytest.approx(0.969, 0.01)
         if architecture == "tinho":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.836, 0.01)
 
