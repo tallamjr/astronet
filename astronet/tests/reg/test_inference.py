@@ -121,9 +121,9 @@ class TestInference:
             ("tinho", "plasticc", "GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836"),
         ),
     )
-    def test_inference_GR_noZ(self, architecture, dataset, model_name, fixtztf):
+    def test_inference_GR_noZ(self, architecture, dataset, model_name, fixt_GR_noZ):
 
-        test_ds, y_test_ds = fixtztf
+        test_ds, y_test_ds = fixt_GR_noZ
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         model = keras.models.load_model(
@@ -157,9 +157,11 @@ class TestInference:
             ),
         ),
     )
-    def test_inference_GR_noZ_TFLITE(self, architecture, dataset, model_name, fixtztf):
+    def test_inference_GR_noZ_TFLITE(
+        self, architecture, dataset, model_name, fixt_GR_noZ
+    ):
 
-        test_ds, y_test_ds = fixtztf
+        test_ds, y_test_ds = fixt_GR_noZ
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
         x_test = np.concatenate([x for x, y in test_ds], axis=0)
 
