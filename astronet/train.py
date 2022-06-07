@@ -340,6 +340,9 @@ class Training(object):
         LABEL = (
             "GR" + LABEL if self.fink else "UGRIZY" + LABEL
         )  # Append ZTF if trained on ZTF-like data, i.e. only r, g bands
+        LABEL = (
+            LABEL + "-wZ" if self.redshift else LABEL + "-noZ"
+        )  # Append ZTF if trained on ZTF-like data, i.e. only r, g bands
         LABEL += f"-LL{WLOSS:.3f}"  # Append loss to label str, LABEL = UNIXTIMESTAMP + JOB_ID + VERSION
         model.save(
             f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"

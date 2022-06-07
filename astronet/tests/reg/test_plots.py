@@ -30,9 +30,9 @@ tf.random.set_seed(RANDOM_SEED)
 python_random.seed(RANDOM_SEED)
 
 if ISA == "arm64":
-    hashlib = (f"{Path(__file__).absolute().parent}/baseline/hashlib.json",)
-else:
     hashlib = (f"{Path(__file__).absolute().parent}/baseline/m1-hashlib.json",)
+else:
+    hashlib = (f"{Path(__file__).absolute().parent}/baseline/hashlib.json",)
 
 
 @pytest.mark.parametrize(
