@@ -35,8 +35,16 @@ hashlib = (f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json",)
 @pytest.mark.parametrize(
     ("architecture", "dataset", "model_name"),
     (
-        ("atx", "plasticc", "9887359-1641295475-0.1.dev943+gc9bafac.d20220104"),
-        ("t2", "plasticc", "1619624444-0.1.dev765+g7c90cbb.d20210428"),
+        (
+            "atx",
+            "plasticc",
+            "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
+        ),
+        (
+            "t2",
+            "plasticc",
+            "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507",
+        ),
         (
             "tinho",
             "plasticc",
