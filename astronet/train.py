@@ -338,7 +338,7 @@ class Training(object):
         log.info(f"LL-Test Model Predictions: {WLOSS:.8f}")
 
         LABEL = (
-            LABEL + "-ZTF" if self.fink else LABEL
+            "GR" + LABEL if self.fink else "UGRIZY" + LABEL
         )  # Append ZTF if trained on ZTF-like data, i.e. only r, g bands
         LABEL += f"-LL{WLOSS:.3f}"  # Append loss to label str, LABEL = UNIXTIMESTAMP + JOB_ID + VERSION
         model.save(
