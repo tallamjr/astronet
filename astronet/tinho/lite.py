@@ -1,6 +1,8 @@
+import argparse
 import os
 import random
 import subprocess
+import sys
 import warnings
 import zipfile
 from pathlib import Path
@@ -30,7 +32,7 @@ class LiteModel:
         return LiteModel(tf.lite.Interpreter(model_path=model_path))
 
     @classmethod
-    def from_saved_model(cls, model_path, tflite_file_path=None):
+    def from_saved_model(cls, model_path, tflite_file_path=None, quantized=None):
         converter = tf.lite.TFLiteConverter.from_saved_model(model_path)
         converter.target_spec.supported_ops = [
             tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
@@ -38,7 +40,8 @@ class LiteModel:
         ]
         converter.experimental_enable_resource_variables = True
         converter.experimental_new_converter = True
-        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        if quantized is not None:
+            converter.optimizations = [tf.lite.Optimize.DEFAULT]
         tflite_model = converter.convert()
 
         if tflite_file_path is not None:
@@ -110,8 +113,45 @@ def get_clustered_model_to_lite(
     return c2lmodel
 
 
+def convert_clustered_model_to_lite(model_name, quantized=None):
+
+    tflite_file_path = (
+        f"{asnwd}/astronet/tinho/models/plasticc/model-{model_name}.tflite"
+    )
+
+    if quantized is not None:
+        tflite_file_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-{model_name}.tflite"
+
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-{model_name}"
+    c2lmodel = LiteModel.from_saved_model(
+        model_path, tflite_file_path=tflite_file_path, quantized=quantized
+    )
+
+    return c2lmodel
+
+
 if __name__ == "__main__":
 
-    model = get_lite_model()
-    model = get_compressed_lite_model()
-    model = get_clustered_model_to_lite()
+    # model = get_lite_model()
+    # model = get_compressed_lite_model()
+    # model = get_clustered_model_to_lite()
+
+    parser = argparse.ArgumentParser(
+        description="Convert clustered models to tflite FlatBuffers"
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        default=None,
+        help="Model name to convert to lite or load from disk",
+    )
+
+    try:
+        args = parser.parse_args()
+        argsdict = vars(args)
+    except KeyError:
+        parser.print_help()
+        sys.exit(0)
+
+    model = convert_clustered_model_to_lite(model_name=args.model)
+    model = convert_clustered_model_to_lite(model_name=args.model, quantized=True)
