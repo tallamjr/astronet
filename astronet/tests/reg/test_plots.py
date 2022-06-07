@@ -29,10 +29,7 @@ tf.random.set_seed(RANDOM_SEED)
 # in a well-defined state.
 python_random.seed(RANDOM_SEED)
 
-if ISA == "arm64":
-    hashlib = (f"{Path(__file__).absolute().parent}/baseline/m1-hashlib.json",)
-else:
-    hashlib = (f"{Path(__file__).absolute().parent}/baseline/hashlib.json",)
+hashlib = (f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json",)
 
 
 @pytest.mark.parametrize(
@@ -40,15 +37,17 @@ else:
     (
         ("atx", "plasticc", "9887359-1641295475-0.1.dev943+gc9bafac.d20220104"),
         ("t2", "plasticc", "1619624444-0.1.dev765+g7c90cbb.d20210428"),
-        ("t2", "plasticc", "31367-1654360237-0.5.1.dev78+g702e399.d20220604.png"),
+        (
+            "tinho",
+            "plasticc",
+            "UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
+        ),
     ),
 )
 class TestPlots:
     """A class with common parameters, `architecture`, `dataset` and `model_name`."""
 
-    def compute_scores(self, architecture, dataset, model_name, fixt):
-
-        X_test, y_test, Z_test, inputs = fixt
+    def compute_scores(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
         results_filename = (
             f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
@@ -69,16 +68,18 @@ class TestPlots:
                     key=lambda ev: ev["model_evaluate_on_test_loss"],
                 )
 
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
 
+        y_preds = model.predict(test_inputs)
+
         dataform = "testset"
         encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
-
-        y_preds = model.predict([X_test, Z_test])
 
         return (
             event,
@@ -91,11 +92,11 @@ class TestPlots:
     def test_params(self, architecture, dataset, model_name):
         print("\ntest_one", architecture, dataset, model_name)
 
-    def test_fixtures(self, architecture, dataset, model_name, fixt):
-        print("\ntest_one", architecture, dataset, model_name, fixt)
+    def test_fixtures(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+        print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
     def test_succeeds(self, architecture, dataset, model_name):
         fig = plt.figure()
@@ -105,11 +106,11 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
-    def test_acc_history(self, architecture, dataset, model_name, fixt):
+    def test_acc_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-        X_test, y_test, Z_test, inputs = fixt
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
 
         (
             event,
@@ -117,7 +118,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
         fig = plot_acc_history(
             architecture,
@@ -129,11 +130,11 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
-    def test_loss_history(self, architecture, dataset, model_name, fixt):
+    def test_loss_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-        X_test, y_test, Z_test, inputs = fixt
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
 
         (
             event,
@@ -141,7 +142,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
         fig = plot_loss_history(
             architecture,
@@ -153,13 +154,12 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
-    def test_confusion_matrix(self, architecture, dataset, model_name, fixt):
+    def test_confusion_matrix(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-        cmap = sns.light_palette("Navy", as_cmap=True)
-
-        X_test, y_test, Z_test, inputs = fixt
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
             event,
@@ -167,8 +167,9 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
+        cmap = sns.light_palette("Navy", as_cmap=True)
         fig = plot_confusion_matrix(
             architecture,
             dataset,
@@ -183,11 +184,12 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
-    def test_multiROC(self, architecture, dataset, model_name, fixt):
+    def test_multiROC(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-        X_test, y_test, Z_test, inputs = fixt
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
             event,
@@ -195,26 +197,27 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
         fig = plot_multiROC(
             architecture,
             dataset,
             model_name,
             model,
-            inputs,
             y_test,
+            y_preds,
             class_names,
             save=False,
         )
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=f"{Path(__file__).absolute().parent}/baseline/hashlib.json",
+        hash_library=hashlib,
     )
-    def test_multiPR(self, architecture, dataset, model_name, fixt):
+    def test_multiPR(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-        X_test, y_test, Z_test, inputs = fixt
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
             event,
@@ -222,15 +225,15 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt)
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
         fig = plot_multiPR(
             architecture,
             dataset,
             model_name,
             model,
-            inputs,
             y_test,
+            y_preds,
             class_names,
             save=False,
         )
