@@ -113,9 +113,13 @@ class TestInference:
         y_preds = model.predict(x_test)
 
         if architecture == "tinho":
-            assert wloss(y_test, y_preds).numpy() < np.array(0.95)
+            loss = wloss(y_test, y_preds).numpy()
+            print(f"LOSS tinho \t:\n {loss:.3f}")
+            assert loss < np.array(0.95)
         if architecture == "tinho-quantized":
-            assert wloss(y_test, y_preds).numpy() < np.array(0.94)
+            loss = wloss(y_test, y_preds).numpy()
+            print(f"LOSS tinho-quantized \t:\n {loss:.3f}")
+            assert loss < np.array(0.95)
 
     @pytest.mark.parametrize(
         ("architecture", "dataset", "model_name"),
