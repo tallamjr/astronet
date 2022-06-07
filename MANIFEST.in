@@ -6,16 +6,13 @@ prune results
 prune sbin
 prune astronet/atx/models
 prune astronet/t2/models
+prune astronet/tinho/models
 
 recursive-exclude conf *.conf
 recursive-exclude astronet *.json
 recursive-exclude astronet *.pdf
 recursive-exclude astronet *.pkl
 recursive-exclude astronet *.png
-
-recursive-include astronet *.tflite
-recursive-include astronet *.pb
-recursive-include astronet *.index
 
 include *.cff
 include *.txt
@@ -24,11 +21,14 @@ include *.yml
 include data/full-plasticc.encoding
 include pytest.ini
 
-include astronet/t2/tinho.sh
+include astronet/tinho/tinho.sh
 
 graft astronet/atx/models/plasticc/model-9887359-1641295475-0.1.dev943+gc9bafac.d20220104
 graft astronet/t2/models/plasticc/model-1619624444-0.1.dev765+g7c90cbb.d20210428
+graft astronet/tinho/models/plasticc/model-GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836
+graft astronet/tinho/models/plasticc/model-UGRIZY-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450
 
 recursive-include astronet *.py
+recursive-include astronet *.tflite
 
 prune astronet/tests
