@@ -21,7 +21,7 @@ BATCH_SIZE = 64
 
 
 @pytest.fixture
-def fixt_numpy(scope="session"):
+def fixt_UGRIZY_wZ_numpy(scope="session"):
     """This fixture will only be available within the scope of TestPlots"""
     X_test = np.load(
         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
@@ -39,7 +39,7 @@ def fixt_numpy(scope="session"):
 
 
 @pytest.fixture
-def fixt(scope="session"):
+def fixt_UGRIZY_wZ(scope="session"):
     """This fixture will only be available within the scope of TestPlots"""
     X_test = np.load(
         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
@@ -72,11 +72,11 @@ def fixt(scope="session"):
         test_ds = test_ds.take(300)
         y_test_ds = y_test_ds.take(300)
 
-    return test_ds, y_test_ds
+    return test_ds, y_test_ds, test_input
 
 
 @pytest.fixture
-def fixtnoz(scope="session"):
+def fixt_UGRIZY_noZ(scope="session"):
     """This fixture will only be available within the scope of TestPlots"""
     X_test = np.load(
         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
@@ -108,7 +108,7 @@ def fixtnoz(scope="session"):
 
 
 @pytest.fixture
-def fixtztf(scope="session"):
+def fixt_GR_noZ(scope="session"):
     """This fixture will only be available within the scope of TestPlots"""
     X_test = np.load(
         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
