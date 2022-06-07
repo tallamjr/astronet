@@ -10,7 +10,6 @@ from typing import Dict
 
 import numpy as np
 import pandas as pd
-import pyspark.pandas as ps
 import tensorflow as tf
 from fink_client.visualisation import extract_field
 from fink_science.conversion import mag2fluxcal_snana
