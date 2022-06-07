@@ -37,7 +37,11 @@ class TestInference:
                 "plasticc",
                 "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
             ),
-            ("t2", "plasticc", "1619624444-0.1.dev765+g7c90cbb.d20210428"),
+            (
+                "t2",
+                "plasticc",
+                "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507",
+            ),
             (
                 "tinho",
                 "plasticc",
@@ -108,6 +112,11 @@ class TestInference:
                 "atx",
                 "plasticc",
                 "GR-noZ-206145-1644662345-0.3.1.dev36+gfd02ace-LL0.969",
+            ),
+            (
+                "t2",
+                "plasticc",
+                "GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
             ),
             ("tinho", "plasticc", "GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836"),
         ),
