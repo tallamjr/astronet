@@ -9,6 +9,9 @@ from tensorflow import keras
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
 from astronet.tinho.lite import LiteModel
+from astronet.utils import astronet_logger
+
+log = astronet_logger(__file__)
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -114,11 +117,11 @@ class TestInference:
 
         if architecture == "tinho":
             loss = wloss(y_test, y_preds).numpy()
-            print(f"LOSS tinho \t:\n {loss:.3f}")
+            log.info(f"LOSS tinho \t:\n {loss:.3f}")
             assert loss < np.array(0.95)
         if architecture == "tinho-quantized":
             loss = wloss(y_test, y_preds).numpy()
-            print(f"LOSS tinho-quantized \t:\n {loss:.3f}")
+            log.info(f"LOSS tinho-quantized \t:\n {loss:.3f}")
             assert loss < np.array(0.95)
 
     @pytest.mark.parametrize(
