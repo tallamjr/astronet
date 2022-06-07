@@ -6,6 +6,10 @@ astronet/atx/models/*/model*
 astronet/atx/models/*/weights*
 !astronet/atx/models/*/*.json
 
+# Archived models and weights
+archive
+weights
+
 # Data
 data/WISDM_ar_v1.1/*
 !data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt
