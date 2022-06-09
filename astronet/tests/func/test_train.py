@@ -1,238 +1,242 @@
-import os
-import shutil
+import json
+import random as python_random
 from pathlib import Path
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+import seaborn as sns
 import tensorflow as tf
-from tensorflow.keras.backend import clear_session
+from tensorflow import keras
 
-from astronet.t2.model import T2Model
-from astronet.tests.conftest import SKIP_IF_M1
-from astronet.utils import astronet_logger, load_dataset
-
-log = astronet_logger(__file__)
-log.info("=" * shutil.get_terminal_size((80, 20))[0])
-log.info(f"File Path: {Path(__file__).absolute()}")
-log.info(f"Parent of Directory Path: {Path().absolute().parent}")
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.metrics import WeightedLogLoss
+from astronet.tests.conftest import ISA
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
+# The below is necessary for starting core Python generated random numbers
+# in a well-defined state.
+python_random.seed(RANDOM_SEED)
 
-@SKIP_IF_M1
-def test_training_pipeline_wisdm_2010():
-    clear_session()
 
-    # Load WISDM-2010
-    X_train, y_train, X_test, y_test, loss = load_dataset("wisdm_2010")
-
-    num_classes = y_train.shape[1]
-
-    print(X_train.shape, y_train.shape)
-    print(X_test.shape, y_test.shape)
-
-    BATCH_SIZE = 32
-    EPOCHS = 2
-
-    print(type(X_train))
-
-    embed_dim = 32  # --> Embedding size for each token
-    num_heads = 4  # --> Number of attention heads
-    ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
-
-    # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-    num_filters = embed_dim
-
-    num_layers = 1  # --> N x repeated transformer blocks
-    droprate = 0.1  # --> Rate of neurons to drop
-
+@pytest.mark.parametrize(
+    ("architecture", "dataset", "hypername"),
     (
-        _,
-        timesteps,
-        num_features,
-    ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-    input_shape = (BATCH_SIZE, timesteps, num_features)
-    print(input_shape)
+        (
+            "atx",
+            "plasticc",
+            "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
+        ),
+        (
+            "t2",
+            "plasticc",
+            "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507",
+        ),
+        (
+            "tinho",
+            "plasticc",
+            "UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
+        ),
+    ),
+)
+class TestTrain:
+    """A class with common parameters, `architecture`, `dataset` and `model_name`."""
 
-    model = T2Model(
-        input_dim=input_shape,
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        ff_dim=ff_dim,
-        num_filters=num_filters,
-        num_classes=num_classes,
-        num_layers=num_layers,
-        droprate=droprate,
+    def test_train_UGRIZY_wZ(self):
+        pass
+
+    def get_hyperparams_and_data(self, architecture, dataset, hyperrun, fixt_UGRIZY_wZ):
+
+        results_filename = (
+            f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
+        )
+
+        with open(results_filename) as f:
+            events = json.load(f)
+            if model_name is not None:
+                # Get params for model chosen with cli args
+                event = next(
+                    item
+                    for item in events["training_result"]
+                    if item["name"] == model_name
+                )
+            else:
+                event = min(
+                    events["training_result"],
+                    key=lambda ev: ev["model_evaluate_on_test_loss"],
+                )
+
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+
+        model = keras.models.load_model(
+            f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
+        y_preds = model.predict(test_inputs)
+
+        dataform = "testset"
+        encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
+
+        return (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        )
+
+    def test_params(self, architecture, dataset, model_name):
+        print("\ntest_one", architecture, dataset, model_name)
+
+    def test_fixtures(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+        print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
+
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
     )
+    def test_succeeds(self, architecture, dataset, model_name):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        ax.plot([1, 2, 3])
+        print("\ntest_one", architecture, dataset, model_name)
+        return fig
 
-    model.compile(loss=loss, optimizer="adam", metrics=["acc"])
-
-    _ = model.fit(
-        X_train,
-        y_train,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        validation_data=(X_test, y_test),
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
     )
+    def test_acc_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-    model.build_graph(input_shape)
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
 
-    print(model.summary())
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-    print(model.evaluate(X_test, y_test))
+        fig = plot_acc_history(
+            architecture,
+            dataset,
+            model_name,
+            event,
+            save=False,
+        )
+        return fig
 
-    loss, accuracy = model.evaluate(X_test, y_test)
-    expected_output = [0.44523268938064575, 0.7262773513793945]
-    assert accuracy == pytest.approx(expected_output[1], 0.1)
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
+    )
+    def test_loss_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
 
-# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
-# def test_training_pipeline_plasticc():
-#     clear_session()
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-#     # Load WISDM-2010
-#     X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc", snonly=True)
+        fig = plot_loss_history(
+            architecture,
+            dataset,
+            model_name,
+            event,
+            save=False,
+        )
+        return fig
 
-#     num_classes = y_train.shape[1]
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
+    )
+    def test_confusion_matrix(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-#     print(X_train.shape, y_train.shape)
-#     print(X_test.shape, y_test.shape)
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
-#     BATCH_SIZE = 32
-#     EPOCHS = 2
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-#     print(type(X_train))
+        cmap = sns.light_palette("Navy", as_cmap=True)
+        fig = plot_confusion_matrix(
+            architecture,
+            dataset,
+            model_name,
+            y_test,
+            y_preds,
+            encoding,
+            class_names,  # enc.categories_[0]
+            save=False,
+            cmap=cmap,
+        )
+        return fig
 
-#     embed_dim = 32  # --> Embedding size for each token
-#     num_heads = 4  # --> Number of attention heads
-#     ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
+    )
+    def test_multiROC(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-#     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-#     num_filters = embed_dim
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
-#     num_layers = 1  # --> N x repeated transformer blocks
-#     droprate = 0.1  # --> Rate of neurons to drop
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-#     (
-#         _,
-#         timesteps,
-#         num_features,
-#     ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-#     input_shape = (BATCH_SIZE, timesteps, num_features)
-#     print(input_shape)
+        fig = plot_multiROC(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            y_test,
+            y_preds,
+            class_names,
+            save=False,
+        )
+        return fig
 
-#     model = T2Model(
-#         input_dim=input_shape,
-#         embed_dim=embed_dim,
-#         num_heads=num_heads,
-#         ff_dim=ff_dim,
-#         num_filters=num_filters,
-#         num_classes=num_classes,
-#         num_layers=num_layers,
-#         droprate=droprate,
-#     )
+    @pytest.mark.mpl_image_compare(
+        hash_library=hashlib,
+    )
+    def test_multiPR(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
-#     # wloss = WeightedLogLoss()
-#     # wloss = custom_log_loss
+        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
-#     model.compile(
-#         loss=wloss,
-#         optimizer="adam",
-#         metrics=["acc"],
-#         run_eagerly=True,
-#     )
+        (
+            event,
+            encoding,
+            class_names,
+            model,
+            y_preds,
+        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-#     _ = model.fit(
-#         X_train,
-#         y_train,
-#         batch_size=BATCH_SIZE,
-#         epochs=EPOCHS,
-#         validation_data=(X_test, y_test),
-#     )
-
-#     model.build_graph(input_shape)
-
-#     print(model.summary())
-
-#     print(model.evaluate(X_test, y_test))
-
-#     loss, accuracy = model.evaluate(X_test, y_test)
-#     expected_output = [0.44523268938064575, 0.6452905535697937]
-#     assert accuracy == pytest.approx(expected_output[1], 0.1)
-
-
-# @pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
-# def test_training_pipeline_full_plasticc():
-#     clear_session()
-
-#     # Load WISDM-2010
-#     X_train, y_train, X_test, y_test, wloss = load_dataset("plasticc")
-
-#     num_classes = y_train.shape[1]
-
-#     print(X_train.shape, y_train.shape)
-#     print(X_test.shape, y_test.shape)
-
-#     BATCH_SIZE = 32
-#     EPOCHS = 2
-
-#     print(type(X_train))
-
-#     embed_dim = 32  # --> Embedding size for each token
-#     num_heads = 4  # --> Number of attention heads
-#     ff_dim = 32  # --> Hidden layer size in feed forward network inside transformer
-
-#     # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-#     num_filters = embed_dim
-
-#     num_layers = 1  # --> N x repeated transformer blocks
-#     droprate = 0.1  # --> Rate of neurons to drop
-
-#     (
-#         _,
-#         timesteps,
-#         num_features,
-#     ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
-#     input_shape = (BATCH_SIZE, timesteps, num_features)
-#     print(input_shape)
-
-#     model = T2Model(
-#         input_dim=input_shape,
-#         embed_dim=embed_dim,
-#         num_heads=num_heads,
-#         ff_dim=ff_dim,
-#         num_filters=num_filters,
-#         num_classes=num_classes,
-#         num_layers=num_layers,
-#         droprate=droprate,
-#     )
-
-#     # wloss = WeightedLogLoss()
-#     # wloss = custom_log_loss
-
-#     model.compile(
-#         loss=wloss,
-#         optimizer="adam",
-#         metrics=["acc"],
-#         run_eagerly=True,
-#     )
-
-#     _ = model.fit(
-#         X_train,
-#         y_train,
-#         batch_size=BATCH_SIZE,
-#         epochs=EPOCHS,
-#         validation_data=(X_test, y_test),
-#     )
-
-#     model.build_graph(input_shape)
-
-#     print(model.summary())
-
-#     print(model.evaluate(X_test, y_test))
-
-#     loss, accuracy = model.evaluate(X_test, y_test)
-#     expected_output = [0.44523268938064575, 0.6452905535697937]
-#     assert accuracy == pytest.approx(expected_output[1], 0.1)
+        fig = plot_multiPR(
+            architecture,
+            dataset,
+            model_name,
+            model,
+            y_test,
+            y_preds,
+            class_names,
+            save=False,
+        )
+        return fig
