@@ -2,6 +2,7 @@ import json
 import random as python_random
 from pathlib import Path
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -20,6 +21,8 @@ from astronet.viz.visualise_results import (
     plot_multiPR,
     plot_multiROC,
 )
+
+mpl.rcParams["savefig.format"] = "pdf"
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
