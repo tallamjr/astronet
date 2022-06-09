@@ -18,7 +18,7 @@
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
 
-### `astronet.t2.tinho`
+### `astronet.tinho`
 
 ![CM](./astronet/tests/unit/viz/baseline/model-cm-31367-1654360237-0.5.1.dev78+g702e399.d20220604.png)
 

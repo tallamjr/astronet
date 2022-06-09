@@ -61,7 +61,9 @@ addopts = [
     "--mpl",
     "--nbmake",
     "--log-cli-level=INFO",
-    "--numprocesses=4",
+    "--numprocesses=3",
+    "--exitfirst",
+    "-ra",
 ]
 testpaths = [
     "astronet/tests",
