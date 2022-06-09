@@ -2,7 +2,7 @@
 *.html
 
 # atx Models
-astronet/atx/models/*/model*
+# astronet/atx/models/*/model*
 astronet/atx/models/*/weights*
 !astronet/atx/models/*/*.json
 
