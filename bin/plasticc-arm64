@@ -62,8 +62,8 @@ if [ $operation == "hyper" ]; then
         --epochs 40 \
         --num-trials 5 \
         --testset "" \
-        --fink ""
-        # --redshift "" # With or without redshift. Remove argument if without
+        --redshift "" # With or without redshift. Remove argument if without
+        # --fink ""
 elif [ $operation == "train" ]; then
     # Train
     case "$architecture" in
@@ -78,8 +78,8 @@ elif [ $operation == "train" ]; then
         --epochs 1 \
         --model $model \
         --testset "" \
-        --fink ""
-        # --redshift "" # With or without redshift. Remove argument if without
+        --redshift "" # With or without redshift. Remove argument if without
+        # --fink ""
 else
     echo "Please provide an argument for $operation"
 fi
