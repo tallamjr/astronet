@@ -33,6 +33,37 @@ from astronet.preprocess import (
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
+class CustomFormatter(logging.Formatter):
+
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+
+    # Format of the log message to be printed
+    FORMAT = "[%(asctime)s] "
+    FORMAT += "{%(filename)s:%(lineno)d} "
+    FORMAT += "%(levelname)s "
+    FORMAT += "- %(message)s"
+
+    FORMATS = {
+        logging.DEBUG: grey + FORMAT + reset,
+        logging.INFO: grey + FORMAT + reset,
+        logging.WARNING: yellow + FORMAT + reset,
+        logging.ERROR: red + FORMAT + reset,
+        logging.CRITICAL: bold_red + FORMAT + reset,
+    }
+
+    def format(self, record):
+        # Date format
+        DATEFORMAT = "%y-%m-%d %H:%M:%S"
+
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt, datefmt=DATEFORMAT)
+        return formatter.format(record)
+
+
 def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
     """Initialise python logger.
 
@@ -63,18 +94,8 @@ def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
     ch = logging.StreamHandler()
     ch.setLevel(level)
 
-    # Create formatter
-    # Format of the log message to be printed
-    FORMAT = "[%(asctime)s] "
-    FORMAT += "{%(filename)s:%(lineno)d} "
-    FORMAT += "%(levelname)s "
-    FORMAT += "- %(message)s"
-    # Date format
-    DATEFORMAT = "%y-%m-%d %H:%M:%S"
-
-    formatter = logging.Formatter(fmt=FORMAT, datefmt=DATEFORMAT)
     # Add formatter to ch
-    ch.setFormatter(formatter)
+    ch.setFormatter(CustomFormatter())
     # Add ch to logger
     logger.addHandler(ch)
     # Do not pass logs to ancestor logger as well, i.e. print once:
