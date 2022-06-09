@@ -1,4 +1,4 @@
-tensorflow>2.8.0; sys_platform == "linux"
+tensorflow>=2.8.0; sys_platform == "linux"
 tensorflow-macos==2.8.0; sys_platform == "darwin"
 tensorflow-metal; sys_platform == "darwin"
 tensorflow-model-optimization>=0.7.2
