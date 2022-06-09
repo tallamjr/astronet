@@ -1,6 +1,8 @@
 # Notebook renders
 *.html
 
+checkpoints/
+
 # atx Models
 # astronet/atx/models/*/model*
 astronet/atx/models/*/weights*
