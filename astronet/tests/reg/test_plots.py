@@ -107,7 +107,7 @@ class TestPlots:
         print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_succeeds(self, architecture, dataset, model_name):
         fig = plt.figure()
@@ -117,7 +117,7 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_acc_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
@@ -141,7 +141,7 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_loss_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
@@ -165,7 +165,7 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_confusion_matrix(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
@@ -195,7 +195,7 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_multiROC(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
@@ -223,7 +223,7 @@ class TestPlots:
         return fig
 
     @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
+        # hash_library=hashlib,
     )
     def test_multiPR(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
 
