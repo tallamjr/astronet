@@ -106,9 +106,6 @@ class TestPlots:
     def test_fixtures(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
         print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
 
-    @pytest.mark.mpl_image_compare(
-        # hash_library=hashlib,
-    )
     def test_succeeds(self, architecture, dataset, model_name):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
