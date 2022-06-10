@@ -92,6 +92,7 @@ jobs:
         pip install pytest-mpl
         pip install nbmake
         pip install model-profiler
+        pip install imageio
         pip install tensorflow>=2.4.1
 
     - name: Run pytest
