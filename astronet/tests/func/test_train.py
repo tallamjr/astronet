@@ -1,3 +1,4 @@
+import inspect
 import json
 import random as python_random
 from pathlib import Path
@@ -13,6 +14,10 @@ from tensorflow import keras
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
 from astronet.tests.conftest import ISA
+from astronet.train import Training
+from astronet.utils import astronet_logger
+
+log = astronet_logger(__file__)
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -23,220 +28,58 @@ tf.random.set_seed(RANDOM_SEED)
 python_random.seed(RANDOM_SEED)
 
 
+@pytest.mark.skipif(ISA != "arm64", reason="Only run this particular test locally")
 @pytest.mark.parametrize(
-    ("architecture", "dataset", "hypername"),
+    ("architecture", "dataset", "hyperrun", "wloss"),
     (
         (
             "atx",
             "plasticc",
-            "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
+            "scaledown-by-4",
+            1.79,
         ),
         (
             "t2",
             "plasticc",
-            "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507",
+            "1613517996-0a72904",
+            5,
         ),
         (
             "tinho",
             "plasticc",
-            "UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
+            "1613517996-0a72904",
+            5,
         ),
     ),
 )
 class TestTrain:
-    """A class with common parameters, `architecture`, `dataset` and `model_name`."""
+    """A class with common parameters, `architecture`, `dataset` and the `hyperrun`."""
 
-    def test_train_UGRIZY_wZ(self):
+    def test_train_UGRIZY_wZ(self, architecture, dataset, hyperrun, wloss):
+
+        training = Training(
+            epochs=2,
+            architecture=architecture,
+            dataset=dataset,
+            model=hyperrun,
+            testset=True,
+            redshift=True,
+            fink=None,
+            avocado=None,
+        )
+
+        training()
+        loss = training.get_wloss
+        assert wloss == pytest.approx(loss, 0.01)
+
+    def test_train_UGRIZY_noZ(self, architecture, dataset, hyperrun, wloss):
+        log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
         pass
 
-    def get_hyperparams_and_data(self, architecture, dataset, hyperrun, fixt_UGRIZY_wZ):
+    def test_train_GR_wZ(self, architecture, dataset, hyperrun, wloss):
+        log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
+        pass
 
-        results_filename = (
-            f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
-        )
-
-        with open(results_filename) as f:
-            events = json.load(f)
-            if model_name is not None:
-                # Get params for model chosen with cli args
-                event = next(
-                    item
-                    for item in events["training_result"]
-                    if item["name"] == model_name
-                )
-            else:
-                event = min(
-                    events["training_result"],
-                    key=lambda ev: ev["model_evaluate_on_test_loss"],
-                )
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-
-        model = keras.models.load_model(
-            f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
-            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-            compile=False,
-        )
-
-        y_preds = model.predict(test_inputs)
-
-        dataform = "testset"
-        encoding, class_encoding, class_names = get_encoding(dataset, dataform=dataform)
-
-        return (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        )
-
-    def test_params(self, architecture, dataset, model_name):
-        print("\ntest_one", architecture, dataset, model_name)
-
-    def test_fixtures(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-        print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_succeeds(self, architecture, dataset, model_name):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        ax.plot([1, 2, 3])
-        print("\ntest_one", architecture, dataset, model_name)
-        return fig
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_acc_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-
-        (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-        fig = plot_acc_history(
-            architecture,
-            dataset,
-            model_name,
-            event,
-            save=False,
-        )
-        return fig
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_loss_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-
-        (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-        fig = plot_loss_history(
-            architecture,
-            dataset,
-            model_name,
-            event,
-            save=False,
-        )
-        return fig
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_confusion_matrix(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-
-        (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-        cmap = sns.light_palette("Navy", as_cmap=True)
-        fig = plot_confusion_matrix(
-            architecture,
-            dataset,
-            model_name,
-            y_test,
-            y_preds,
-            encoding,
-            class_names,  # enc.categories_[0]
-            save=False,
-            cmap=cmap,
-        )
-        return fig
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_multiROC(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-
-        (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-        fig = plot_multiROC(
-            architecture,
-            dataset,
-            model_name,
-            model,
-            y_test,
-            y_preds,
-            class_names,
-            save=False,
-        )
-        return fig
-
-    @pytest.mark.mpl_image_compare(
-        hash_library=hashlib,
-    )
-    def test_multiPR(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-
-        (
-            event,
-            encoding,
-            class_names,
-            model,
-            y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
-
-        fig = plot_multiPR(
-            architecture,
-            dataset,
-            model_name,
-            model,
-            y_test,
-            y_preds,
-            class_names,
-            save=False,
-        )
-        return fig
+    def test_train_GR_noZ(self, architecture, dataset, hyperrun, wloss):
+        log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
+        pass
