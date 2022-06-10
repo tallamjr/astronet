@@ -12,9 +12,16 @@
 #   pytest test_plots.py
 # fi
 
-pytest --mpl-generate-path=baseline test_plots.py
+# pytest --mpl-generate-path=baseline test_plots.py
 
-ISA=`uname -m`
-pytest --mpl-generate-hash-library=astronet/tests/reg/baseline/$ISA-hashlib.json test_plots.py
+# ISA=`uname -m`
+# pytest --mpl-generate-hash-library=./baseline/$ISA-hashlib.json test_plots.py
 
-pytest test_plots.py
+# pytest test_plots.py
+
+pytest \
+  --mpl-baseline-path=astronet/tests/reg/baseline/ \
+  --mpl-generate-hash-library=astronet/tests/reg/baseline/arm64-hashlib.json \
+  --mpl-hash-library=astronet/tests/reg/baseline/arm64-hashlib.json \
+  --mpl-results-always \
+  test_plots.py
