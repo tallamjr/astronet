@@ -3,6 +3,8 @@ tensorflow-macos==2.8.0; sys_platform == "darwin"
 tensorflow-metal; sys_platform == "darwin"
 tensorflow-model-optimization>=0.7.2
 astropy>=1.1.2
+fink_client
+fink_utils
 george>=0.3.1
 imbalanced-learn==0.7.0
 joblib==0.17.0
