@@ -1,4 +1,5 @@
 import argparse
+import copy
 import json
 import logging
 import os
@@ -18,6 +19,9 @@ from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import SYSTEM
 from astronet.t2.model import T2Model
 from astronet.tinho.funcmodel import build_model
+from astronet.utils import astronet_logger
+
+log = astronet_logger(__file__)
 
 
 def fetch_model(
@@ -49,85 +53,124 @@ def fetch_model(
         input_shape = input_shapes
         num_aux_feats = 0
 
+    model_params = copy.deepcopy(event)
+
+    popkeys = [
+        "augmented",
+        "avocado",
+        "lr",
+        "name",
+        "objective_score",
+        "testset",
+        "z-redshift",
+    ]
+    for key in event:
+        if key in popkeys:
+            model_params.pop(key)
+
+    log.info(model_params)
+
     if architecture == "tinho":
-        embed_dim = event["embed_dim"]  # --> Embedding size for each token
-        num_heads = event["num_heads"]  # --> Number of attention heads
-        ff_dim = event[
-            "ff_dim"
-        ]  # --> Hidden layer size in feed forward network inside transformer
 
-        # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-        num_filters = embed_dim
+        # embed_dim = event["embed_dim"]  # --> Embedding size for each token
+        # num_heads = event["num_heads"]  # --> Number of attention heads
+        # ff_dim = event[
+        #     "ff_dim"
+        # ]  # --> Hidden layer size in feed forward network inside transformer
 
-        num_layers = event["num_layers"]  # --> N x repeated transformer blocks
-        droprate = event["droprate"]  # --> Rate of neurons to drop
-        # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+        # # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+        # num_filters = embed_dim
+
+        # num_layers = event["num_layers"]  # --> N x repeated transformer blocks
+        # droprate = event["droprate"]  # --> Rate of neurons to drop
+        # # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+
+        # model = build_model(
+        #     input_shapes,
+        #     input_dim=input_shape,
+        #     embed_dim=embed_dim,
+        #     num_heads=num_heads,
+        #     ff_dim=ff_dim,
+        #     num_filters=num_filters,
+        #     num_classes=num_classes,
+        #     num_layers=num_layers,
+        #     droprate=droprate,
+        #     num_aux_feats=num_aux_feats,
+        #     add_aux_feats_to="L",
+        #     # Either add features to M dimension or L dimension. Adding to L allows for
+        #     # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
+        #     # fc_neurons=fc_neurons,
+        # )
+        num_filters = event["embed_dim"]  # --> Embedding size for each token
 
         model = build_model(
             input_shapes,
-            input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
             num_filters=num_filters,
-            num_classes=num_classes,
-            num_layers=num_layers,
-            droprate=droprate,
+            input_dim=input_shape,
             num_aux_feats=num_aux_feats,
             add_aux_feats_to="L",
-            # Either add features to M dimension or L dimension. Adding to L allows for
-            # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-            # fc_neurons=fc_neurons,
+            num_classes=num_classes,
+            **model_params,
         )
 
     elif architecture == "t2":
 
-        embed_dim = event["embed_dim"]  # --> Embedding size for each token
-        num_heads = event["num_heads"]  # --> Number of attention heads
-        ff_dim = event[
-            "ff_dim"
-        ]  # --> Hidden layer size in feed forward network inside transformer
+        # embed_dim = event["embed_dim"]  # --> Embedding size for each token
+        # num_heads = event["num_heads"]  # --> Number of attention heads
+        # ff_dim = event[
+        #     "ff_dim"
+        # ]  # --> Hidden layer size in feed forward network inside transformer
 
-        # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
-        num_filters = embed_dim
+        # # --> Number of filters to use in ConvEmbedding block, should be equal to embed_dim
+        # num_filters = embed_dim
 
-        num_layers = event["num_layers"]  # --> N x repeated transformer blocks
-        droprate = event["droprate"]  # --> Rate of neurons to drop
-        # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+        # num_layers = event["num_layers"]  # --> N x repeated transformer blocks
+        # droprate = event["droprate"]  # --> Rate of neurons to drop
+        # # fc_neurons = event['fc_neurons']    # --> N neurons in final Feed forward network.
+
+        # model = T2Model(
+        #     input_dim=input_shape,
+        #     embed_dim=embed_dim,
+        #     num_heads=num_heads,
+        #     ff_dim=ff_dim,
+        #     num_filters=num_filters,
+        #     num_classes=num_classes,
+        #     num_layers=num_layers,
+        #     droprate=droprate,
+        #     num_aux_feats=num_aux_feats,
+        #     add_aux_feats_to="L",
+        #     # Either add features to M dimension or L dimension. Adding to L allows for
+        #     # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
+        #     # fc_neurons=fc_neurons,
+        # )
+        num_filters = event["embed_dim"]  # --> Embedding size for each token
 
         model = T2Model(
             input_dim=input_shape,
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            ff_dim=ff_dim,
             num_filters=num_filters,
-            num_classes=num_classes,
-            num_layers=num_layers,
-            droprate=droprate,
             num_aux_feats=num_aux_feats,
             add_aux_feats_to="L",
-            # Either add features to M dimension or L dimension. Adding to L allows for
-            # visualisation of CAMs relating to redshift since we would have a CAM of (L + Z) x c
-            # fc_neurons=fc_neurons,
+            num_classes=num_classes,
+            **model_params,
         )
-
         model.build_graph(input_shapes)
 
     elif architecture == "atx":
 
-        kernel_size = event["kernel_size"]  # --> Filter length
-        pool_size = event["pool_size"]  # --> Pooling width
-        scaledown_factor = event[
-            "scaledown_factor"
-        ]  # --> Reduce number of filters down by given factor
+        # kernel_size = event["kernel_size"]  # --> Filter length
+        # pool_size = event["pool_size"]  # --> Pooling width
+        # scaledown_factor = event[
+        #     "scaledown_factor"
+        # ]  # --> Reduce number of filters down by given factor
 
-        model = ATXModel(
-            num_classes=num_classes,
-            kernel_size=kernel_size,
-            pool_size=pool_size,
-            scaledown_factor=scaledown_factor,
-        )
+        # model = ATXModel(
+        #     num_classes=num_classes,
+        #     kernel_size=kernel_size,
+        #     pool_size=pool_size,
+        #     scaledown_factor=scaledown_factor,
+        # )
 
+        model = ATXModel(num_classes=num_classes, **model_params)
         model.build_graph(input_shapes)
 
     return model, event
