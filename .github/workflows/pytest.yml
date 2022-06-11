@@ -75,8 +75,9 @@ jobs:
         export CC=`which gcc-11`
         export CXX=`which g++-11`
         conda env update --file ${{ github.workspace }}/environment.yml
-        python -m pip install --upgrade pip
-        pip install -e .
+        conda activate astronet
+        pip install --upgrade pip
+        pip install .
 
     - name: Run pytest
       run: |
