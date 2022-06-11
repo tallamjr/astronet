@@ -23,23 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          ubuntu-gcc-py37,
-          # osx-gcc-py37,
-          # osx-clang-py37,
+          ubuntu-gcc-py38,
           ]
 
         include:
-          - name: ubuntu-gcc-py37
+          - name: ubuntu-gcc-py38
             os: ubuntu-latest
-            compiler: gcc-7
-
-          # - name: osx-gcc-py37
-          #   os: macos-latest
-          #   compiler: gcc-9
-
-          # - name: osx-clang-py37
-          #   os: macos-latest
-          #   compiler: clang
+            compiler: gcc-11
 
     steps:
     - name: Checkout astronet
@@ -50,16 +40,16 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
 
     - uses: conda-incubator/setup-miniconda@v1
       with:
         activate-environment: astronet
         environment-file: environment.yml
-        python-version: 3.7
+        python-version: 3.8
         auto-activate-base: false
 
     - shell: bash -l {0}
@@ -83,19 +73,9 @@ jobs:
 
     - name: Install dependencies
       run: |
+        conda env update --file ${{ github.workspace }}/environment.yml
         python -m pip install --upgrade pip
-        conda install -c conda-forge pyregion
         pip install -e .
-        pip install matplotlib
-        pip install colorama
-        pip install pytest
-        pip install pytest-cov
-        pip install pytest-xdist
-        pip install pytest-mpl
-        pip install nbmake
-        pip install model-profiler
-        pip install imageio
-        pip install tensorflow>=2.4.1
 
     - name: Run pytest
       run: |
