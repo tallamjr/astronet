@@ -75,7 +75,7 @@ jobs:
         export CC=`which gcc-11`
         export CXX=`which g++-11`
         conda env update --file ${{ github.workspace }}/environment.yml
-        conda activate astronet
+        PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         pip install --upgrade pip
         pip install .
 
