@@ -61,7 +61,15 @@ warnings.filterwarnings("ignore")
 
 class Training(object):
     def __init__(
-        self, epochs, dataset, model, redshift, architecture, avocado, testset, fink
+        self,
+        epochs: int,
+        dataset: str,
+        model: str,
+        redshift: bool,
+        architecture: str,
+        avocado: bool,
+        testset: bool,
+        fink: bool,
     ):
         self.architecture = architecture
         self.epochs = epochs
@@ -73,30 +81,41 @@ class Training(object):
         self.fink = fink
 
     def __call__(self):
-        """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
+        """Train a given architecture with, or without redshift, on either UGRIZY or GR passbands
 
         Parameters
         ----------
-        object_list: List[str]
-            List of objects to apply the transformation to
-        df: pd.DataFrame
-            DataFrame containing the full light curve including dead points.
-
-        Returns
-        -------
-        obs_transient, list(new_filtered_object_list): (pd.DataFrame, List[np.array])
-            Tuple containing the updated dataframe with only the transient section, and a list of
-            objects that the transformation was successful for. Note, some objects may cause an error
-            and hence would not be returned in the new transformed dataframe
+        epochs: int
+            Number of epochs to run training for. If running locally, this should be < 5
+        dataset: str
+            Which dataset to train on; current options: {plasticc, wisdm_2010, wisdm_2019}
+        model: str
+            Model name of the best performing hyperparameters run
+        redshift: bool
+            Include additional information or redshift and redshift_error
+        architecture: str
+            Which architecture to train on; current options: {atx, t2, tinho}
+        avocado: bool
+            Run using augmented data generated from `avocado` pacakge
+        testset: bool
+            Run using homebrewed dataset constructed from PLAsTiCC 'test set'
+        fink: bool
+            Reduce number of bands from UGRIZY --> GR for ZTF like run.
 
         Examples
         --------
-        >>> object_list = list(np.unique(df["object_id"]))
-        >>> obs_transient, object_list = __transient_trim(object_list, df)
-        >>> generated_gp_dataset = generate_gp_all_objects(
-            object_list, obs_transient, timesteps, LSST_PB_WAVELENGTHS
-            )
-        ...
+        >>> params = {
+            "epochs": 2,
+            "architecture": architecture,
+            "dataset": dataset,
+            "model": hyperrun,
+            "testset": True,
+            "redshift": True,
+            "fink": None,
+            "avocado": None,
+        }
+        >>> training = Training(**params)
+        >>> loss = training.get_wloss
         """
 
         def build_label():
@@ -366,12 +385,6 @@ class Training(object):
 
         event["hypername"] = event["name"]
         event["name"] = f"{LABEL}"
-
-        # model_params["embed_dim"] = event["embed_dim"]
-        # model_params["ff_dim"] = event["ff_dim"]
-        # model_params["num_heads"] = event["num_heads"]
-        # model_params["num_layers"] = event["num_layers"]
-        # model_params["droprate"] = event["droprate"]
 
         event["z-redshift"] = self.redshift
         event["avocado"] = self.avocado
