@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import numpy as np
@@ -11,6 +12,7 @@ from astronet.utils import astronet_logger
 log = astronet_logger(__file__)
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None)
 def test_kernprof():
     prof = "lnprofile.py"
     _ = subprocess.run(

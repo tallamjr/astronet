@@ -60,7 +60,7 @@ addopts = [
     "--log-cli-level=INFO",
     "--numprocesses=1",
     "-ra",
-    "--exitfirst",
+    # "--exitfirst",
 ]
 testpaths = [
     "astronet/tests",
