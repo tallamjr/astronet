@@ -17,7 +17,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from fink_science.conversion import mag2fluxcal_snana
+from fink_utils.photometry.conversion import mag2fluxcal_snana
 from tensorflow.python.ops.numpy_ops import np_config
 
 from astronet.metrics import WeightedLogLoss

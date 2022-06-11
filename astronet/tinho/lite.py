@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from fink_client.visualisation import extract_field
-from fink_science.conversion import mag2fluxcal_snana
+from fink_utils.photometry.conversion import mag2fluxcal_snana
 from sklearn.preprocessing import robust_scale as rs
 from tensorflow.python.ops.numpy_ops import np_config
 
