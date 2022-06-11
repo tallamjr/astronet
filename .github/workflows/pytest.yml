@@ -68,6 +68,7 @@ jobs:
         PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         which python
         which pip
+        which pytest
         python --version
 
     - name: Install dependencies
@@ -81,5 +82,6 @@ jobs:
 
     - name: Run pytest
       run: |
+        PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         pytest .
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
