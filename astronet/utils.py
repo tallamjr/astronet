@@ -4,6 +4,7 @@ import pickle
 from pathlib import Path
 from typing import Dict, List
 
+import colorama
 import joblib
 import numpy as np
 import pandas as pd
@@ -41,6 +42,9 @@ class CustomFormatter(logging.Formatter):
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
 
+    # green = colorama.Fore.GREEN
+    white = colorama.Fore.WHITE
+
     # Format of the log message to be printed
     FORMAT = "[%(asctime)s] "
     FORMAT += "{%(filename)s:%(lineno)d} "
@@ -49,7 +53,7 @@ class CustomFormatter(logging.Formatter):
 
     FORMATS = {
         logging.DEBUG: grey + FORMAT + reset,
-        logging.INFO: grey + FORMAT + reset,
+        logging.INFO: white + FORMAT + reset,
         logging.WARNING: yellow + FORMAT + reset,
         logging.ERROR: red + FORMAT + reset,
         logging.CRITICAL: bold_red + FORMAT + reset,
