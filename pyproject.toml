@@ -37,6 +37,13 @@ ignore-default-rules = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+
+log_cli = true
+log_cli_level = "INFO"
+
+log_file = "astronet/tests/pytest.log"
+log_file_level = "INFO"
+
 addopts = [
     "--ignore=sbin",
     "--ignore=notebooks",
@@ -50,6 +57,10 @@ addopts = [
     "--cov",
     "--mpl",
     "--nbmake",
+    "--log-cli-level=INFO",
+    "--numprocesses=1",
+    "-ra",
+    # "--exitfirst",
 ]
 testpaths = [
     "astronet/tests",

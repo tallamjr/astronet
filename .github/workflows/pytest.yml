@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - master
-      - issues/69/refactor
   pull_request:
     branches:
       - master
@@ -23,23 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         name: [
-          ubuntu-gcc-py37,
-          # osx-gcc-py37,
-          # osx-clang-py37,
+          ubuntu-gcc-py38,
           ]
 
         include:
-          - name: ubuntu-gcc-py37
+          - name: ubuntu-gcc-py38
             os: ubuntu-latest
-            compiler: gcc-7
-
-          # - name: osx-gcc-py37
-          #   os: macos-latest
-          #   compiler: gcc-9
-
-          # - name: osx-clang-py37
-          #   os: macos-latest
-          #   compiler: clang
+            compiler: gcc-11
 
     steps:
     - name: Checkout astronet
@@ -50,16 +39,16 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
 
     - uses: conda-incubator/setup-miniconda@v1
       with:
         activate-environment: astronet
         environment-file: environment.yml
-        python-version: 3.7
+        python-version: 3.8
         auto-activate-base: false
 
     - shell: bash -l {0}
@@ -79,21 +68,20 @@ jobs:
         PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         which python
         which pip
+        which pytest
         python --version
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install matplotlib
-        pip install pytest
-        pip install pytest-cov
-        pip install nbmake
-        pip install pytest-mpl
-        pip install model-profiler
-        pip install tensorflow>=2.4.1
+        export CC=`which gcc-11`
+        export CXX=`which g++-11`
+        conda env update --file ${{ github.workspace }}/environment.yml
+        PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
+        pip install --upgrade pip
+        pip install .
 
     - name: Run pytest
       run: |
+        PATH="/usr/share/miniconda/envs/astronet/bin:$PATH"
         pytest .
         bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}

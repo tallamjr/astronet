@@ -5,7 +5,7 @@ repos:
     -   id: check-yaml
     -   id: trailing-whitespace
     -   id: check-added-large-files
-        args: ['--maxkb=50000']
+        args: ['--maxkb=60000']
     -   id: detect-private-key
     -   id: check-symlinks
 -   repo: https://github.com/psf/black

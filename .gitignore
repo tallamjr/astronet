@@ -1,10 +1,16 @@
 # Notebook renders
 *.html
 
+checkpoints/
+
 # atx Models
-astronet/atx/models/*/model*
+# astronet/atx/models/*/model*
 astronet/atx/models/*/weights*
 !astronet/atx/models/*/*.json
+
+# Archived models and weights
+archive
+weights
 
 # Data
 data/WISDM_ar_v1.1/*
@@ -27,8 +33,9 @@ data/tfrecords
 logs/
 *.log
 *.pdf
-!astronet/t2/plots/**/*.pdf
 !astronet/atx/plots/**/*.pdf
+!astronet/t2/plots/**/*.pdf
+!astronet/tinho/plots/**/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -82,6 +89,8 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+
+pytest.log
 
 # Translations
 *.mo

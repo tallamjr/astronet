@@ -22,6 +22,7 @@ from astronet.utils import (
 )
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="To be checked locally")
 @SKIP_IF_M1
 def test_one_hot_encode():
 

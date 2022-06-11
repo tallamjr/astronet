@@ -1,0 +1,17 @@
+{
+  "test_plots.test_acc_history[atx-plasticc-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739]": "de16a05a6bee5c5f37a7c298f2096b4df372c429540a8bc20c99406d4ec7e15a",
+  "test_plots.test_acc_history[t2-plasticc-UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507]": "4327f024217fc0237d1c58271f44bba2063d396f38b795e2645e415f272a9880",
+  "test_plots.test_acc_history[tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450]": "cd44d449d84cb1ed7723c35a76eef9822a91d1a7e0c27d5c2f207407c39b56bf",
+  "test_plots.test_loss_history[atx-plasticc-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739]": "de95099d18515c6f0679b133ddeea1d6173baf88213b9e3a7a64e07f14ecaf08",
+  "test_plots.test_loss_history[t2-plasticc-UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507]": "21fb0e66edf6b66f7672b9fc21410af9eb9fa0842f2d1a4f0450825ab5ef4b87",
+  "test_plots.test_loss_history[tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450]": "b560fabaa425fb2b70eca345592458b927af2b55c1831b80c9a6d15b68444ead",
+  "test_plots.test_confusion_matrix[atx-plasticc-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739]": "18f18ff13a94f06b7c14d485bd06add5b1c047058e8937ff028b64d586b76631",
+  "test_plots.test_confusion_matrix[t2-plasticc-UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507]": "37f9582c8662678b68605ee2744036697981005f5d4c0c273d13a293c864cc5d",
+  "test_plots.test_confusion_matrix[tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450]": "51a75bde0324c89cfeda6fb7b3b3c3c2375672154b520afa1e4b7a52511caaad",
+  "test_plots.test_multiROC[atx-plasticc-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739]": "230ff634843bb8b2ec44808ff9a333aebed5d723f4f2d1b83760d6d56f394b67",
+  "test_plots.test_multiROC[t2-plasticc-UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507]": "476779d132b54b5f78a9cfc4253bfbaaa88fce42849377e575543474930407c0",
+  "test_plots.test_multiROC[tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450]": "a21e11a296d30f2ecb2688d9959896367f36230ba0accac9feb72913964bb1e2",
+  "test_plots.test_multiPR[atx-plasticc-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739]": "fcce633858c7be30a91fc85a297476d8f091b9c968a5362580ece05ef7427564",
+  "test_plots.test_multiPR[t2-plasticc-UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507]": "7349addd88e178617244568ab0fbf477b84d988a093e5eef1fd31a4f65092909",
+  "test_plots.test_multiPR[tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450]": "ed19724663d3d85d615ef98a0f54dcfb948d457cacfc6f67a6bd22110169acaa"
+}

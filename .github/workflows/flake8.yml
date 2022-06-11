@@ -26,4 +26,5 @@ jobs:
         uses: py-actions/flake8@v2
         with:
           ignore: "F401,E221,E501,E203,E731,W503,W605"
+          exclude: "${{ github.workspace }}/astronet/datasets.py,${{ github.workspace }}/astronet/tests/reg/lnprofile.py"
           path: "${{ github.workspace }}/astronet"

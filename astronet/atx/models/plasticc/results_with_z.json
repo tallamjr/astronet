@@ -3182,7 +3182,7 @@
             "model_evaluate_on_test_acc": 0.7285863161087036,
             "model_evaluate_on_test_loss": 0.4699820876121521,
             "model_prediction_on_test": 0.7391863465309143,
-            "name": "9887359-1641295475-0.1.dev943+gc9bafac.d20220104",
+            "name": "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739",
             "num_classes": 14,
             "pool_size": 3,
             "scaledown_factor": 4,
