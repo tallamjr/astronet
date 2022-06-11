@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - master
-      - issues/69/refactor
   pull_request:
     branches:
       - master
@@ -73,6 +72,8 @@ jobs:
 
     - name: Install dependencies
       run: |
+        export CC=`which gcc-11`
+        export CXX=`which g++-11`
         conda env update --file ${{ github.workspace }}/environment.yml
         python -m pip install --upgrade pip
         pip install -e .
