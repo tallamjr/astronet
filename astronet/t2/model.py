@@ -97,12 +97,16 @@ class T2Model(keras.Model):
         # if (isinstance(inputs, list)) and (self.add_aux_feats_to == "M"):
         # Else this implies input is a list; a list of tensors, i.e. multiple inputs
         else:
-            # X in L x M
-            x = inputs[0]
-            # Additional Z features
-            z = inputs[1]
-            # >>> z.shape
-            # TensorShape([None, 2])
+            if isinstance(inputs, dict):
+                x = inputs["input_1"]
+                z = inputs["input_2"]
+            else:
+                # X in L x M
+                x = inputs[0]
+                # Additional Z features
+                z = inputs[1]
+                # >>> z.shape
+                # TensorShape([None, 2])
             if self.add_aux_feats_to == "M":
                 z = tf.tile(z, [1, 100])
                 # >>> z.shape

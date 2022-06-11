@@ -42,12 +42,16 @@ class ATXModel(tf.keras.Model):
             output = self.exit_flow(x, training=training)
         # Else this implies input is a list; a list of tensors, i.e. multiple inputs
         else:
-            # X in L x M
-            x = inputs[0]
-            # Additional Z features
-            z = inputs[1]
-            # >>> z.shape
-            # TensorShape([None, 2])
+            if isinstance(inputs, dict):
+                x = inputs["input_1"]
+                z = inputs["input_2"]
+            else:
+                # X in L x M
+                x = inputs[0]
+                # Additional Z features
+                z = inputs[1]
+                # >>> z.shape
+                # TensorShape([None, 2])
             x = self.entry_flow(x, training=training)
             for layer in self.middle_flow:
                 x = layer(x, training=training)
