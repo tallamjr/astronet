@@ -21,6 +21,7 @@ np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
 
 
+@pytest.mark.skipif(os.getenv("CI") is not None, reason="Requires large datafile")
 @SKIP_IF_M1
 def test_training_pipeline_wisdm_2010():
     clear_session()
