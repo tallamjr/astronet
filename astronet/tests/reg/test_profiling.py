@@ -12,7 +12,9 @@ from astronet.utils import astronet_logger
 log = astronet_logger(__file__)
 
 
-@pytest.mark.skipif(os.getenv("CI") is not None)
+@pytest.mark.skipif(
+    os.getenv("CI") is not None, reason="Produces report to be checked locally"
+)
 def test_kernprof():
     prof = "lnprofile.py"
     _ = subprocess.run(
