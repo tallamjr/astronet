@@ -15,6 +15,7 @@ dependencies:
   # - cudnn=8.1
   # - cupti=11
   - psutil
+  - pyregion
   - sncosmo
 
   - pip:
