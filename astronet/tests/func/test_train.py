@@ -29,57 +29,168 @@ python_random.seed(RANDOM_SEED)
 
 
 @pytest.mark.skipif(ISA != "arm64", reason="Only run this particular test locally")
-@pytest.mark.parametrize(
-    ("architecture", "dataset", "hyperrun", "wloss"),
-    (
-        (
-            "atx",
-            "plasticc",
-            "scaledown-by-4",
-            1.79,
-        ),
-        (
-            "t2",
-            "plasticc",
-            "1613517996-0a72904",
-            5,
-        ),
-        (
-            "tinho",
-            "plasticc",
-            "1613517996-0a72904",
-            5,
-        ),
-    ),
-)
 class TestTrain:
     """A class with common parameters, `architecture`, `dataset` and the `hyperrun`."""
 
+    @pytest.mark.parametrize(
+        ("architecture", "dataset", "hyperrun", "wloss"),
+        (
+            (
+                "atx",
+                "plasticc",
+                "scaledown-by-4",
+                1.79,
+            ),
+            (
+                "t2",
+                "plasticc",
+                "1613517996-0a72904",
+                2.19,
+            ),
+            (
+                "tinho",
+                "plasticc",
+                "1613517996-0a72904",
+                1.99,
+            ),
+        ),
+    )
     def test_train_UGRIZY_wZ(self, architecture, dataset, hyperrun, wloss):
 
-        training = Training(
-            epochs=2,
-            architecture=architecture,
-            dataset=dataset,
-            model=hyperrun,
-            testset=True,
-            redshift=True,
-            fink=None,
-            avocado=None,
-        )
+        params = {
+            "epochs": 2,
+            "architecture": architecture,
+            "dataset": dataset,
+            "model": hyperrun,
+            "testset": True,
+            "redshift": True,
+            "fink": None,
+            "avocado": None,
+        }
+        log.info(f"\n{params}")
 
-        training()
-        loss = training.get_wloss
+        training = Training(**params)
+
+        loss = training()
+        # loss = training.get_wloss
         assert wloss == pytest.approx(loss, 0.01)
+        tf.keras.backend.clear_session()
 
+    @pytest.mark.xfail(reason="Pending results...")
+    @pytest.mark.parametrize(
+        ("architecture", "dataset", "hyperrun", "wloss"),
+        (
+            # ( TODO
+            #     "atx",
+            #     "plasticc",
+            #     "scaledown-by-4",
+            #     1.79,
+            # ),
+            (
+                "t2",
+                "plasticc",
+                "1613517996-0a72904",
+                2.19,
+            ),
+            # ( TODO
+            #     "t2",
+            #     "plasticc",
+            #     "1613517996-0a72904",
+            #     2.19,
+            # ),
+        ),
+    )
     def test_train_UGRIZY_noZ(self, architecture, dataset, hyperrun, wloss):
-        log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
-        pass
 
-    def test_train_GR_wZ(self, architecture, dataset, hyperrun, wloss):
-        log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
-        pass
+        params = {
+            "epochs": 2,
+            "architecture": architecture,
+            "dataset": dataset,
+            "model": hyperrun,
+            "testset": True,
+            "redshift": None,
+            "fink": None,
+            "avocado": None,
+        }
+        log.info(f"\n{params}")
 
+        training = Training(**params)
+
+        loss = training()
+        # loss = training.get_wloss
+        assert wloss == pytest.approx(loss, 0.01)
+        tf.keras.backend.clear_session()
+
+    @pytest.mark.xfail(reason="Pending results...")
+    @pytest.mark.parametrize(
+        ("architecture", "dataset", "hyperrun", "wloss"),
+        (
+            (
+                "atx",
+                "plasticc",
+                "scaledown-by-4",
+                1.79,
+            ),
+            (
+                "t2",
+                "plasticc",
+                "1613517996-0a72904",
+                2.19,
+            ),
+            (
+                "tinho",
+                "plasticc",
+                "1613517996-0a72904",
+                1.99,
+            ),
+        ),
+    )
     def test_train_GR_noZ(self, architecture, dataset, hyperrun, wloss):
+
+        params = {
+            "epochs": 2,
+            "architecture": architecture,
+            "dataset": dataset,
+            "model": hyperrun,
+            "testset": True,
+            "redshift": None,
+            "fink": True,
+            "avocado": None,
+        }
+        log.info(f"\n{params}")
+
+        training = Training(**params)
+
+        loss = training()
+        # loss = training.get_wloss
+        assert wloss == pytest.approx(loss, 0.01)
+        tf.keras.backend.clear_session()
+
+    @pytest.mark.xfail(reason="Pending results...")
+    # TODO: ALL
+    # @pytest.mark.parametrize(
+    #     ("architecture", "dataset", "hyperrun", "wloss"),
+    #     (
+    # (
+    #     "atx",
+    #     "plasticc",
+    #     "scaledown-by-4",
+    #     1.79,
+    # ),
+    # (
+    #     "t2",
+    #     "plasticc",
+    #     "1613517996-0a72904",
+    #     2.19,
+    # ),
+    # (
+    #     "tinho",
+    #     "plasticc",
+    #     "1613517996-0a72904",
+    #     1.99,
+    # ),
+    # ),
+    # )
+    def test_train_GR_wZ(self, architecture, dataset, hyperrun, wloss):
         log.warning(f"{inspect.stack()[0].function} -- Not Implemented Yet")
         pass
