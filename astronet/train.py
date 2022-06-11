@@ -117,9 +117,7 @@ class Training(object):
             return LABEL
 
         LABEL = build_label()
-        checkpoint_path = (
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
-        )
+        checkpoint_path = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/checkpoints/checkpoint-{LABEL}"
         csv_logger_file = f"{asnwd}/logs/{self.architecture}/training-{LABEL}.log"
 
         if self.redshift is not None:
@@ -156,7 +154,7 @@ class Training(object):
         def get_compiled_model_and_data(loss, hyper_results_file):
 
             if self.redshift is not None:
-                input_shapes = [input_shape, ZX_train.shape]
+                input_shapes = [input_shape, (BATCH_SIZE, ZX_train.shape[1])]
                 # model.build_graph(input_shapes)
 
                 train_input = [X_train, ZX_train]
@@ -336,21 +334,24 @@ class Training(object):
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
         WLOSS = loss(y_test_np, y_preds).numpy()
         log.info(f"LL-Test Model Predictions: {WLOSS:.8f}")
+        if "pytest" in sys.modules:
+            return WLOSS
 
         LABEL = (
-            "wZ" + LABEL if self.redshift else "noZ" + LABEL
+            "wZ-" + LABEL if self.redshift else "noZ-" + LABEL
         )  # Prepend whether redshift was used or not
         LABEL = (
-            "GR" + LABEL if self.fink else "UGRIZY" + LABEL
+            "GR-" + LABEL if self.fink else "UGRIZY-" + LABEL
         )  # Prepend which filters have been used in training
         LABEL += f"-LL{WLOSS:.3f}"  # Append loss score
 
-        model.save(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
-        )
-        model.save_weights(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/weights/weights-{LABEL}"
-        )
+        if SYSTEM != "Darwin":
+            model.save(
+                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
+            )
+            model.save_weights(
+                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/weights/weights-{LABEL}"
+            )
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
@@ -363,44 +364,46 @@ class Training(object):
             )
             log.info(f"EVALUATE VALIDATION_BATCH_SIZE : {batch_size}")
 
-        model_params = {}
-        model_params["name"] = f"{LABEL}"
-        model_params["hypername"] = event["name"]
-        model_params["embed_dim"] = event["embed_dim"]
-        model_params["ff_dim"] = event["ff_dim"]
-        model_params["num_heads"] = event["num_heads"]
-        model_params["num_layers"] = event["num_layers"]
-        model_params["droprate"] = event["droprate"]
-        # model_params['fc_neurons'] = event['fc_neurons']
-        model_params["z-redshift"] = self.redshift
-        model_params["avocado"] = self.avocado
-        model_params["testset"] = self.testset
-        model_params["fink"] = self.fink
-        model_params["num_classes"] = num_classes
-        model_params["model_evaluate_on_test_acc"] = model.evaluate(
+        event["hypername"] = event["name"]
+        event["name"] = f"{LABEL}"
+
+        # model_params["embed_dim"] = event["embed_dim"]
+        # model_params["ff_dim"] = event["ff_dim"]
+        # model_params["num_heads"] = event["num_heads"]
+        # model_params["num_layers"] = event["num_layers"]
+        # model_params["droprate"] = event["droprate"]
+
+        event["z-redshift"] = self.redshift
+        event["avocado"] = self.avocado
+        event["testset"] = self.testset
+        event["fink"] = self.fink
+
+        event["num_classes"] = num_classes
+        event["model_evaluate_on_test_acc"] = model.evaluate(
             test_ds, verbose=0, batch_size=batch_size
         )[1]
-        model_params["model_evaluate_on_test_loss"] = model.evaluate(
+        event["model_evaluate_on_test_loss"] = model.evaluate(
             test_ds, verbose=0, batch_size=batch_size
         )[0]
-        model_params["model_prediction_on_test"] = loss(y_test_np, y_preds).numpy()
+        event["model_prediction_on_test"] = loss(y_test_np, y_preds).numpy()
 
         y_test = np.argmax(y_test_np, axis=1)
         y_preds = np.argmax(y_preds, axis=1)
 
-        model_params["model_predict_precision_score"] = precision_score(
+        event["model_predict_precision_score"] = precision_score(
             y_test, y_preds, average="macro"
         )
-        model_params["model_predict_recall_score"] = recall_score(
+        event["model_predict_recall_score"] = recall_score(
             y_test, y_preds, average="macro"
         )
 
         print("  Params: ")
         for key, value in history.history.items():
             print("    {}: {}".format(key, value))
-            model_params["{}".format(key)] = value
+            event["{}".format(key)] = value
 
-        del model_params["lr"]
+        learning_rate = event["lr"]
+        del event["lr"]
 
         if self.redshift is not None:
             train_results_file = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
@@ -414,14 +417,15 @@ class Training(object):
             previous_results = data["training_result"]
             # appending data to optuna_result
             # print(previous_results)
-            previous_results.append(model_params)
+            previous_results.append(event)
             # print(previous_results)
             # print(data)
 
-        with open(train_results_file, "w") as rf:
-            json.dump(data, rf, sort_keys=True, indent=4)
+        if SYSTEM != "Darwin":
+            with open(train_results_file, "w") as rf:
+                json.dump(data, rf, sort_keys=True, indent=4)
 
-        if len(tf.config.list_physical_devices("GPU")) < 2:
+        if len(tf.config.list_physical_devices("GPU")) < 2 and SYSTEM != "Darwin":
             # PRUNE
             import tensorflow_model_optimization as tfmot
 
@@ -439,13 +443,12 @@ class Training(object):
                 clone_function=apply_pruning_to_dense,
             )
 
-            model_for_pruning.summary(print_fn=logging.info)
+            model_for_pruning.summary(print_fn=log.info)
 
             callbacks = [
                 tfmot.sparsity.keras.UpdatePruningStep(),
             ]
 
-            learning_rate = event["lr"]
             model_for_pruning.compile(
                 loss=loss,
                 optimizer=optimizers.Adam(learning_rate=learning_rate, clipnorm=1),
@@ -469,6 +472,12 @@ class Training(object):
                 f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-EXPORT",
                 include_optimizer=True,
             )
+
+    @property
+    def get_wloss(self):
+        """I'm the 'x' property."""
+        print("getter of x called")
+        return self.wloss
 
 
 if __name__ == "__main__":
