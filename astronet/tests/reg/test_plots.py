@@ -1,4 +1,5 @@
 import json
+import os
 import random as python_random
 from pathlib import Path
 
@@ -35,6 +36,9 @@ python_random.seed(RANDOM_SEED)
 hashlib = f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json"
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") is not None, reason="Requires large data files. Run locally."
+)
 @pytest.mark.parametrize(
     ("architecture", "dataset", "model_name"),
     (
