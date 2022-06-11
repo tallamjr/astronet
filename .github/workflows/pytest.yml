@@ -84,6 +84,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        conda install -c conda-forge pyregion
         pip install -e .
         pip install matplotlib
         pip install colorama
