@@ -108,3 +108,9 @@ Finally, the suite is ready to be tested by running:
 ```bash
 $ pytest --ignore-glob="*.ipynb" test_plots.py
 ```
+
+Run from top-level directory:
+
+```bash
+$ pytest --mpl-baseline-path=astronet/tests/reg/baseline/ --mpl-hash-library=baseline/arm64-hashlib.json  astronet/tests/reg/test_plots.py
+```
