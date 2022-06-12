@@ -7,7 +7,9 @@ import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
+from astronet.tests.conftest import BATCH_SIZE
 from astronet.tinho.lite import LiteModel
 from astronet.utils import astronet_logger
 
@@ -56,7 +58,35 @@ class TestInference:
         # Previous models were trained using numpy data as the inputs, newer models leverage
         # tf.data.Dataset instead for faster inference. This is a legacy requirment.
         # Fix ValueError of shape mismatch.
-        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
+        X_test, y_test, Z_test = get_fixt_UGRIZY_wZ
+
+        test_input = [X_test, Z_test]
+
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices(
+                ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+            )
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if LOCAL_DEBUG is not None:
+            log.info("LOCAL_DEBUG set, reducing dataset size...")
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
+        worker_id = (
+            os.environ.get("PYTEST_XDIST_WORKER")
+            if "PYTEST_CURRENT_TEST" in os.environ
+            else 0
+        )
+        log.info(f"Data loaded successfully on worker: {worker_id}")
 
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
@@ -65,7 +95,7 @@ class TestInference:
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(test_inputs)
+        y_preds = model.predict(test_input)
 
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 

@@ -1,13 +1,18 @@
+import inspect
 import json
 import subprocess
 
 import numpy as np
+import pandas as pd
 import pytest
 import tensorflow as tf
 from filelock import FileLock
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import LOCAL_DEBUG
+from astronet.utils import astronet_logger
+
+log = astronet_logger(__file__)
 
 ISA = subprocess.run(
     "uname -m",
@@ -20,6 +25,25 @@ ISA = subprocess.run(
 SKIP_IF_M1 = pytest.mark.skipif(ISA == "arm64", reason="Error on arm-m1")
 
 BATCH_SIZE = 64
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Special json encoder for numpy types"""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
+def pandas_encoder(obj):
+    # TODO: Reshape required to fix ValueError: Must pass 2-d input. shape=(869864, 100, 6)
+    log.critical(f"{inspect.stack()[0].function} -- Not Fully Implemented Yet")
+    return pd.DataFrame(obj).to_json(orient="values")
 
 
 @pytest.fixture(scope="session")
@@ -35,22 +59,20 @@ def get_fixt_UGRIZY_wZ(tmp_path_factory, worker_id, name="fixt_UGRIZY_wZ"):
     fn = root_tmp_dir / "data.json"
     with FileLock(str(fn) + ".lock"):
         if fn.is_file():
-            tdata = json.loads(fn.read_text())
-            ldata = list(tdata)
-            for item, index in enumerate(ldata):
-                ldata[item] = tf.convert_to_tensor(index)
-            data = tuple(ldata)
+            data = json.loads(fn.read_text())
+            X_test = np.asarray(data["X_test"])
+            y_test = np.asarray(data["y_test"])
+            Z_test = np.asarray(data["Z_test"])
         else:
-            tdata = fixt_UGRIZY_wZ()
-            import pdb
-
-            pdb.set_trace()
-            ldata = list(tdata)
-            for item, index in enumerate(ldata):
-                ldata[item] = item.numpy()
-            data = tuple(ldata)
-            fn.write_text(json.dumps(data))
-    return data
+            X_test, y_test, Z_test = fixt_UGRIZY_wZ()
+            fn.write_text(
+                json.dumps(
+                    {"X_test": X_test, "y_test": y_test, "Z_test": Z_test},
+                    cls=NumpyEncoder,
+                    # default=pandas_encoder,
+                )
+            )
+    return X_test, y_test, Z_test
 
 
 def fixt_UGRIZY_wZ():
@@ -65,28 +87,7 @@ def fixt_UGRIZY_wZ():
         f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
     )
 
-    test_input = [X_test, Z_test]
-
-    test_ds = (
-        tf.data.Dataset.from_tensor_slices(
-            ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
-        )
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    y_test_ds = (
-        tf.data.Dataset.from_tensor_slices(y_test)
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    if LOCAL_DEBUG is not None:
-        print("LOCAL_DEBUG set, reducing dataset size...")
-        test_ds = test_ds.take(300)
-        y_test_ds = y_test_ds.take(300)
-
-    return test_ds, y_test_ds, test_input
+    return X_test, y_test, Z_test
 
 
 @pytest.fixture(scope="session")
