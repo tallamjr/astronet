@@ -14,21 +14,21 @@
 
 
 [![pytest](https://github.com/tallamjr/astronet/actions/workflows/pytest.yml/badge.svg)](https://github.com/tallamjr/astronet/actions/workflows/pytest.yml)
-[![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet)
+<!-- [![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet) -->
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
 
 ### `astronet.tinho`
 
-![CM](./astronet/tests/unit/viz/baseline/model-cm-31367-1654360237-0.5.1.dev78+g702e399.d20220604.png)
+![CM](./astronet/tests/reg/baseline/model-cm-31367-1654360237-0.5.1.dev78+g702e399.d20220604.png)
 
 ### `astronet.t2`
 
-![CM](./astronet/tests/unit/viz/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
+![CM](./astronet/tests/reg/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
 
 ### `astronet.atx`
 
-![CM](./astronet/tests/unit/viz/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
+![CM](./astronet/tests/reg/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
 
 ### MTS Benchmark Results
 
@@ -86,31 +86,33 @@ trained again.
 | Wafer                 | -999900.00 | -999900.00 |  83.41 |     94.05 |  94.56 |    50.00 |  50.00 | 50.00 |    95.97 |    50.00 |    75.99 |
 | WalkvsRun             |      50.00 |      50.00 | 100.00 |    100.00 | 100.00 |    50.00 |  50.00 | 50.00 |   100.00 |    50.00 |    95.42 |
 
-### Tests
+
+## Tests
 
 See `astronet/tests/README.md` for more details
 
 Note: some tests require large data files
 
-If a new plot is created, it should be visually inspected and a new baseline generated like so:
+If a new plot is created, it should be visually inspected and a new baseline generated.
+
+Run from top-level directory (where this `README.md` file is):
 
 ```bash
-$ cd astronet/tests/unit/viz
-$ pytest --mpl-generate-path=baseline --ignore-glob="*.ipynb" test_plots.py
-```
-Then, the hash of the image is to be stored in the SHA library file with:
-
-```bash
-$ pytest --mpl-generate-hash-library=astronet/tests/unit/viz/baseline/hashlib.json --ignore-glob="*.ipynb" test_plots.py
+$ unset CI; pytest --mpl-generate-path=astronet/tests/reg/baseline --mpl-hash-library=baseline/arm64-hashlib.json --mpl-results-always astronet/tests/reg/test_plots.py
 ```
 
-Finally, the suite is ready to be tested by running:
-```bash
-$ pytest --ignore-glob="*.ipynb" test_plots.py
-```
+## The Road to `v1.0.0`
 
-Run from top-level directory:
+The idea of `astronet` is not really to be a library, more of a repository for the code developed
+during my PhD and my thesis.
 
-```bash
-$ pytest --mpl-baseline-path=astronet/tests/reg/baseline/ --mpl-hash-library=baseline/arm64-hashlib.json  astronet/tests/reg/test_plots.py
-```
+Having said that, it would be nice to have `astronet` be more "stable" and to have extra features
+that would allow someone else to pick it up and use with _minimal_ frustrations.
+
+Therefore, the plan is to get to `v1.0.0` at some point, but I will not be prioritizing this. Anyone
+interested should follow this meta-issue where I will log the progress and put placeholder issues
+to-be-tackle in order for `v1.0.0` to be "ready".
+
+The main aspects will be a reduce cost data processing pipeline that can work lazily on the PLAsTiCC
+dataset, ideally being able to go from the source online to useable `astronet` format. Once this is
+done, much of the rest of the updates will be cosmetic and to ensure usability of the codebase.
