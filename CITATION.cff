@@ -5,5 +5,5 @@ authors:
     given-names: Tarek
     orcid: https://orcid.org/0000-0002-8117-9254
 title: "astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning"
-version: 1.0.0
-date-released: 2022-02-02
+date-released: 2022-06-28
+url: "https://github.com/tallamjr/astronet"
