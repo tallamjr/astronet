@@ -20,7 +20,7 @@
 
 ### `astronet.tinho`
 
-![CM](./astronet/tests/reg/baseline/model-cm-31367-1654360237-0.5.1.dev78+g702e399.d20220604.png)
+![CM](./astronet/tests/reg/baseline/test_confusion_matrix_tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450)
 
 ### `astronet.t2`
 
