@@ -42,6 +42,10 @@ class NumpyEncoder(json.JSONEncoder):
 
 def pandas_encoder(obj):
     # TODO: Reshape required to fix ValueError: Must pass 2-d input. shape=(869864, 100, 6)
+    # Refs:
+    # - https://stackoverflow.com/a/32034565/4521950
+    # - https://stackoverflow.com/a/32838859/4521950
+    # - https://stackoverflow.com/a/44752209/4521950
     log.critical(f"{inspect.stack()[0].function} -- Not Fully Implemented Yet")
     return pd.DataFrame(obj).to_json(orient="values")
 
@@ -88,124 +92,3 @@ def fixt_UGRIZY_wZ():
     )
 
     return X_test, y_test, Z_test
-
-
-@pytest.fixture(scope="session")
-def get_fixt_UGRIZY_noZ(tmp_path_factory, worker_id, name="fixt_UGRIZY_noZ"):
-    if not worker_id:
-        # not executing in with multiple workers, just produce the data and let
-        # pytest's fixture caching do its job
-        return fixt_UGRIZY_noZ()
-
-    # get the temp directory shared by all workers
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent
-
-    fn = root_tmp_dir / "data.json"
-    with FileLock(str(fn) + ".lock"):
-        if fn.is_file():
-            data = json.loads(fn.read_text())
-        else:
-            data = fixt_UGRIZY_noZ()
-            fn.write_text(json.dumps(data))
-    return data
-
-
-def fixt_UGRIZY_noZ():
-    """This fixture will only be available within the scope of TestPlots"""
-    X_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-    )
-    y_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-    )
-
-    test_input = X_test
-
-    test_ds = (
-        tf.data.Dataset.from_tensor_slices((test_input, y_test))
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    y_test_ds = (
-        tf.data.Dataset.from_tensor_slices(y_test)
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    if LOCAL_DEBUG is not None:
-        print("LOCAL_DEBUG set, reducing dataset size...")
-        test_ds = test_ds.take(300)
-        y_test_ds = y_test_ds.take(300)
-
-    return test_ds, y_test_ds
-
-
-@pytest.fixture(scope="session")
-def get_fixt_GR_noZ(tmp_path_factory, worker_id, name="fixt_GR_noZ"):
-    if not worker_id:
-        # not executing in with multiple workers, just produce the data and let
-        # pytest's fixture caching do its job
-        return fixt_GR_noZ()
-
-    # get the temp directory shared by all workers
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent
-
-    fn = root_tmp_dir / "data.json"
-    with FileLock(str(fn) + ".lock"):
-        if fn.is_file():
-            data = json.loads(fn.read_text())
-        else:
-            data = fixt_GR_noZ()
-            fn.write_text(json.dumps(data))
-    return data
-
-
-def fixt_GR_noZ():
-    """This fixture will only be available within the scope of TestPlots"""
-    X_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-    )
-    y_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-    )
-
-    X_test = X_test[:, :, 0:3:2]
-    test_input = X_test
-
-    test_ds = (
-        tf.data.Dataset.from_tensor_slices((test_input, y_test))
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    y_test_ds = (
-        tf.data.Dataset.from_tensor_slices(y_test)
-        .batch(BATCH_SIZE, drop_remainder=False)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-
-    if LOCAL_DEBUG is not None:
-        print("LOCAL_DEBUG set, reducing dataset size...")
-        test_ds = test_ds.take(300)
-        y_test_ds = y_test_ds.take(300)
-
-    return test_ds, y_test_ds
-
-
-# @pytest.fixture
-# def fixt_UGRIZY_wZ_numpy(scope="session"):
-#     """This fixture will only be available within the scope of TestPlots"""
-#     X_test = np.load(
-#         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-#     )
-#     y_test = np.load(
-#         f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-#     )
-#     Z_test = np.load(
-#         f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
-#     )
-
-#     inputs = [X_test, Z_test]
-
-#     return X_test, y_test, Z_test, inputs
