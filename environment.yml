@@ -22,6 +22,7 @@ dependencies:
 
   - pip:
     - astropy>=1.1.2
+    - filelock
     - gast==0.3.3
     - imageio>=2.9.0
     - jax[cpu]
