@@ -7,7 +7,9 @@ import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
+from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
+from astronet.tests.conftest import BATCH_SIZE
 from astronet.tinho.lite import LiteModel
 from astronet.utils import astronet_logger
 
@@ -50,13 +52,41 @@ class TestInference:
         ),
     )
     def test_inference_UGRIZY_wZ(
-        self, architecture, dataset, model_name, fixt_UGRIZY_wZ
+        self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ
     ):
 
         # Previous models were trained using numpy data as the inputs, newer models leverage
         # tf.data.Dataset instead for faster inference. This is a legacy requirment.
         # Fix ValueError of shape mismatch.
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        X_test, y_test, Z_test = get_fixt_UGRIZY_wZ
+
+        test_input = [X_test, Z_test]
+
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices(
+                ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
+            )
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if LOCAL_DEBUG is not None:
+            log.info("LOCAL_DEBUG set, reducing dataset size...")
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
+        worker_id = (
+            os.environ.get("PYTEST_XDIST_WORKER")
+            if "PYTEST_CURRENT_TEST" in os.environ
+            else 0
+        )
+        log.info(f"Data loaded successfully on worker: {worker_id}")
 
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
@@ -65,7 +95,7 @@ class TestInference:
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(test_inputs)
+        y_preds = model.predict(test_input)
 
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
@@ -84,10 +114,30 @@ class TestInference:
         ),
     )
     def test_inference_UGRIZY_noZ(
-        self, architecture, dataset, model_name, fixt_UGRIZY_noZ
+        self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ
     ):
 
-        test_ds, y_test_ds = fixt_UGRIZY_noZ
+        X_test, y_test, _ = get_fixt_UGRIZY_wZ
+
+        test_input = X_test
+
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices((test_input, y_test))
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if LOCAL_DEBUG is not None:
+            print("LOCAL_DEBUG set, reducing dataset size...")
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
         x_test = np.concatenate([x for x, y in test_ds], axis=0)
 
@@ -125,9 +175,32 @@ class TestInference:
             ),
         ),
     )
-    def test_inference_GR_noZ(self, architecture, dataset, model_name, fixt_GR_noZ):
+    def test_inference_GR_noZ(
+        self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ
+    ):
 
-        test_ds, y_test_ds = fixt_GR_noZ
+        X_test, y_test, _ = get_fixt_UGRIZY_wZ
+        X_test = X_test[:, :, 0:3:2]
+
+        test_input = X_test
+
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices((test_input, y_test))
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if LOCAL_DEBUG is not None:
+            print("LOCAL_DEBUG set, reducing dataset size...")
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         model = keras.models.load_model(
@@ -152,20 +225,41 @@ class TestInference:
             (
                 "tinho",
                 "plasticc",
-                "model-GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
+                "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
             ),
             (
                 "tinho-quantized",
                 "plasticc",
-                "quantized-model-GR-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
+                "quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
             ),
         ),
     )
     def test_inference_GR_noZ_TFLITE(
-        self, architecture, dataset, model_name, fixt_GR_noZ
+        self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ
     ):
 
-        test_ds, y_test_ds = fixt_GR_noZ
+        X_test, y_test, _ = get_fixt_UGRIZY_wZ
+        X_test = X_test[:, :, 0:3:2]
+
+        test_input = X_test
+
+        test_ds = (
+            tf.data.Dataset.from_tensor_slices((test_input, y_test))
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        y_test_ds = (
+            tf.data.Dataset.from_tensor_slices(y_test)
+            .batch(BATCH_SIZE, drop_remainder=False)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+        if LOCAL_DEBUG is not None:
+            print("LOCAL_DEBUG set, reducing dataset size...")
+            test_ds = test_ds.take(300)
+            y_test_ds = y_test_ds.take(300)
+
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
         x_test = np.concatenate([x for x, y in test_ds], axis=0)
 
@@ -183,30 +277,3 @@ class TestInference:
             loss = wloss(y_test, y_preds).numpy()
             log.info(f"LOSS tinho-quantized: {loss:.3f}")
             assert loss == pytest.approx(0.834, 0.001)
-
-    # @pytest.mark.parametrize(
-    #     ("architecture", "dataset", "model_name"),
-    #     (
-    #         (
-    #             "tinho",
-    #             "plasticc",
-    #             "UGRIZY-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450",
-    #         ),
-    #     ),
-    # )
-    # def test_inference_with_z_tfdata(self, architecture, dataset, model_name, fixt):
-
-    #     test_ds, y_test_ds = fixt
-    #     y_test = np.concatenate([y for y in y_test_ds], axis=0)
-
-    #     model = keras.models.load_model(
-    #         f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
-    #         custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-    #         compile=False,
-    #     )
-
-    #     wloss = WeightedLogLoss()
-    #     y_preds = model.predict(test_ds)
-
-    #     if architecture == "tinho":
-    #         assert wloss(y_test, y_preds).numpy() == pytest.approx(0.450, 0.01)

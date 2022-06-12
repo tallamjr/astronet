@@ -62,7 +62,7 @@ hashlib = f"{Path(__file__).absolute().parent}/baseline/{ISA}-hashlib.json"
 class TestPlots:
     """A class with common parameters, `architecture`, `dataset` and `model_name`."""
 
-    def compute_scores(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def compute_scores(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
 
         results_filename = (
             f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
@@ -83,7 +83,7 @@ class TestPlots:
                     key=lambda ev: ev["model_evaluate_on_test_loss"],
                 )
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
 
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
@@ -107,8 +107,8 @@ class TestPlots:
     def test_params(self, architecture, dataset, model_name):
         print("\ntest_one", architecture, dataset, model_name)
 
-    def test_fixtures(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
-        print("\ntest_one", architecture, dataset, model_name, fixt_UGRIZY_wZ)
+    def test_fixtures(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
+        print("\ntest_one", architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
     def test_succeeds(self, architecture, dataset, model_name):
         fig = plt.figure()
@@ -120,9 +120,9 @@ class TestPlots:
     @pytest.mark.mpl_image_compare(
         # hash_library=hashlib,
     )
-    def test_acc_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def test_acc_history(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
 
         (
             event,
@@ -130,7 +130,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
+        ) = self.compute_scores(architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
         fig = plot_acc_history(
             architecture,
@@ -144,9 +144,9 @@ class TestPlots:
     @pytest.mark.mpl_image_compare(
         # hash_library=hashlib,
     )
-    def test_loss_history(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def test_loss_history(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
 
         (
             event,
@@ -154,7 +154,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
+        ) = self.compute_scores(architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
         fig = plot_loss_history(
             architecture,
@@ -168,9 +168,11 @@ class TestPlots:
     @pytest.mark.mpl_image_compare(
         # hash_library=hashlib,
     )
-    def test_confusion_matrix(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def test_confusion_matrix(
+        self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ
+    ):
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
@@ -179,7 +181,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
+        ) = self.compute_scores(architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
         cmap = sns.light_palette("Navy", as_cmap=True)
         fig = plot_confusion_matrix(
@@ -198,9 +200,9 @@ class TestPlots:
     @pytest.mark.mpl_image_compare(
         # hash_library=hashlib,
     )
-    def test_multiROC(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def test_multiROC(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
@@ -209,7 +211,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
+        ) = self.compute_scores(architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
         fig = plot_multiROC(
             architecture,
@@ -226,9 +228,9 @@ class TestPlots:
     @pytest.mark.mpl_image_compare(
         # hash_library=hashlib,
     )
-    def test_multiPR(self, architecture, dataset, model_name, fixt_UGRIZY_wZ):
+    def test_multiPR(self, architecture, dataset, model_name, get_fixt_UGRIZY_wZ):
 
-        test_ds, y_test_ds, test_inputs = fixt_UGRIZY_wZ
+        test_ds, y_test_ds, test_inputs = get_fixt_UGRIZY_wZ
         y_test = np.concatenate([y for y in y_test_ds], axis=0)
 
         (
@@ -237,7 +239,7 @@ class TestPlots:
             class_names,
             model,
             y_preds,
-        ) = self.compute_scores(architecture, dataset, model_name, fixt_UGRIZY_wZ)
+        ) = self.compute_scores(architecture, dataset, model_name, get_fixt_UGRIZY_wZ)
 
         fig = plot_multiPR(
             architecture,

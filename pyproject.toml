@@ -58,7 +58,7 @@ addopts = [
     "--mpl",
     "--nbmake",
     "--log-cli-level=INFO",
-    "--numprocesses=1",
+    "--numprocesses=auto",
     "-ra",
     # "--exitfirst",
 ]
