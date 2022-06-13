@@ -16,7 +16,7 @@ log = astronet_logger(__file__)
     os.getenv("CI") is not None, reason="Produces report to be checked locally"
 )
 def test_kernprof():
-    prof = "lnprofile.py"
+    prof = "load_run_lpa.py"
     _ = subprocess.run(
         f"kernprof -lv {prof}",
         check=True,
@@ -28,7 +28,7 @@ def test_kernprof():
     log.info(f"KERNPROF DONE: Saved to {prof}.lnprof")
 
     out = subprocess.run(
-        f"python -m line_profiler {prof}.lprof",
+        f"python -m line_profiler {prof}.lprof 2>&1 | tee {prof}.stdout.txt",
         check=True,
         capture_output=True,
         shell=True,

@@ -1,0 +1,99 @@
+Timer unit: 1e-06 s
+
+Total time: 0 s
+File: lnprofile.py
+Function: predict_original_model at line 110
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   110                                           @profile
+   111                                           def predict_original_model(X_test, wloss):
+   112                                               # ORIGINAL MODEL
+   113                                               model = get_model()
+   114                                               y_preds = model.predict(X_test)
+   115                                               print(f"ORIGINAL MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+Total time: 0 s
+File: lnprofile.py
+Function: predict_compressed_clustered_model at line 118
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   118                                           @profile
+   119                                           def predict_compressed_clustered_model(X_test, wloss):
+   120                                               # COMPRESSED CLUSTERED-STRIPPED MODEL
+   121                                               model_name = "tinho/compressed_clustered_stripped_fink_model"
+   122                                               cmodel = get_compressed_model(model_name)
+   123                                               y_preds = cmodel.predict(X_test)
+   124                                               print(
+   125                                                   f"COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   126                                               )
+
+Total time: 0 s
+File: lnprofile.py
+Function: predict_clustered_tflite_model at line 129
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   129                                           @profile
+   130                                           def predict_clustered_tflite_model(X_test, wloss):
+   131                                               # TFLITE CLUSTERED-STRIPPED MODEL
+   132                                               model_name = "tinho/clustered_stripped_fink_model"
+   133                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   134                                               lmodel = LiteModel.from_saved_model(model_path)
+   135                                               y_preds = lmodel.predict(X_test)
+   136                                               print(
+   137                                                   f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   138                                               )
+
+Total time: 0 s
+File: lnprofile.py
+Function: predict_compressed_clustered_tflite_model at line 141
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   141                                           @profile
+   142                                           def predict_compressed_clustered_tflite_model(X_test, wloss):
+   143                                               # TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
+   144                                               model_name = "tinho/compressed_clustered_stripped_fink_model"
+   145                                               clmodel = get_compressed_lite_model(model_name)
+   146                                               y_preds = clmodel.predict(X_test)
+   147                                               print(
+   148                                                   f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   149                                               )
+
+Total time: 0 s
+File: lnprofile.py
+Function: predict_saved_clustered_tflite_model at line 152
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   152                                           @profile
+   153                                           def predict_saved_clustered_tflite_model(X_test, wloss):
+   154                                               # SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
+   155                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   156                                               model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model.tflite"
+   157                                               clmodel = LiteModel.from_file(model_path=model_path)
+   158                                               y_preds = clmodel.predict(X_test)
+   159                                               print(
+   160                                                   f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   161                                               )
+
+Total time: 1284.44 s
+File: lnprofile.py
+Function: predict_saved_clustered_quantized_tflite_model at line 164
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   164                                           @profile
+   165                                           def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
+   166                                               # SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL
+   167                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   168                                               # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+   169         1          2.0      2.0      0.0      model_path = f"{asnwd}/sbin/lnprof/quantized.tflite"
+   170         1       1159.0   1159.0      0.0      clmodel = LiteModel.from_file(model_path=model_path)
+   171         1 1284276369.0 1284276369.0    100.0      y_preds = clmodel.predict(X_test)
+   172         2          5.0      2.5      0.0      print(
+   173         1     159917.0 159917.0      0.0          f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   174                                               )
+
