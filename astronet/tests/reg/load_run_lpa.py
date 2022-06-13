@@ -1,4 +1,5 @@
 import inspect
+import tempfile
 import warnings
 import zipfile
 
@@ -41,15 +42,17 @@ def get_compressed_model(
     # Load pre-trained zipped original t2 model
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
 
-    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
-        for file in archive.namelist():
-            archive.extract(file, model_path)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
 
-    model = tf.keras.models.load_model(
-        model_path,
-        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-        compile=False,
-    )
+        model = tf.keras.models.load_model(
+            f"{tmpdir}/{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
     return model
 
 
@@ -59,11 +62,12 @@ def get_compressed_convert_to_lite(
     # Load pre-trained model
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
 
-    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
-        for file in archive.namelist():
-            archive.extract(file, model_path)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
 
-    lmodel = LiteModel.from_saved_model(model_path)
+        lmodel = LiteModel.from_saved_model(f"{tmpdir}/{model_name}")
 
     return lmodel
 
@@ -89,15 +93,17 @@ def get_compressed_clustered_model(
     # Load pre-trained model
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
 
-    with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
-        for file in archive.namelist():
-            archive.extract(file, model_path)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
 
-    model = tf.keras.models.load_model(
-        model_path,
-        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
-        compile=False,
-    )
+        model = tf.keras.models.load_model(
+            f"{tmpdir}/{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
     return model
 
 
@@ -207,7 +213,7 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
     # SAVED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
     # CLUSTERING-FLATBUFFER
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-    model_path = f"{asnwd}/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
     clmodel = LiteModel.from_file(model_path=model_path)
     y_preds = clmodel.predict(X_test)
     print(
@@ -221,7 +227,7 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     # CLUSTERING-FLATBUFFER + QUANTIZATION
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
     # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
-    model_path = f"{asnwd}/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
     clmodel = LiteModel.from_file(model_path=model_path)
     y_preds = clmodel.predict(X_test)
     print(
