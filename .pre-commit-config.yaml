@@ -19,7 +19,7 @@ repos:
         args: ["--max-line-length=131", "--ignore=F401,E221,E501,E203,E731,W503,W605"]
         exclude: sbin
 -   repo: https://github.com/pycqa/isort
-    rev: 5.5.4
+    rev: 5.10.1
     hooks:
     -   id: isort
         args: ["--profile", "black", "--line-length=69"]
