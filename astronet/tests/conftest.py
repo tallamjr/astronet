@@ -5,11 +5,9 @@ import subprocess
 import numpy as np
 import pandas as pd
 import pytest
-import tensorflow as tf
 from filelock import FileLock
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.constants import LOCAL_DEBUG
 from astronet.utils import astronet_logger
 
 log = astronet_logger(__file__)
