@@ -2,70 +2,24 @@ import random
 import warnings
 import zipfile
 
-import pyspark.pandas as ps
-from fink_client.visualisation import extract_field
+from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 import astronet
-from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 
 warnings.filterwarnings("ignore")
 
-import os
-from pathlib import Path
-from typing import Dict
-
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from fink_utils.photometry.conversion import mag2fluxcal_snana
-from tensorflow.python.ops.numpy_ops import np_config
-
 from astronet.metrics import WeightedLogLoss
+from astronet.tinho.lite import LiteModel
+from tensorflow.python.ops.numpy_ops import np_config
 
 np_config.enable_numpy_behavior()
 
 
-class LiteModel:
-    @classmethod
-    def from_file(cls, model_path):
-        return LiteModel(tf.lite.Interpreter(model_path=model_path))
-
-    @classmethod
-    def from_saved_model(cls, model_path):
-        converter = tf.lite.TFLiteConverter.from_saved_model(model_path)
-        converter.target_spec.supported_ops = [
-            tf.lite.OpsSet.TFLITE_BUILTINS,  # enable TensorFlow Lite ops.
-            tf.lite.OpsSet.SELECT_TF_OPS,  # enable TensorFlow ops.
-        ]
-        converter.experimental_enable_resource_variables = True
-        converter.experimental_new_converter = True
-        tflite_model = converter.convert()
-        return LiteModel(tf.lite.Interpreter(model_content=tflite_model))
-
-    def __init__(self, interpreter):
-        self.interpreter = interpreter
-        self.interpreter.allocate_tensors()
-        input_det = self.interpreter.get_input_details()[0]
-        output_det = self.interpreter.get_output_details()[0]
-        self.input_index = input_det["index"]
-        self.output_index = output_det["index"]
-        self.input_shape = input_det["shape"]
-        self.output_shape = output_det["shape"]
-        self.input_dtype = input_det["dtype"]
-        self.output_dtype = output_det["dtype"]
-
-    def predict(self, inp):
-        inp = inp.astype(self.input_dtype)
-        count = inp.shape[0]
-        out = np.zeros((count, self.output_shape[1]), dtype=self.output_dtype)
-        for i in range(count):
-            self.interpreter.set_tensor(self.input_index, inp[i : i + 1])
-            self.interpreter.invoke()
-            out[i] = self.interpreter.get_tensor(self.output_index)[0]
-        return out
-
-
-def get_model(model_name: str = "model-23057-1642540624-0.1.dev963+g309c9d8"):
+def get_model(
+    model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+):
     # Load pre-trained model
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
 
@@ -175,6 +129,10 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
 
 
 if __name__ == "__main__":
+    """
+    Test the load and inference times of models saved in different formats, specifcally to compare
+    the best version with the best overall latency, yet with the best score.
+    """
 
     print(astronet.__version__)
     print(astronet.__file__)
@@ -194,11 +152,11 @@ if __name__ == "__main__":
     print("Running predictions")
     wloss = WeightedLogLoss()
 
-    # predict_original_model(X_test, wloss)
-    # predict_clustered_tflite_model(X_test, wloss)
+    predict_original_model(X_test, wloss)
+    predict_clustered_tflite_model(X_test, wloss)
 
-    # predict_saved_clustered_tflite_model(X_test, wloss)
+    predict_saved_clustered_tflite_model(X_test, wloss)
     predict_saved_clustered_quantized_tflite_model(X_test, wloss)
 
-    # predict_compressed_clustered_tflite_model(X_test, wloss)
-    # predict_compressed_clustered_model(X_test, wloss)
+    predict_compressed_clustered_tflite_model(X_test, wloss)
+    predict_compressed_clustered_model(X_test, wloss)
