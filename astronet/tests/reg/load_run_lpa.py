@@ -138,7 +138,9 @@ def predict_original_model(X_test, wloss):
     # BASELINE
     model = get_model()
     y_preds = model.predict(X_test)
-    print(f"ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+    log.info(
+        f"ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+    )
 
 
 @profile
@@ -147,7 +149,7 @@ def predict_compressed_model(X_test, wloss):
     # BASELINE + HUFFMAN
     cmodel = get_compressed_model()
     y_preds = cmodel.predict(X_test)
-    print(
+    log.info(
         f"COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -158,7 +160,7 @@ def predict_clustered_model(X_test, wloss):
     # CLUSTERING
     cmodel = get_clustered_model()
     y_preds = cmodel.predict(X_test)
-    print(
+    log.info(
         f"CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -169,7 +171,7 @@ def predict_compressed_clustered_model(X_test, wloss):
     # CLUSTERING + HUFFMAN
     cmodel = get_compressed_clustered_model()
     y_preds = cmodel.predict(X_test)
-    print(
+    log.info(
         f"COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -182,7 +184,7 @@ def predict_pruned_model(X_test, wloss):
     model_name = ""
     pmodel = get_pruned_model(model_name)
     y_preds = pmodel.predict(X_test)
-    print(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+    log.info(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
 
 @profile
@@ -193,7 +195,7 @@ def predict_compressed_clustered_pruned_model(X_test, wloss):
     model_name = ""
     ccpmodel = get_compressed_clustered_pruned_model(model_name)
     y_preds = ccpmodel.predict(X_test)
-    print(
+    log.info(
         f"COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -205,7 +207,7 @@ def predict_clustered_tflite_model(X_test, wloss):
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
     lmodel = get_tflite_from_saved_model(model_path)
     y_preds = lmodel.predict(X_test)
-    print(
+    log.info(
         f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -218,7 +220,7 @@ def predict_compressed_clustered_tflite_model(X_test, wloss):
     model_name = "tinho/compressed_clustered_stripped_fink_model"
     clmodel = get_compressed_lite_model(model_name)
     y_preds = clmodel.predict(X_test)
-    print(
+    log.info(
         f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -231,7 +233,7 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
     clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
-    print(
+    log.info(
         f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -245,7 +247,7 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
     clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
-    print(
+    log.info(
         f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
     )
 
@@ -256,8 +258,8 @@ if __name__ == "__main__":
     the best version with the best overall latency, yet with the best score.
     """
 
-    print(astronet.__version__)
-    print(astronet.__file__)
+    log.info(astronet.__version__)
+    log.info(astronet.__file__)
 
     X_test = np.load(
         f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
@@ -266,12 +268,12 @@ if __name__ == "__main__":
         f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
     )
 
-    print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}")
+    log.info(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}")
 
     # Only trained on red, green filters {r, g}
     X_test = X_test[:, :, 0:3:2]
 
-    print("Running predictions")
+    log.info("Running predictions")
     wloss = WeightedLogLoss()
 
     # BASELINE

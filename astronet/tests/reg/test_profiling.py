@@ -18,7 +18,7 @@ log = astronet_logger(__file__)
 def test_kernprof():
     prof = "load_run_lpa.py"
     _ = subprocess.run(
-        f"kernprof -lv {prof}",
+        f"kernprof -lv {prof} 2>&1 | tee {prof}.stdout.txt",
         check=True,
         capture_output=True,
         shell=True,
@@ -28,7 +28,7 @@ def test_kernprof():
     log.info(f"KERNPROF DONE: Saved to {prof}.lnprof")
 
     out = subprocess.run(
-        f"python -m line_profiler {prof}.lprof 2>&1 | tee {prof}.stdout.txt",
+        f"python -m line_profiler {prof}.lprof 2>>&1 | tee {prof}.stdout.txt",
         check=True,
         capture_output=True,
         shell=True,

@@ -1,270 +1,306 @@
-/Users/tallamjr/mambaforge/envs/astronet/lib/python3.8/site-packages/jax/_src/lib/__init__.py:34: UserWarning: JAX on Mac ARM machines is experimental and minimally tested. Please see https://github.com/google/jax/issues/5501 in the event of problems.
-  warnings.warn("JAX on Mac ARM machines is experimental and minimally tested. "
-0.9.3
-/Users/tallamjr/github/tallamjr/origin/astronet/astronet/__init__.py
-X_TEST: (869864, 100, 6), Y_TEST: (869864, 14)
-Running predictions
-WARNING:tensorflow:SavedModel saved prior to TF 2.5 detected when loading Keras model. Please ensure that you are saving the model with model.save() or tf.keras.models.save_model(), *NOT* tf.saved_model.save(). To confirm, there should be a file named "keras_metadata.pb" in the SavedModel directory.
-Metal device set to: Apple M1 Pro
-
-systemMemory: 32.00 GB
-maxCacheSize: 10.67 GB
-
-ORIGINAL T2 MODEL ON GR-noZ LL-Test: 0.97
-WARNING:tensorflow:SavedModel saved prior to TF 2.5 detected when loading Keras model. Please ensure that you are saving the model with model.save() or tf.keras.models.save_model(), *NOT* tf.saved_model.save(). To confirm, there should be a file named "keras_metadata.pb" in the SavedModel directory.
-COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: 0.97
-CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: 0.84
-COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: 0.84
-SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: 0.84
-SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: 0.83
-Wrote profile results to load_run_lpa.py.lprof
 Timer unit: 1e-06 s
 
-Total time: 316.453 s
+Total time: 6.33806 s
 File: load_run_lpa.py
-Function: predict_original_model at line 122
+Function: get_model at line 24
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   122                                               # ORIGINAL T2 MODEL ON GR-noZ
-   123                                               # BASELINE
-   124                                               model = get_model()
-   125                                               y_preds = model.predict(X_test)
-   126         1    6116597.0 6116597.0      1.9      print(f"ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-   127         1  310242533.0 310242533.0     98.0
-   128         1      93866.0  93866.0      0.0
-   129                                           @profile
-   130                                           def predict_compressed_model(X_test, wloss):
-   131                                               # COMPRESSED MODEL, aka COMPRESSED T2
-   132                                               # BASELINE + HUFFMAN
-   133                                               cmodel = get_compressed_model()
-   134                                               y_preds = cmodel.predict(X_test)
-   135                                               print(
-   136                                                   f"COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   137                                               )
+    24                                           @profile
+    25                                           def get_model(
+    26                                               model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+    27                                           ):
+    28                                               # Load pre-trained original t2 model
+    29         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    30
+    31         2    6338058.0 3169029.0    100.0      model = tf.keras.models.load_model(
+    32         1          0.0      0.0      0.0          model_path,
+    33         1          4.0      4.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    34         1          0.0      0.0      0.0          compile=False,
+    35                                               )
+    36
+    37         1          1.0      1.0      0.0      return model
 
-Total time: 295.014 s
+Total time: 6.11331 s
 File: load_run_lpa.py
-Function: predict_compressed_model at line 131
+Function: get_compressed_model at line 40
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   131                                               # COMPRESSED MODEL, aka COMPRESSED T2
-   132                                               # BASELINE + HUFFMAN
-   133                                               cmodel = get_compressed_model()
-   134                                               y_preds = cmodel.predict(X_test)
-   135         1    6294169.0 6294169.0      2.1      print(
-   136         1  288639901.0 288639901.0     97.8          f"COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   137         2         22.0     11.0      0.0      )
-   138         1      80226.0  80226.0      0.0
-   139
-   140                                           @profile
-   141                                           def predict_clustered_model(X_test, wloss):
-   142                                               # CLUSTERED-STRIPPED MODEL, aka TINHO
-   143                                               # CLUSTERING
-   144                                               cmodel = get_clustered_model()
-   145                                               y_preds = cmodel.predict(X_test)
-   146                                               print(
-   147                                                   f"CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   148                                               )
-
-Total time: 384.482 s
-File: load_run_lpa.py
-Function: predict_clustered_model at line 142
-
-Line #      Hits         Time  Per Hit   % Time  Line Contents
-==============================================================
-   142                                               # CLUSTERED-STRIPPED MODEL, aka TINHO
-   143                                               # CLUSTERING
-   144                                               cmodel = get_clustered_model()
-   145                                               y_preds = cmodel.predict(X_test)
-   146         1    5472265.0 5472265.0      1.4      print(
-   147         1  378927225.0 378927225.0     98.6          f"CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   148         2         23.0     11.5      0.0      )
-   149         1      82354.0  82354.0      0.0
-   150
-   151                                           @profile
-   152                                           def predict_compressed_clustered_model(X_test, wloss):
-   153                                               # COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO
-   154                                               # CLUSTERING + HUFFMAN
-   155                                               cmodel = get_compressed_clustered_model()
-   156                                               y_preds = cmodel.predict(X_test)
-   157                                               print(
-   158                                                   f"COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   159                                               )
-
-Total time: 308.402 s
-File: load_run_lpa.py
-Function: predict_compressed_clustered_model at line 153
-
-Line #      Hits         Time  Per Hit   % Time  Line Contents
-==============================================================
-   153                                               # COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO
-   154                                               # CLUSTERING + HUFFMAN
-   155                                               cmodel = get_compressed_clustered_model()
-   156                                               y_preds = cmodel.predict(X_test)
-   157         1    5635951.0 5635951.0      1.8      print(
-   158         1  302689548.0 302689548.0     98.1          f"COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   159         2         21.0     10.5      0.0      )
-   160         1      76226.0  76226.0      0.0
-   161
-   162                                           @profile
-   163                                           def predict_pruned_model(X_test, wloss):
-   164                                               # PRUNED-STRIPPED MODEL
-   165                                               # PRUNING
-   166                                               # TODO: Update model_name
-   167                                               model_name = ""
-   168                                               pmodel = get_pruned_model(model_name)
-   169                                               y_preds = pmodel.predict(X_test)
-   170                                               print(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+    40                                           @profile
+    41                                           def get_compressed_model(
+    42                                               model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+    43                                           ):
+    44                                               # Load pre-trained zipped original t2 model
+    45         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    46
+    47         1        148.0    148.0      0.0      with tempfile.TemporaryDirectory() as tmpdir:
+    48         1       1450.0   1450.0      0.0          with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+    49         6         16.0      2.7      0.0              for file in archive.namelist():
+    50         5       3717.0    743.4      0.1                  archive.extract(file, tmpdir)
+    51
+    52         2    6107967.0 3053983.5     99.9          model = tf.keras.models.load_model(
+    53         1          0.0      0.0      0.0              f"{tmpdir}/{model_name}",
+    54         1          9.0      9.0      0.0              custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    55         1          0.0      0.0      0.0              compile=False,
+    56                                                   )
+    57
+    58         1          2.0      2.0      0.0      return model
 
 Total time: 0 s
 File: load_run_lpa.py
-Function: predict_pruned_model at line 164
+Function: get_compressed_convert_to_lite at line 61
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   164                                               # PRUNED-STRIPPED MODEL
-   165                                               # PRUNING
-   166                                               # TODO: Update model_name
-   167                                               model_name = ""
-   168                                               pmodel = get_pruned_model(model_name)
-   169                                               y_preds = pmodel.predict(X_test)
-   170                                               print(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
-   171
-   172
-   173                                           @profile
-   174                                           def predict_compressed_clustered_pruned_model(X_test, wloss):
-   175                                               # COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, aka COMPRESSED TINHO
-   176                                               # CLUSTERING + PRUNING + HUFFMAN
-   177                                               # TODO: Update model_name
-   178                                               model_name = ""
-   179                                               ccpmodel = get_compressed_clustered_pruned_model(model_name)
-   180                                               y_preds = ccpmodel.predict(X_test)
-   181                                               print(
-   182                                                   f"COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   183                                               )
+    61                                           @profile
+    62                                           def get_compressed_convert_to_lite(
+    63                                               model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+    64                                           ):
+    65                                               # Load pre-trained model
+    66                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    67
+    68                                               with tempfile.TemporaryDirectory() as tmpdir:
+    69                                                   with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+    70                                                       for file in archive.namelist():
+    71                                                           archive.extract(file, tmpdir)
+    72
+    73                                                   lmodel = get_tflite_from_saved_model(f"{tmpdir}/{model_name}")
+    74
+    75                                               return lmodel
+
+Total time: 5.81143 s
+File: load_run_lpa.py
+Function: get_clustered_model at line 78
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    78                                           @profile
+    79                                           def get_clustered_model(
+    80                                               model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
+    81                                           ):
+    82                                               # Load pre-trained original t2 model
+    83         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+    84
+    85         2    5811420.0 2905710.0    100.0      model = tf.keras.models.load_model(
+    86         1          0.0      0.0      0.0          model_path,
+    87         1         13.0     13.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    88         1          0.0      0.0      0.0          compile=False,
+    89                                               )
+    90
+    91         1          2.0      2.0      0.0      return model
+
+Total time: 5.61733 s
+File: load_run_lpa.py
+Function: get_compressed_clustered_model at line 94
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    94                                           @profile
+    95                                           def get_compressed_clustered_model(
+    96                                               model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
+    97                                           ):
+    98                                               # Load pre-trained model
+    99         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+   100
+   101         1        186.0    186.0      0.0      with tempfile.TemporaryDirectory() as tmpdir:
+   102         1       1371.0   1371.0      0.0          with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   103         7         13.0      1.9      0.0              for file in archive.namelist():
+   104         6       4294.0    715.7      0.1                  archive.extract(file, tmpdir)
+   105
+   106         2    5611457.0 2805728.5     99.9          model = tf.keras.models.load_model(
+   107         1          0.0      0.0      0.0              f"{tmpdir}/{model_name}",
+   108         1          8.0      8.0      0.0              custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   109         1          0.0      0.0      0.0              compile=False,
+   110                                                   )
+   111
+   112         1          1.0      1.0      0.0      return model
+
+Total time: 0.003736 s
+File: load_run_lpa.py
+Function: get_tflite_from_file at line 115
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   115                                           @profile
+   116                                           def get_tflite_from_file(model_path: str):
+   117         2       3736.0   1868.0    100.0      return LiteModel.from_file(model_path=model_path)
 
 Total time: 0 s
 File: load_run_lpa.py
-Function: predict_compressed_clustered_pruned_model at line 175
+Function: get_tflite_from_saved_model at line 120
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   175                                               # COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, aka COMPRESSED TINHO
-   176                                               # CLUSTERING + PRUNING + HUFFMAN
-   177                                               # TODO: Update model_name
-   178                                               model_name = ""
-   179                                               ccpmodel = get_compressed_clustered_pruned_model(model_name)
-   180                                               y_preds = ccpmodel.predict(X_test)
-   181                                               print(
-   182                                                   f"COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   183                                               )
-   184
-   185
-   186                                           @profile
-   187                                           def predict_clustered_tflite_model(X_test, wloss):
-   188                                               # CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
-   189                                               # CLUSTERING-FLATBUFFER CONVERSION
-   190                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-   191                                               lmodel = LiteModel.from_saved_model(model_path)
-   192                                               y_preds = lmodel.predict(X_test)
-   193                                               print(
-   194                                                   f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   195                                               )
+   120                                           @profile
+   121                                           def get_tflite_from_saved_model(model_path: str):
+   122                                               return LiteModel.from_saved_model(model_path=model_path)
+
+Total time: 348.939 s
+File: load_run_lpa.py
+Function: predict_original_model at line 135
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   135                                           @profile
+   136                                           def predict_original_model(X_test, wloss):
+   137                                               # ORIGINAL T2 MODEL ON GR-noZ
+   138                                               # BASELINE
+   139         1    6338073.0 6338073.0      1.8      model = get_model()
+   140         1  342502341.0 342502341.0     98.2      y_preds = model.predict(X_test)
+   141         1      98215.0  98215.0      0.0      print(f"ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+
+Total time: 338.245 s
+File: load_run_lpa.py
+Function: predict_compressed_model at line 144
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   144                                           @profile
+   145                                           def predict_compressed_model(X_test, wloss):
+   146                                               # COMPRESSED MODEL, aka COMPRESSED T2
+   147                                               # BASELINE + HUFFMAN
+   148         1    6113330.0 6113330.0      1.8      cmodel = get_compressed_model()
+   149         1  332044907.0 332044907.0     98.2      y_preds = cmodel.predict(X_test)
+   150         2          6.0      3.0      0.0      print(
+   151         1      87033.0  87033.0      0.0          f"COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   152                                               )
+
+Total time: 392.768 s
+File: load_run_lpa.py
+Function: predict_clustered_model at line 155
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   155                                           @profile
+   156                                           def predict_clustered_model(X_test, wloss):
+   157                                               # CLUSTERED-STRIPPED MODEL, aka TINHO
+   158                                               # CLUSTERING
+   159         1    5811453.0 5811453.0      1.5      cmodel = get_clustered_model()
+   160         1  386875816.0 386875816.0     98.5      y_preds = cmodel.predict(X_test)
+   161         2          6.0      3.0      0.0      print(
+   162         1      80311.0  80311.0      0.0          f"CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   163                                               )
+
+Total time: 392.061 s
+File: load_run_lpa.py
+Function: predict_compressed_clustered_model at line 166
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   166                                           @profile
+   167                                           def predict_compressed_clustered_model(X_test, wloss):
+   168                                               # COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO
+   169                                               # CLUSTERING + HUFFMAN
+   170         1    5617356.0 5617356.0      1.4      cmodel = get_compressed_clustered_model()
+   171         1  386360119.0 386360119.0     98.5      y_preds = cmodel.predict(X_test)
+   172         2          5.0      2.5      0.0      print(
+   173         1      83619.0  83619.0      0.0          f"COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   174                                               )
 
 Total time: 0 s
 File: load_run_lpa.py
-Function: predict_clustered_tflite_model at line 188
+Function: predict_pruned_model at line 177
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   188                                               # CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
-   189                                               # CLUSTERING-FLATBUFFER CONVERSION
-   190                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-   191                                               lmodel = LiteModel.from_saved_model(model_path)
-   192                                               y_preds = lmodel.predict(X_test)
-   193                                               print(
-   194                                                   f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   195                                               )
-   196
-   197
-   198                                           @profile
-   199                                           def predict_compressed_clustered_tflite_model(X_test, wloss):
-   200                                               # COMPRESSED CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
-   201                                               # CLUSTERING-FLATBUFFER + HUFFMAN
-   202                                               # TODO: Update model_name
-   203                                               model_name = "tinho/compressed_clustered_stripped_fink_model"
-   204                                               clmodel = get_compressed_lite_model(model_name)
-   205                                               y_preds = clmodel.predict(X_test)
-   206                                               print(
-   207                                                   f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   208                                               )
+   177                                           @profile
+   178                                           def predict_pruned_model(X_test, wloss):
+   179                                               # PRUNED-STRIPPED MODEL
+   180                                               # PRUNING
+   181                                               # TODO: Update model_name
+   182                                               model_name = ""
+   183                                               pmodel = get_pruned_model(model_name)
+   184                                               y_preds = pmodel.predict(X_test)
+   185                                               print(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
 
 Total time: 0 s
 File: load_run_lpa.py
-Function: predict_compressed_clustered_tflite_model at line 200
+Function: predict_compressed_clustered_pruned_model at line 188
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   200                                               # COMPRESSED CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
-   201                                               # CLUSTERING-FLATBUFFER + HUFFMAN
-   202                                               # TODO: Update model_name
-   203                                               model_name = "tinho/compressed_clustered_stripped_fink_model"
-   204                                               clmodel = get_compressed_lite_model(model_name)
-   205                                               y_preds = clmodel.predict(X_test)
-   206                                               print(
-   207                                                   f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   208                                               )
-   209
-   210
-   211                                           @profile
-   212                                           def predict_saved_clustered_tflite_model(X_test, wloss):
-   213                                               # SAVED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
-   214                                               # CLUSTERING-FLATBUFFER
-   215                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-   216                                               model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-   217                                               clmodel = LiteModel.from_file(model_path=model_path)
-   218                                               y_preds = clmodel.predict(X_test)
-   219                                               print(
-   220                                                   f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   221                                               )
+   188                                           @profile
+   189                                           def predict_compressed_clustered_pruned_model(X_test, wloss):
+   190                                               # COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, aka COMPRESSED TINHO
+   191                                               # CLUSTERING + PRUNING + HUFFMAN
+   192                                               # TODO: Update model_name
+   193                                               model_name = ""
+   194                                               ccpmodel = get_compressed_clustered_pruned_model(model_name)
+   195                                               y_preds = ccpmodel.predict(X_test)
+   196                                               print(
+   197                                                   f"COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   198                                               )
 
-Total time: 322.441 s
+Total time: 0 s
 File: load_run_lpa.py
-Function: predict_saved_clustered_tflite_model at line 213
+Function: predict_clustered_tflite_model at line 201
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   213                                               # SAVED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
-   214                                               # CLUSTERING-FLATBUFFER
-   215                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-   216                                               model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-   217                                               clmodel = LiteModel.from_file(model_path=model_path)
-   218         1          1.0      1.0      0.0      y_preds = clmodel.predict(X_test)
-   219         1       9405.0   9405.0      0.0      print(
-   220         1  322360365.0 322360365.0    100.0          f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   221         2         22.0     11.0      0.0      )
-   222         1      71327.0  71327.0      0.0
-   223
-   224                                           @profile
-   225                                           def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
-   226                                               # SAVED QUANTIZED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
-   227                                               # CLUSTERING-FLATBUFFER + QUANTIZATION
-   228                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
-   229                                               # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
-   230                                               model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-   231                                               clmodel = LiteModel.from_file(model_path=model_path)
-   232                                               y_preds = clmodel.predict(X_test)
-   233                                               print(
-   234                                                   f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-   235                                               )
+   201                                           @profile
+   202                                           def predict_clustered_tflite_model(X_test, wloss):
+   203                                               # CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
+   204                                               # CLUSTERING-FLATBUFFER CONVERSION
+   205                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+   206                                               lmodel = get_tflite_from_saved_model(model_path)
+   207                                               y_preds = lmodel.predict(X_test)
+   208                                               print(
+   209                                                   f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   210                                               )
 
-Total time: 318.68 s
+Total time: 0 s
 File: load_run_lpa.py
-Function: predict_saved_clustered_quantized_tflite_model at line 226
+Function: predict_compressed_clustered_tflite_model at line 213
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-   226                                               # SAVED QUANTIZED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
+   213                                           @profile
+   214                                           def predict_compressed_clustered_tflite_model(X_test, wloss):
+   215                                               # COMPRESSED CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
+   216                                               # CLUSTERING-FLATBUFFER + HUFFMAN
+   217                                               # TODO: Update model_name
+   218                                               model_name = "tinho/compressed_clustered_stripped_fink_model"
+   219                                               clmodel = get_compressed_lite_model(model_name)
+   220                                               y_preds = clmodel.predict(X_test)
+   221                                               print(
+   222                                                   f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   223                                               )
+
+Total time: 320.085 s
+File: load_run_lpa.py
+Function: predict_saved_clustered_tflite_model at line 226
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   226                                           @profile
+   227                                           def predict_saved_clustered_tflite_model(X_test, wloss):
+   228                                               # SAVED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
+   229                                               # CLUSTERING-FLATBUFFER
+   230                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   231         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
+   232         1       1875.0   1875.0      0.0      clmodel = get_tflite_from_file(model_path)
+   233         1  320009191.0 320009191.0    100.0      y_preds = clmodel.predict(X_test)
+   234         2          6.0      3.0      0.0      print(
+   235         1      74330.0  74330.0      0.0          f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   236                                               )
+
+Total time: 314.8 s
+File: load_run_lpa.py
+Function: predict_saved_clustered_quantized_tflite_model at line 239
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   239                                           @profile
+   240                                           def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
+   241                                               # SAVED QUANTIZED TFLITE CLUSTERED-STRIPPED MODEL, .tflife FILE
+   242                                               # CLUSTERING-FLATBUFFER + QUANTIZATION
+   243                                               # Load clustered model TFLite model, i.e. a .tflife model/file on disk
+   244                                               # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
+   245         1          1.0      1.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
+   246         1       1868.0   1868.0      0.0      clmodel = get_tflite_from_file(model_path)
+   247         1  314724875.0 314724875.0    100.0      y_preds = clmodel.predict(X_test)
+   248         2          5.0      2.5      0.0      print(
+   249         1      73447.0  73447.0      0.0          f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+   250                                               )
 
