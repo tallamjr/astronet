@@ -21,6 +21,7 @@ np_config.enable_numpy_behavior()
 # flake8: noqa: C901
 
 
+@profile
 def get_model(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
@@ -36,6 +37,7 @@ def get_model(
     return model
 
 
+@profile
 def get_compressed_model(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
@@ -56,6 +58,7 @@ def get_compressed_model(
     return model
 
 
+@profile
 def get_compressed_convert_to_lite(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
@@ -67,11 +70,12 @@ def get_compressed_convert_to_lite(
             for file in archive.namelist():
                 archive.extract(file, tmpdir)
 
-        lmodel = LiteModel.from_saved_model(f"{tmpdir}/{model_name}")
+        lmodel = get_tflite_from_saved_model(f"{tmpdir}/{model_name}")
 
     return lmodel
 
 
+@profile
 def get_clustered_model(
     model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
 ):
@@ -87,6 +91,7 @@ def get_clustered_model(
     return model
 
 
+@profile
 def get_compressed_clustered_model(
     model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
 ):
@@ -105,6 +110,16 @@ def get_compressed_clustered_model(
         )
 
     return model
+
+
+@profile
+def get_tflite_from_file(model_path: str):
+    return LiteModel.from_file(model_path=model_path)
+
+
+@profile
+def get_tflite_from_saved_model(model_path: str):
+    return LiteModel.from_saved_model(model_path=model_path)
 
 
 def get_pruned_model():
@@ -188,7 +203,7 @@ def predict_clustered_tflite_model(X_test, wloss):
     # CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
     # CLUSTERING-FLATBUFFER CONVERSION
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-    lmodel = LiteModel.from_saved_model(model_path)
+    lmodel = get_tflite_from_saved_model(model_path)
     y_preds = lmodel.predict(X_test)
     print(
         f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
@@ -214,7 +229,7 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
     # CLUSTERING-FLATBUFFER
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-    clmodel = LiteModel.from_file(model_path=model_path)
+    clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
     print(
         f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
@@ -228,7 +243,7 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
     # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-    clmodel = LiteModel.from_file(model_path=model_path)
+    clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
     print(
         f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
