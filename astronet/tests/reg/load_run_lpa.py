@@ -122,16 +122,41 @@ def get_tflite_from_saved_model(model_path: str):
     return LiteModel.from_saved_model(model_path=model_path)
 
 
-def get_pruned_model():
-    # TODO:
-    log.critical(f"{inspect.stack()[0].function} -- Not Fully Implemented Yet")
-    pass
+@profile
+def get_pruned_model(
+    model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
+):
+    # Load pre-trained original t2 model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    model = tf.keras.models.load_model(
+        model_path,
+        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        compile=False,
+    )
+
+    return model
 
 
-def get_compressed_clustered_pruned_model():
-    # TODO:
-    log.critical(f"{inspect.stack()[0].function} -- Not Fully Implemented Yet")
-    pass
+@profile
+def get_compressed_clustered_pruned_model(
+    model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
+):
+    # Load pre-trained model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
+
+        model = tf.keras.models.load_model(
+            f"{tmpdir}/{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
+    return model
 
 
 @profile
@@ -169,9 +194,7 @@ def predict_clustered_model(X_test, wloss):
 def predict_pruned_model(X_test, wloss):
     # PRUNED-STRIPPED MODEL
     # CLUSTERING + PRUNING
-    # TODO: Update model_name
-    model_name = ""
-    pmodel = get_pruned_model(model_name)
+    pmodel = get_pruned_model()
     y_preds = pmodel.predict(X_test)
     log.info(f"PRUNING LL-Test: {wloss(y_test, y_preds).numpy():.3f}")
 
@@ -191,9 +214,7 @@ def predict_compressed_clustered_model(X_test, wloss):
 def predict_compressed_clustered_pruned_model(X_test, wloss):
     # COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, aka COMPRESSED TINHO
     # CLUSTERING + PRUNING + HUFFMAN
-    # TODO: Update model_name
-    model_name = ""
-    ccpmodel = get_compressed_clustered_pruned_model(model_name)
+    ccpmodel = get_compressed_clustered_pruned_model()
     y_preds = ccpmodel.predict(X_test)
     log.info(
         f"CLUSTERING + PRUNING + HUFFMAN LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -289,8 +310,10 @@ if __name__ == "__main__":
     # CLUSTERING + HUFFMAN
     predict_compressed_clustered_model(X_test, wloss)
 
-    # TODO: CLUSTERING + PRUNING
-    # TODO: CLUSTERING + PRUNING + HUFFMAN
+    # CLUSTERING + PRUNING
+    predict_pruned_model(X_test, wloss)
+    # CLUSTERING + PRUNING + HUFFMAN
+    predict_compressed_clustered_pruned_model(X_test, wloss)
 
     # CLUSTERING-FLATBUFFER
     predict_saved_clustered_tflite_model(X_test, wloss)
