@@ -139,7 +139,7 @@ def predict_original_model(X_test, wloss):
     model = get_model()
     y_preds = model.predict(X_test)
     log.info(
-        f"ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"BASELINE :ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -150,7 +150,7 @@ def predict_compressed_model(X_test, wloss):
     cmodel = get_compressed_model()
     y_preds = cmodel.predict(X_test)
     log.info(
-        f"COMPRESSED MODEL, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"BASELINE + HUFFMAN, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -160,9 +160,7 @@ def predict_clustered_model(X_test, wloss):
     # CLUSTERING
     cmodel = get_clustered_model()
     y_preds = cmodel.predict(X_test)
-    log.info(
-        f"CLUSTERED-STRIPPED MODEL, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
-    )
+    log.info(f"CLUSTERING, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.3f}")
 
 
 @profile
@@ -172,7 +170,7 @@ def predict_compressed_clustered_model(X_test, wloss):
     cmodel = get_compressed_clustered_model()
     y_preds = cmodel.predict(X_test)
     log.info(
-        f"COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING + HUFFMAN, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -184,7 +182,7 @@ def predict_pruned_model(X_test, wloss):
     model_name = ""
     pmodel = get_pruned_model(model_name)
     y_preds = pmodel.predict(X_test)
-    log.info(f"PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}")
+    log.info(f"PRUNING LL-Test: {wloss(y_test, y_preds).numpy():.3f}")
 
 
 @profile
@@ -196,7 +194,7 @@ def predict_compressed_clustered_pruned_model(X_test, wloss):
     ccpmodel = get_compressed_clustered_pruned_model(model_name)
     y_preds = ccpmodel.predict(X_test)
     log.info(
-        f"COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING + PRUNING + HUFFMAN LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -208,7 +206,7 @@ def predict_clustered_tflite_model(X_test, wloss):
     lmodel = get_tflite_from_saved_model(model_path)
     y_preds = lmodel.predict(X_test)
     log.info(
-        f"TFLITE CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING-FLATBUFFER CONVERSION LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -221,7 +219,7 @@ def predict_compressed_clustered_tflite_model(X_test, wloss):
     clmodel = get_compressed_lite_model(model_name)
     y_preds = clmodel.predict(X_test)
     log.info(
-        f"TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING-FLATBUFFER + HUFFMAN MODEL LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -234,7 +232,7 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
     clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
     log.info(
-        f"SAVED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING-FLATBUFFER MODEL LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
@@ -248,7 +246,7 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     clmodel = get_tflite_from_file(model_path)
     y_preds = clmodel.predict(X_test)
     log.info(
-        f"SAVED QUANTIZED TFLITE COMPRESSED CLUSTERED-STRIPPED MODEL LL-Test: {wloss(y_test, y_preds).numpy():.2f}"
+        f"CLUSTERING-FLATBUFFER + QUANTIZATION LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
     )
 
 
