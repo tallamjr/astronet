@@ -24,7 +24,7 @@ def test_kernprof():
 
     log.info(f"KERNPROF DONE: Saved to {prof}.lnprof")
 
-    out = subprocess.run(
+    proc = subprocess.run(
         f"python -m line_profiler {prof}.lprof &>> {prof}.stdout.txt",
         check=True,
         capture_output=True,
@@ -33,5 +33,9 @@ def test_kernprof():
         text=True,
     ).stdout.strip()
 
+    out = proc.stdout.strip()
     log.info(out)
-    assert True
+
+    result = proc.returncode
+
+    assert result == 0  # Successful exit code
