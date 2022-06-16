@@ -1,0 +1,627 @@
+Metal device set to: Apple M1 Pro
+0.9.4.dev17+gd6bdbeb
+/Users/tallamjr/github/tallamjr/origin/astronet/astronet/__init__.py
+30
+candid                                     1786156252415010024
+schemavsn                                                  3.3
+publisher                                                 Fink
+objectId                                          ZTF18acmulej
+candidate    (2459540.65625, 2, 1786156252415, 19.284673690...
+Name: 30, dtype: object
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.002,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.001,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.072,
+    "SNII": 0.022,
+    "SNIa": 0.144,
+    "SNIa-91bg": 0.166,
+    "SNIax": 0.184,
+    "SNIbc": 0.406,
+    "TDE": 0.002,
+    "mu-Lens-Single": 0.001
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.002,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.001,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.072,
+    "SNII": 0.022,
+    "SNIa": 0.144,
+    "SNIa-91bg": 0.166,
+    "SNIax": 0.184,
+    "SNIbc": 0.406,
+    "TDE": 0.002,
+    "mu-Lens-Single": 0.001
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.0,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.0,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.111,
+    "SNII": 0.032,
+    "SNIa": 0.178,
+    "SNIa-91bg": 0.099,
+    "SNIax": 0.232,
+    "SNIbc": 0.34,
+    "TDE": 0.001,
+    "mu-Lens-Single": 0.006
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.0,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.0,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.111,
+    "SNII": 0.032,
+    "SNIa": 0.178,
+    "SNIa-91bg": 0.099,
+    "SNIax": 0.232,
+    "SNIbc": 0.34,
+    "TDE": 0.001,
+    "mu-Lens-Single": 0.006
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.001,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.002,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.113,
+    "SNII": 0.042,
+    "SNIa": 0.149,
+    "SNIa-91bg": 0.24,
+    "SNIax": 0.171,
+    "SNIbc": 0.271,
+    "TDE": 0.002,
+    "mu-Lens-Single": 0.009
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.001,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.002,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.113,
+    "SNII": 0.042,
+    "SNIa": 0.149,
+    "SNIa-91bg": 0.24,
+    "SNIax": 0.171,
+    "SNIbc": 0.271,
+    "TDE": 0.002,
+    "mu-Lens-Single": 0.009
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.0,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.0,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.111,
+    "SNII": 0.032,
+    "SNIa": 0.178,
+    "SNIa-91bg": 0.099,
+    "SNIax": 0.232,
+    "SNIbc": 0.34,
+    "TDE": 0.001,
+    "mu-Lens-Single": 0.006
+}
+OBJECT ID:1786156252415010024 at INDEX:0
+{
+    "AGN": 0.0,
+    "EB": 0.0,
+    "KN": 0.0,
+    "M-dwarf": 0.0,
+    "Mira": 0.0,
+    "RRL": 0.0,
+    "SLSN-I": 0.125,
+    "SNII": 0.031,
+    "SNIa": 0.181,
+    "SNIa-91bg": 0.087,
+    "SNIax": 0.233,
+    "SNIbc": 0.337,
+    "TDE": 0.001,
+    "mu-Lens-Single": 0.005
+}
+Wrote profile results to ztf-load-run-lpa.py.lprof
+Timer unit: 0.001 s
+
+Total time: 5.85664 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_model at line 29
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    29                                           @profile
+    30                                           def get_model(
+    31                                               model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+    32                                           ):
+    33                                               # Load pre-trained original t2 model
+    34         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    35
+    36         2       5856.6   2928.3    100.0      model = tf.keras.models.load_model(
+    37         1          0.0      0.0      0.0          model_path,
+    38         1          0.0      0.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    39         1          0.0      0.0      0.0          compile=False,
+    40                                               )
+    41
+    42         1          0.0      0.0      0.0      return model
+
+Total time: 0 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_compressed_convert_to_lite at line 66
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    66                                           @profile
+    67                                           def get_compressed_convert_to_lite(
+    68                                               model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
+    69                                           ):
+    70                                               # Load pre-trained model
+    71                                               model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
+    72
+    73                                               with tempfile.TemporaryDirectory() as tmpdir:
+    74                                                   with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+    75                                                       for file in archive.namelist():
+    76                                                           archive.extract(file, tmpdir)
+    77
+    78                                                   lmodel = get_tflite_from_saved_model(f"{tmpdir}/{model_name}")
+    79
+    80                                               return lmodel
+
+Total time: 5.39864 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_clustered_model at line 83
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    83                                           @profile
+    84                                           def get_clustered_model(
+    85                                               model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
+    86                                           ):
+    87                                               # Load pre-trained original t2 model
+    88         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+    89
+    90         2       5398.6   2699.3    100.0      model = tf.keras.models.load_model(
+    91         1          0.0      0.0      0.0          model_path,
+    92         1          0.0      0.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+    93         1          0.0      0.0      0.0          compile=False,
+    94                                               )
+    95
+    96         1          0.0      0.0      0.0      return model
+
+Total time: 5.41049 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_compressed_clustered_model at line 99
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    99                                           @profile
+   100                                           def get_compressed_clustered_model(
+   101                                               model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
+   102                                           ):
+   103                                               # Load pre-trained model
+   104         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+   105
+   106         1          0.1      0.1      0.0      with tempfile.TemporaryDirectory() as tmpdir:
+   107         1          0.3      0.3      0.0          with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   108         7          0.0      0.0      0.0              for file in archive.namelist():
+   109         6          3.4      0.6      0.1                  archive.extract(file, tmpdir)
+   110
+   111         2       5406.6   2703.3     99.9          model = tf.keras.models.load_model(
+   112         1          0.0      0.0      0.0              f"{tmpdir}/{model_name}",
+   113         1          0.0      0.0      0.0              custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   114         1          0.0      0.0      0.0              compile=False,
+   115                                                   )
+   116
+   117         1          0.0      0.0      0.0      return model
+
+Total time: 0.000398 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_tflite_from_file at line 120
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   120                                           @profile
+   121                                           def get_tflite_from_file(
+   122                                               model_path: str = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
+   123                                           ):
+   124         1          0.4      0.4    100.0      return LiteModel.from_file(model_path=model_path)
+
+Total time: 0.000252 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_quantized_tflite_from_file at line 127
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   127                                           @profile
+   128                                           def get_quantized_tflite_from_file(
+   129                                               model_path: str = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
+   130                                           ):
+   131         1          0.3      0.3    100.0      return LiteModel.from_file(model_path=model_path)
+
+Total time: 0 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_tflite_from_saved_model at line 134
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   134                                           @profile
+   135                                           def get_tflite_from_saved_model(model_path: str):
+   136                                               return LiteModel.from_saved_model(model_path=model_path)
+
+Total time: 4.79094 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_pruned_model at line 139
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   139                                           @profile
+   140                                           def get_pruned_model(
+   141                                               model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
+   142                                           ):
+   143                                               # Load pre-trained original t2 model
+   144         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+   145
+   146         2       4790.9   2395.5    100.0      model = tf.keras.models.load_model(
+   147         1          0.0      0.0      0.0          model_path,
+   148         1          0.0      0.0      0.0          custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   149         1          0.0      0.0      0.0          compile=False,
+   150                                               )
+   151
+   152         1          0.0      0.0      0.0      return model
+
+Total time: 5.05195 s
+File: /Users/tallamjr/github/tallamjr/origin/astronet/astronet/tests/reg/get_models.py
+Function: get_compressed_clustered_pruned_model at line 155
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   155                                           @profile
+   156                                           def get_compressed_clustered_pruned_model(
+   157                                               model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
+   158                                           ):
+   159                                               # Load pre-trained model
+   160         1          0.0      0.0      0.0      model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+   161
+   162         1          0.1      0.1      0.0      with tempfile.TemporaryDirectory() as tmpdir:
+   163         1          0.3      0.3      0.0          with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+   164         7          0.0      0.0      0.0              for file in archive.namelist():
+   165         6          2.9      0.5      0.1                  archive.extract(file, tmpdir)
+   166
+   167         2       5048.6   2524.3     99.9          model = tf.keras.models.load_model(
+   168         1          0.0      0.0      0.0              f"{tmpdir}/{model_name}",
+   169         1          0.0      0.0      0.0              custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+   170         1          0.0      0.0      0.0              compile=False,
+   171                                                   )
+   172
+   173         1          0.0      0.0      0.0      return model
+
+Total time: 1.47076 s
+File: ztf-load-run-lpa.py
+Function: t2_probs at line 55
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    55                                           @profile
+    56                                           def t2_probs(
+    57                                               candid: np.int64,
+    58                                               jd: np.ndarray,
+    59                                               fid: np.ndarray,
+    60                                               magpsf: np.int64,
+    61                                               sigmapsf: np.int64,
+    62                                               model: tf.keras.Model,
+    63                                               prettyprint=None,
+    64                                           ) -> Dict:
+    65                                               """Compute probabilities of alerts in relation to PLAsTiCC classes using the Time-Series
+    66                                               Transformer model
+    67
+    68                                               Parameters
+    69                                               ----------
+    70                                               candid: np.int64,
+    71                                                   Candidate IDs
+    72                                               jd: np.ndarray,
+    73                                                   JD times (float)
+    74                                               fid: np.ndarray,
+    75                                                   Filter IDs (int)
+    76                                               magpsf: np.ndarray,
+    77                                                   Magnitude from PSF-fit photometry
+    78                                               sigmapsf: np.ndarray,
+    79                                                   1-sigma error of PSF-fit
+    80                                               model: tensorflow.python.keras.saving.saved_model.load.T2Model
+    81                                                   Pre-compiled T2 model
+    82
+    83                                               Returns
+    84                                               ----------
+    85                                               probabilities: dict
+    86                                                   Dict containing np.array of float probabilities
+    87
+    88                                               Examples
+    89                                               ----------
+    90                                               >>> import pyspark.pandas as ps
+    91                                               >>> psdf = ps.read_parquet('sample.parquet')
+    92                                               >>> import random
+    93                                               >>> r = random.randint(0,len(psdf))
+    94                                               >>> alert = psdf.iloc[r]
+    95                                               >>> print(alert.head())
+    96                                               candid                                     1786552611115010001
+    97                                               schemavsn                                                  3.3
+    98                                               publisher                                                 Fink
+    99                                               objectId                                          ZTF18aaqfhlj
+   100                                               candidate    (2459541.0526157, 2, 1786552611115, 19.1966800...
+   101                                               Name: 221, dtype: object
+   102                                               >>> alert = alert.to_dict()
+   103
+   104                                               >>> from fink_client.visualisation import extract_field
+   105                                               # Get flux and error
+   106                                               >>> magpsf = extract_field(alert, 'magpsf')
+   107                                               >>> sigmapsf = extract_field(alert, 'sigmapsf')
+   108
+   109                                               >>> jd = extract_field(alert, "jd")
+   110
+   111                                               # For rescaling dates to start at 0 --> 30
+   112                                               # dates = np.array([jd[0] - i for i in jd])
+   113
+   114                                               # FINK candidate ID (int64)
+   115                                               >>> candid = alert["candid"]
+   116
+   117                                               # filter bands
+   118                                               >>> fid = extract_field(alert, "fid")
+   119
+   120                                               >>> model_name = "23057-1642540624-0.1.dev963+g309c9d8"
+   121                                               >>> model = get_model(model_name=model_name)
+   122
+   123                                               >>> t2_probs(candid, jd, fid, magpsf, sigmapsf, model)
+   124                                               {
+   125                                                   "AGN": 0.0,
+   126                                                   "EB": 0.017,
+   127                                                   "KN": 0.0,
+   128                                                   "M-dwarf": 0.891,
+   129                                                   "Mira": 0.002,
+   130                                                   "RRL": 0.004,
+   131                                                   "SLSN-I": 0.0,
+   132                                                   "SNII": 0.078,
+   133                                                   "SNIa": 0.001,
+   134                                                   "SNIa-91bg": 0.006,
+   135                                                   "SNIax": 0.001,
+   136                                                   "SNIbc": 0.001,
+   137                                                   "TDE": 0.0,
+   138                                                   "mu-Lens-Single": 0.0
+   139                                               }
+   140                                               """
+   141
+   142         8          0.0      0.0      0.0      ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
+   143
+   144         8          0.0      0.0      0.0      ZTF_PB_WAVELENGTHS = {
+   145         8          0.0      0.0      0.0          "ztfg": 4804.79,
+   146         8          0.0      0.0      0.0          "ztfr": 6436.92,
+   147         8          0.0      0.0      0.0          "ztfi": 7968.22,
+   148                                               }
+   149
+   150                                               # Rescale dates to _start_ at 0
+   151         8          0.1      0.0      0.0      dates = np.array([jd[0] - i for i in jd])
+   152
+   153         8          0.0      0.0      0.0      mjd, flux, flux_error, filters = ([] for i in range(4))
+   154
+   155                                               # Loop over each filter
+   156         8          0.0      0.0      0.0      filter_color = ZTF_FILTER_MAP
+   157        32          0.0      0.0      0.0      for filt in filter_color.keys():
+   158        24          0.2      0.0      0.0          mask = np.where(fid == filt)[0]
+   159
+   160                                                   # Skip if no data
+   161        24          0.0      0.0      0.0          if len(mask) == 0:
+   162         8          0.0      0.0      0.0              continue
+   163
+   164        16          0.1      0.0      0.0          maskNotNone = magpsf[mask] != None
+   165        16          0.1      0.0      0.0          mjd.append(dates[mask][maskNotNone])
+   166        16          0.0      0.0      0.0          flux.append(magpsf[mask][maskNotNone])
+   167        16          0.0      0.0      0.0          flux_error.append(sigmapsf[mask][maskNotNone])
+   168        16          0.0      0.0      0.0          filters.append(filt)
+   169
+   170        16          4.7      0.3      0.3      df_tmp = pd.DataFrame.from_dict(
+   171         8          0.0      0.0      0.0          {
+   172         8          0.0      0.0      0.0              "mjd": mjd,
+   173         8          0.0      0.0      0.0              "object_id": candid,
+   174         8          0.0      0.0      0.0              "flux": flux,
+   175         8          0.0      0.0      0.0              "flux_error": flux_error,
+   176         8          0.0      0.0      0.0              "filters": filters,
+   177                                                   }
+   178                                               )
+   179
+   180         8         16.3      2.0      1.1      df_tmp = df_tmp.apply(pd.Series.explode).reset_index()
+   181
+   182                                               # Re-compute flux and flux error
+   183        16          0.2      0.0      0.0      data = [
+   184                                                   mag2fluxcal_snana(*args)
+   185         8          2.1      0.3      0.1          for args in zip(df_tmp["flux"].explode(), df_tmp["flux_error"].explode())
+   186                                               ]
+   187         8          0.1      0.0      0.0      flux, error = np.transpose(data)
+   188
+   189                                               # make a Pandas DataFrame with exploded series
+   190        16          2.9      0.2      0.2      pdf = pd.DataFrame.from_dict(
+   191         8          0.0      0.0      0.0          {
+   192         8          3.7      0.5      0.3              "filter": df_tmp["filters"].replace({1: "ztfg", 2: "ztfr"}),
+   193         8          0.0      0.0      0.0              "flux": flux,
+   194         8          0.0      0.0      0.0              "flux_error": error,
+   195         8          0.3      0.0      0.0              "mjd": df_tmp["mjd"],
+   196         8          0.2      0.0      0.0              "object_id": df_tmp["object_id"],
+   197                                                   }
+   198                                               )
+   199
+   200         8          3.1      0.4      0.2      pdf = pdf.filter(["object_id", "mjd", "flux", "flux_error", "filter"])
+   201                                               # pdf = pdf.dropna()
+   202                                               # pdf = pdf.reset_index()
+   203
+   204         8          0.0      0.0      0.0      if not isinstance(candid, list):
+   205         8          0.0      0.0      0.0          object_list = [candid]
+   206        16        139.6      8.7      9.5      df_gp_mean = generate_gp_all_objects(
+   207         8          0.0      0.0      0.0          object_list, pdf, pb_wavelengths=ZTF_PB_WAVELENGTHS
+   208                                               )
+   209
+   210         8          0.0      0.0      0.0      cols = set(list(ZTF_PB_WAVELENGTHS.keys())) & set(df_gp_mean.columns)
+   211                                               # robust_scale(df_gp_mean, cols)
+   212         8        180.8     22.6     12.3      X = df_gp_mean[cols]
+   213         8         12.3      1.5      0.8      X = rs(X)
+   214         8          0.0      0.0      0.0      X = np.asarray(X).astype("float32")
+   215         8          0.1      0.0      0.0      X = np.expand_dims(X, axis=0)
+   216
+   217         8       1101.7    137.7     74.9      y_preds = model.predict(X)
+   218                                               # y_preds = model(X)  # t2_probs(candid, jd, fid, magpsf, sigmapsf, model=cmodel, prettyprint=True) --> t2-mwe-ztf-compressed-model-nopredict.lnprofile
+   219
+   220         8          0.0      0.0      0.0      class_names = [
+   221         8          0.0      0.0      0.0          "mu-Lens-Single",
+   222         8          0.0      0.0      0.0          "TDE",
+   223         8          0.0      0.0      0.0          "EB",
+   224         8          0.0      0.0      0.0          "SNII",
+   225         8          0.0      0.0      0.0          "SNIax",
+   226         8          0.0      0.0      0.0          "Mira",
+   227         8          0.0      0.0      0.0          "SNIbc",
+   228         8          0.0      0.0      0.0          "KN",
+   229         8          0.0      0.0      0.0          "M-dwarf",
+   230         8          0.0      0.0      0.0          "SNIa-91bg",
+   231         8          0.0      0.0      0.0          "AGN",
+   232         8          0.0      0.0      0.0          "SNIa",
+   233         8          0.0      0.0      0.0          "RRL",
+   234         8          0.0      0.0      0.0          "SLSN-I",
+   235                                               ]
+   236
+   237         8          0.0      0.0      0.0      keys = class_names
+   238         8          0.0      0.0      0.0      values = y_preds.tolist()
+   239         8          0.0      0.0      0.0      predictions = dict(zip(keys, values[0]))
+   240
+   241         8          0.0      0.0      0.0      if prettyprint is not None:
+   242         8          0.0      0.0      0.0          import json
+   243
+   244        16          0.0      0.0      0.0          print(
+   245        16          0.8      0.0      0.1              json.dumps(
+   246        16          0.3      0.0      0.0                  json.loads(
+   247         8          0.3      0.0      0.0                      json.dumps(predictions), parse_float=lambda x: round(float(x), 3)
+   248                                                           ),
+   249         8          0.0      0.0      0.0                  indent=4,
+   250         8          0.0      0.0      0.0                  sort_keys=True,
+   251                                                       )
+   252                                                   )
+   253
+   254         8          0.0      0.0      0.0      return predictions
+
+Total time: 6.17729 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_baseline at line 257
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   257                                           @profile
+   258                                           def predict_t2_baseline():
+   259                                               # BASELINE
+   260         1       5856.7   5856.7     94.8      model = get_model()
+   261         1        320.6    320.6      5.2      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 6.17501 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_baseline_huffman at line 264
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   264                                           @profile
+   265                                           def predict_t2_baseline_huffman():
+   266                                               # BASELINE + HUFFMAN
+   267         1       5962.4   5962.4     96.6      model = get_compressed_model()
+   268         1        212.6    212.6      3.4      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 5.61574 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering at line 271
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   271                                           @profile
+   272                                           def predict_t2_clustering():
+   273                                               # CLUSTERING
+   274         1       5398.6   5398.6     96.1      model = get_clustered_model()
+   275         1        217.1    217.1      3.9      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 5.6228 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering_huffman at line 278
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   278                                           @profile
+   279                                           def predict_t2_clustering_huffman():
+   280                                               # CLUSTERING + HUFFMAN
+   281         1       5410.5   5410.5     96.2      model = get_compressed_clustered_model()
+   282         1        212.3    212.3      3.8      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 5.00405 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering_pruning at line 285
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   285                                           @profile
+   286                                           def predict_t2_clustering_pruning():
+   287                                               # CLUSTERING + PRUNING
+   288         1       4791.0   4791.0     95.7      model = get_pruned_model()
+   289         1        213.1    213.1      4.3      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 5.26619 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering_pruning_huffman at line 292
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   292                                           @profile
+   293                                           def predict_t2_clustering_pruning_huffman():
+   294                                               # CLUSTERING + PRUNING + HUFFMAN
+   295         1       5052.0   5052.0     95.9      model = get_compressed_clustered_pruned_model()
+   296         1        214.2    214.2      4.1      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 0.04257 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering_flatbuffer at line 299
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   299                                           @profile
+   300                                           def predict_t2_clustering_flatbuffer():
+   301                                               # CLUSTERING-FLATBUFFER
+   302         1          0.4      0.4      0.9      model = get_tflite_from_file()
+   303         1         42.2     42.2     99.1      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+Total time: 0.040214 s
+File: ztf-load-run-lpa.py
+Function: predict_t2_clustering_flatbuffer_quantization at line 306
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   306                                           @profile
+   307                                           def predict_t2_clustering_flatbuffer_quantization():
+   308                                               # CLUSTERING-FLATBUFFER + QUANTIZATION
+   309         1          0.3      0.3      0.6      model = get_quantized_tflite_from_file()
+   310         1         40.0     40.0     99.4      t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
+
+
+systemMemory: 32.00 GB
+maxCacheSize: 10.67 GB
+
