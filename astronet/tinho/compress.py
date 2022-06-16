@@ -34,6 +34,30 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 python_random.seed(RANDOM_SEED)
 
 
+def print_sparsity(model):
+    for w in model.weights:
+        n_weights = w.numpy().size
+        n_zeros = np.count_nonzero(w == 0)
+        sparsity = n_zeros / n_weights * 100.0
+        if sparsity > 0:
+            return "    {} - {:.1f}% sparsity".format(w.name, sparsity)
+
+
+def print_clusters(model):
+    for w in model.weights:
+        n_weights = w.numpy().size
+        n_unique = len(np.unique(w))
+        if n_unique < n_weights:
+            return "    {} - {} unique weights".format(w.name, n_unique)
+
+
+def inspect_model(model):
+    names = [weight.name for layer in model.layers for weight in layer.weights]
+    weights = model.get_weights()
+    for name, weight in zip(names, weights):
+        print(name, weight.shape)
+
+
 class Compress(object):
     # TODO: Update docstrings
     def __init__(self, architecture, dataset, model_name, redshift, savefigs=True):
@@ -89,27 +113,6 @@ class Compress(object):
                     archive.write(file_path, arcname=file_path.relative_to(directory))
 
             return zipped_name
-
-        def inspect_model(model):
-            names = [weight.name for layer in model.layers for weight in layer.weights]
-            weights = model.get_weights()
-            for name, weight in zip(names, weights):
-                print(name, weight.shape)
-
-        def print_sparsity(model):
-            for w in model.weights:
-                n_weights = w.numpy().size
-                n_zeros = np.count_nonzero(w == 0)
-                sparsity = n_zeros / n_weights * 100.0
-                if sparsity > 0:
-                    print("    {} - {:.1f}% sparsity".format(w.name, sparsity))
-
-        def print_clusters(model):
-            for w in model.weights:
-                n_weights = w.numpy().size
-                n_unique = len(np.unique(w))
-                if n_unique < n_weights:
-                    print("    {} - {} unique weights".format(w.name, n_unique))
 
         def run_predictions_lsst(X_test, Z_test, wloss):
             # ORIGINAL
