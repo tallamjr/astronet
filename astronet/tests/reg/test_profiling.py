@@ -11,8 +11,15 @@ log = astronet_logger(__file__)
 @pytest.mark.skipif(
     os.getenv("CI") is not None, reason="Produces report to be checked locally"
 )
-def test_kernprof():
-    prof = "load_run_lpa.py"
+@pytest.mark.parametrize(
+    ("dataset"),
+    (
+        ("plasticc",),
+        ("ztf",),
+    ),
+)
+def test_kernprof(dataset):
+    prof = f"{dataset}-load-run-lpa.py"
     _ = subprocess.run(
         f"kernprof -lv {prof} 2>&1 | tee {prof}.stdout.txt",
         check=True,
