@@ -11,14 +11,14 @@ import astronet
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
 from astronet.tests.reg.get_models import (
-    get_clustered_model,
-    get_compressed_clustered_model,
-    get_compressed_clustered_pruned_model,
-    get_compressed_model,
-    get_model,
-    get_pruned_model,
-    get_quantized_tflite_from_file,
-    get_tflite_from_file,
+    __get_clustered_model,
+    __get_compressed_clustered_model,
+    __get_compressed_clustered_pruned_model,
+    __get_compressed_model,
+    __get_model,
+    __get_pruned_model,
+    __get_quantized_tflite_from_file,
+    __get_tflite_from_file,
 )
 from astronet.tinho.compress import (
     inspect_model,
@@ -39,7 +39,7 @@ np_config.enable_numpy_behavior()
 def predict_original_model(X_test, wloss):
     # ORIGINAL T2 MODEL ON GR-noZ
     # BASELINE
-    model = get_model()
+    model = __get_model()
     y_preds = model.predict(X_test)
     log.info(
         f"BASELINE :ORIGINAL T2 MODEL ON GR-noZ LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -53,7 +53,7 @@ def predict_original_model(X_test, wloss):
 def predict_compressed_model(X_test, wloss):
     # COMPRESSED MODEL, aka COMPRESSED T2
     # BASELINE + HUFFMAN
-    model = get_compressed_model()
+    model = __get_compressed_model()
     y_preds = model.predict(X_test)
     log.info(
         f"BASELINE + HUFFMAN, aka COMPRESSED T2 LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -67,7 +67,7 @@ def predict_compressed_model(X_test, wloss):
 def predict_clustered_model(X_test, wloss):
     # CLUSTERED-STRIPPED MODEL, aka TINHO
     # CLUSTERING
-    model = get_clustered_model()
+    model = __get_clustered_model()
     y_preds = model.predict(X_test)
     log.info(f"CLUSTERING, aka TINHO LL-Test: {wloss(y_test, y_preds).numpy():.3f}")
     log.info(
@@ -79,7 +79,7 @@ def predict_clustered_model(X_test, wloss):
 def predict_pruned_model(X_test, wloss):
     # PRUNED-STRIPPED MODEL
     # CLUSTERING + PRUNING
-    model = get_pruned_model()
+    model = __get_pruned_model()
     y_preds = model.predict(X_test)
     log.info(f"PRUNING LL-Test: {wloss(y_test, y_preds).numpy():.3f}")
     log.info(
@@ -91,7 +91,7 @@ def predict_pruned_model(X_test, wloss):
 def predict_compressed_clustered_model(X_test, wloss):
     # COMPRESSED CLUSTERED-STRIPPED MODEL, aka COMPRESSED TINHO
     # CLUSTERING + HUFFMAN
-    model = get_compressed_clustered_model()
+    model = __get_compressed_clustered_model()
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING + HUFFMAN, aka COMPRESSED TINHO LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -105,7 +105,7 @@ def predict_compressed_clustered_model(X_test, wloss):
 def predict_compressed_clustered_pruned_model(X_test, wloss):
     # COMPRESSED CLUSTERED-PRUNED-STRIPPED MODEL, aka COMPRESSED TINHO
     # CLUSTERING + PRUNING + HUFFMAN
-    model = get_compressed_clustered_pruned_model()
+    model = __get_compressed_clustered_pruned_model()
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING + PRUNING + HUFFMAN LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -121,7 +121,7 @@ def predict_saved_clustered_tflite_model(X_test, wloss):
     # CLUSTERING-FLATBUFFER
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-    model = get_tflite_from_file(model_path)
+    model = __get_tflite_from_file(model_path)
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING-FLATBUFFER MODEL LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -135,7 +135,7 @@ def predict_saved_clustered_quantized_tflite_model(X_test, wloss):
     # Load clustered model TFLite model, i.e. a .tflife model/file on disk
     # model_path = f"{asnwd}/sbin/lnprof/clustered_stripped_fink_model_quantized.tflite"
     model_path = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
-    model = get_quantized_tflite_from_file(model_path)
+    model = __get_quantized_tflite_from_file(model_path)
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING-FLATBUFFER + QUANTIZATION LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -150,7 +150,7 @@ def predict_clustered_tflite_model(X_test, wloss):
     # CLUSTERED-STRIPPED MODEL (TINHO), TFLITE INTERPRETER
     # CLUSTERING-FLATBUFFER CONVERSION
     model_path = f"{asnwd}/astronet/t2/models/plasticc/{model_name}"
-    lmodel = get_tflite_from_saved_model(model_path)
+    lmodel = __get_tflite_from_saved_model(model_path)
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING-FLATBUFFER CONVERSION LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -163,7 +163,7 @@ def predict_compressed_clustered_tflite_model(X_test, wloss):
     # CLUSTERING-FLATBUFFER + HUFFMAN
     # TODO: Update model_name
     model_name = "tinho/compressed_clustered_stripped_fink_model"
-    clmodel = get_compressed_lite_model(model_name)
+    clmodel = __get_compressed_lite_model(model_name)
     y_preds = model.predict(X_test)
     log.info(
         f"CLUSTERING-FLATBUFFER + HUFFMAN MODEL LL-Test: {wloss(y_test, y_preds).numpy():.3f}"
@@ -183,11 +183,11 @@ if __name__ == "__main__":
 
     if LOAD_ONLY:
 
-        _ = get_tflite_from_file(
+        _ = __get_tflite_from_file(
             f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
         )
 
-        _ = get_quantized_tflite_from_file(
+        _ = __get_quantized_tflite_from_file(
             f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite"
         )
 

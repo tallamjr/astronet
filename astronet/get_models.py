@@ -9,16 +9,6 @@ from tensorflow.python.ops.numpy_ops import np_config
 
 import astronet
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.get_models import (
-    get_clustered_model,
-    get_compressed_clustered_model,
-    get_compressed_clustered_pruned_model,
-    get_compressed_model,
-    get_model,
-    get_pruned_model,
-    get_quantized_tflite_from_file,
-    get_tflite_from_file,
-)
 from astronet.metrics import WeightedLogLoss
 from astronet.tinho.compress import (
     inspect_model,
@@ -36,8 +26,7 @@ np_config.enable_numpy_behavior()
 # flake8: noqa: C901
 
 
-@profile
-def __get_model(
+def get_model(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
     # Load pre-trained original t2 model
@@ -52,8 +41,7 @@ def __get_model(
     return model
 
 
-@profile
-def __get_compressed_model(
+def get_compressed_model(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
     # Load pre-trained zipped original t2 model
@@ -73,8 +61,7 @@ def __get_compressed_model(
     return model
 
 
-@profile
-def __get_compressed_convert_to_lite(
+def get_compressed_convert_to_lite(
     model_name: str = "model-GR-noZ-23057-1642540624-0.1.dev963+g309c9d8-LL0.968",
 ):
     # Load pre-trained model
@@ -90,52 +77,87 @@ def __get_compressed_convert_to_lite(
     return lmodel
 
 
-@profile
-def __get_clustered_model(
+def get_clustered_model(
     model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
 ):
-    model = get_clustered_model(model_name)
+    # Load pre-trained original t2 model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    model = tf.keras.models.load_model(
+        model_path,
+        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        compile=False,
+    )
+
     return model
 
 
-@profile
-def __get_compressed_clustered_model(
+def get_compressed_clustered_model(
     model_name: str = "model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836",
 ):
-    model = get_compressed_clustered_model(model_name)
+    # Load pre-trained model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
+
+        model = tf.keras.models.load_model(
+            f"{tmpdir}/{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
     return model
 
 
-@profile
-def __get_tflite_from_file(
+def get_tflite_from_file(
     model_path: str = f"{asnwd}/astronet/tinho/models/plasticc/model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
 ):
     return LiteModel.from_file(model_path=model_path)
 
 
-@profile
-def __get_quantized_tflite_from_file(
+def get_quantized_tflite_from_file(
     model_path: str = f"{asnwd}/astronet/tinho/models/plasticc/quantized-model-GR-noZ-28341-1654269564-0.5.1.dev73+g70f85f8-LL0.836.tflite",
 ):
     return LiteModel.from_file(model_path=model_path)
 
 
-@profile
-def __get_tflite_from_saved_model(model_path: str):
+def get_tflite_from_saved_model(model_path: str):
     return LiteModel.from_saved_model(model_path=model_path)
 
 
-@profile
-def __get_pruned_model(
+def get_pruned_model(
     model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
 ):
-    model = get_pruned_model(model_name)
+    # Load pre-trained original t2 model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    model = tf.keras.models.load_model(
+        model_path,
+        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        compile=False,
+    )
+
     return model
 
 
-@profile
-def __get_compressed_clustered_pruned_model(
+def get_compressed_clustered_pruned_model(
     model_name: str = "model-GR-noZ-9903651-1652692724-0.5.1.dev24+gb7cd783.d20220516-STRIPPED-PRUNED",
 ):
-    model = get_compressed_clustered_pruned_model(model_name)
+    # Load pre-trained model
+    model_path = f"{asnwd}/astronet/tinho/models/plasticc/{model_name}"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(f"{model_path}.zip", mode="r") as archive:
+            for file in archive.namelist():
+                archive.extract(file, tmpdir)
+
+        model = tf.keras.models.load_model(
+            f"{tmpdir}/{model_name}",
+            custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+            compile=False,
+        )
+
     return model

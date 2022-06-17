@@ -32,14 +32,14 @@ import tempfile
 
 from astronet.metrics import WeightedLogLoss
 from astronet.tests.reg.get_models import (
-    get_clustered_model,
-    get_compressed_clustered_model,
-    get_compressed_clustered_pruned_model,
-    get_compressed_model,
-    get_model,
-    get_pruned_model,
-    get_quantized_tflite_from_file,
-    get_tflite_from_file,
+    __get_clustered_model,
+    __get_compressed_clustered_model,
+    __get_compressed_clustered_pruned_model,
+    __get_compressed_model,
+    __get_model,
+    __get_pruned_model,
+    __get_quantized_tflite_from_file,
+    __get_tflite_from_file,
 )
 from astronet.tinho.compress import (
     inspect_model,
@@ -262,56 +262,56 @@ def t2_probs(
 @profile
 def predict_t2_baseline():
     # BASELINE
-    model = get_model()
+    model = __get_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_baseline_huffman():
     # BASELINE + HUFFMAN
-    model = get_compressed_model()
+    model = __get_compressed_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering():
     # CLUSTERING
-    model = get_clustered_model()
+    model = __get_clustered_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering_huffman():
     # CLUSTERING + HUFFMAN
-    model = get_compressed_clustered_model()
+    model = __get_compressed_clustered_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering_pruning():
     # CLUSTERING + PRUNING
-    model = get_pruned_model()
+    model = __get_pruned_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering_pruning_huffman():
     # CLUSTERING + PRUNING + HUFFMAN
-    model = get_compressed_clustered_pruned_model()
+    model = __get_compressed_clustered_pruned_model()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering_flatbuffer():
     # CLUSTERING-FLATBUFFER
-    model = get_tflite_from_file()
+    model = __get_tflite_from_file()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 
 @profile
 def predict_t2_clustering_flatbuffer_quantization():
     # CLUSTERING-FLATBUFFER + QUANTIZATION
-    model = get_quantized_tflite_from_file()
+    model = __get_quantized_tflite_from_file()
     t2_probs(candid, jd, fid, magpsf, sigmapsf, model=model, prettyprint=True)
 
 

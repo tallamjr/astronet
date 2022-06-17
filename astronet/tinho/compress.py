@@ -48,7 +48,7 @@ def print_clusters(model):
         n_weights = w.numpy().size
         n_unique = len(np.unique(w))
         if n_unique < n_weights:
-            return "    {} - {} unique weights".format(w.name, n_unique)
+            return f"{w.name} - {n_unique} unique weights, of {n_weights} total for given layer"
 
 
 def inspect_model(model):
