@@ -20,8 +20,9 @@
 
 🚧 **WARNING** 🚧
 
-`astronet` is currently "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
+Expect this to be "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
 
+___________________________
 
 ### `astronet.tinho`
 
@@ -52,6 +53,8 @@
 <!-- ![ARCH](./resources/atx-arch.png) -->
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
+
+___________________________
 
 ### MTS Benchmark Results
 
@@ -109,6 +112,7 @@ trained again.
 | Wafer                 | -999900.00 | -999900.00 |  83.41 |     94.05 |  94.56 |    50.00 |  50.00 | 50.00 |    95.97 |    50.00 |    75.99 |
 | WalkvsRun             |      50.00 |      50.00 | 100.00 |    100.00 | 100.00 |    50.00 |  50.00 | 50.00 |   100.00 |    50.00 |    95.42 |
 
+___________________________
 
 ## Tests
 
@@ -123,6 +127,8 @@ Run from top-level directory (where this `README.md` file is):
 ```bash
 $ unset CI; pytest --mpl-generate-path=astronet/tests/reg/baseline --mpl-hash-library=baseline/arm64-hashlib.json --mpl-results-always astronet/tests/reg/test_plots.py
 ```
+
+___________________________
 
 ## The Road to `v1.0.0`
 <a id="roadmap"></a>
@@ -140,6 +146,8 @@ to-be-tackle in order for `v1.0.0` to be "ready".
 The main aspects will be a reduce cost data processing pipeline that can work lazily on the PLAsTiCC
 dataset, ideally being able to go from the source online to useable `astronet` format. Once this is
 done, much of the rest of the updates will be cosmetic and to ensure usability of the codebase.
+
+___________________________
 
 ## Citation
 
