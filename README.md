@@ -18,6 +18,11 @@
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
 
+🚧 **WARNING** 🚧
+
+`astronet` is currently "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
+
+
 ### `astronet.tinho`
 
 <p>
@@ -120,6 +125,7 @@ $ unset CI; pytest --mpl-generate-path=astronet/tests/reg/baseline --mpl-hash-li
 ```
 
 ## The Road to `v1.0.0`
+<a id="roadmap"></a>
 
 The idea of `astronet` is not really to be a library, more of a repository for the code developed
 during my PhD and my thesis.
