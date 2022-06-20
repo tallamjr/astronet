@@ -20,13 +20,31 @@
 
 ### `astronet.tinho`
 
+<p>
+  <img src="./resources/tinho.png" width="30%" align="middle" />
+</p>
+
+<!-- ![ARCH](./resources/tinho.png) -->
+
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450)
 
 ### `astronet.t2`
 
+<p>
+  <img src="./resources/t2-cam-transformer.png" width="30%" align="middle" />
+</p>
+
+<!-- ![ARCH](./resources/t2-cam-transformer.png) -->
+
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
 
 ### `astronet.atx`
+
+<p>
+  <img src="./resources/atx-arch.png" width="75%" align="middle" />
+</p>
+
+<!-- ![ARCH](./resources/atx-arch.png) -->
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
 
