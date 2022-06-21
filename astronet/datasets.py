@@ -50,9 +50,9 @@ def lazy_load_plasticc_wZ(train_or_test: str = "train"):
         Z = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy"
         y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
     elif train_or_test == "test_set":
-        X = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy"
-        Z = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy"
-        y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
+        X = f"{asnwd}/data/plasticc/test_set/infer/X_test.npy"
+        X = f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy"
+        y = f"{asnwd}/data/plasticc/test_set/infer/y_test.npy"
     else:
         return -1
 
@@ -87,8 +87,8 @@ def lazy_load_plasticc_noZ(train_or_test: str = "train"):
         X = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy"
         y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
     elif train_or_test == "test_set":
-        X = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy"
-        y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
+        X = f"{asnwd}/data/plasticc/test_set/infer/X_test.npy"
+        y = f"{asnwd}/data/plasticc/test_set/infer/y_test.npy"
     else:
         return -1
 
