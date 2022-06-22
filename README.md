@@ -17,6 +17,11 @@
 <!-- [![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet) -->
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
+
+🚧 **WARNING** 🚧
+
+Expect this to be "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
+
 ___________________________
 
 ### Citation
@@ -25,7 +30,7 @@ If you find the software here useful, please consider citing this work.
 
 ```latex
 @software{Allam_Jr_astronet_Multivariate_Time-Series_2022,
-  author = {Allam Jr., Tarek},
+  author = {{Allam Jr.}, Tarek},
   month = {6},
   title = {{astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning}},
   url = {https://github.com/tallamjr/astronet},
@@ -33,11 +38,6 @@ If you find the software here useful, please consider citing this work.
 }
 
 ```
-
-🚧 **WARNING** 🚧
-
-Expect this to be "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
-
 ___________________________
 
 ### `astronet.tinho`
