@@ -30,13 +30,12 @@ If you find the software here useful, please consider citing this work.
 
 ```latex
 @software{Allam_Jr_astronet_Multivariate_Time-Series_2022,
-  author = {{Allam Jr.}, Tarek},
+  author = {Allam, Jr., Tarek},
   month = {6},
   title = {{astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning}},
   url = {https://github.com/tallamjr/astronet},
   year = {2022}
 }
-
 ```
 ___________________________
 
