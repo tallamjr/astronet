@@ -132,7 +132,7 @@ ___________________________
 
 ## Tests
 
-See `astronet/tests/README.md` for more details
+See [`astronet/tests/README.md`](https://github.com/tallamjr/astronet/blob/master/astronet/tests/README.md) for more details
 
 Note: some tests require large data files
 
@@ -149,17 +149,18 @@ ___________________________
 ## The Road to `v1.0.0`
 <a id="roadmap"></a>
 
-The idea of `astronet` is not really to be a library, more of a repository for the code developed
+The idea of `astronet` is not really to be a library, but to be more of a repository for the code developed
 during my PhD and my thesis.
 
 Having said that, it would be nice to have `astronet` be more "stable" and to have extra features
 that would allow someone else to pick it up and use with _minimal_ frustrations.
 
 Therefore, the plan is to get to `v1.0.0` at some point, but I will not be prioritizing this. Anyone
-interested should follow this meta-issue where I will log the progress and put placeholder issues
-to-be-tackle in order for `v1.0.0` to be "ready".
+interested should follow this [meta-issue](https://github.com/tallamjr/astronet/issues/87) where I
+will log the progress and put placeholder issues to be addressed in order for `v1.0.0` to be
+"ready".
 
-The main aspects will be a reduce cost data processing pipeline that can work lazily on the PLAsTiCC
-dataset, ideally being able to go from the source online to useable `astronet` format. Once this is
-done, much of the rest of the updates will be cosmetic and to ensure usability of the codebase.
-
+The main aspects will be a reduce the cost of the data processing pipeline such that it can be done
+lazily and locally for PLAsTiCC at least, and in the future for
+[ELAsTiCC](https://portal.nersc.gov/cfs/lsst/DESC_TD_PUBLIC/ELASTICC/) dataset. Once this is done,
+much of the rest of the updates will be cosmetic and to ensure usability of the codebase.
