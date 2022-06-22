@@ -17,6 +17,22 @@
 <!-- [![codecov](https://codecov.io/gh/tallamjr/astronet/branch/master/graph/badge.svg?token=X2RP4DC3K1)](https://codecov.io/gh/tallamjr/astronet) -->
 
 `astronet` is a package to classify Astrophysical transients using Deep Learning methods
+___________________________
+
+### Citation
+
+If you find the software here useful, please consider citing this work.
+
+```latex
+@software{Allam_Jr_astronet_Multivariate_Time-Series_2022,
+  author = {Allam Jr., Tarek},
+  month = {6},
+  title = {{astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning}},
+  url = {https://github.com/tallamjr/astronet},
+  year = {2022}
+}
+
+```
 
 🚧 **WARNING** 🚧
 
@@ -34,7 +50,7 @@ ___________________________
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450)
 
-### `astronet.t2`
+### `astronet.t2` [https://arxiv.org/abs/2105.06178]
 
 <p>
   <img src="./resources/t2-cam-transformer.png" width="30%" align="middle" />
@@ -147,18 +163,3 @@ The main aspects will be a reduce cost data processing pipeline that can work la
 dataset, ideally being able to go from the source online to useable `astronet` format. Once this is
 done, much of the rest of the updates will be cosmetic and to ensure usability of the codebase.
 
-___________________________
-
-## Citation
-
-If you find the software here useful, please consider citing this work.
-
-```latex
-@software{Allam_Jr_astronet_Multivariate_Time-Series_2022,
-  author = {Allam Jr., Tarek},
-  month = {6},
-  title = {{astronet: Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning}},
-  url = {https://github.com/tallamjr/astronet},
-  year = {2022}
-}
-```
