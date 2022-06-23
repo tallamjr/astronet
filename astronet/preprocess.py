@@ -5,7 +5,6 @@ import george
 import numpy as np
 import pandas as pd
 import scipy.optimize as op
-import tensorflow as tf
 from astropy.table import Table, vstack
 
 from astronet.constants import LSST_PB_WAVELENGTHS

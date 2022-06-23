@@ -2,7 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 import colorama
 import joblib
