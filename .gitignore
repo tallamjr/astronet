@@ -28,6 +28,7 @@ data/plasticc/snonly_transformed_df_timesteps_100_with_z.csv
 data/plasticc/test_set
 data/plasticc-backup
 data/plasticc/avocado
+data/plasticc/processed
 data/tfrecords
 
 logs/
