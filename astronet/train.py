@@ -27,7 +27,10 @@ from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
 )
-from astronet.datasets import lazy_load_plasticc_noZ, lazy_load_plasticc_wZ
+from astronet.datasets import (
+    lazy_load_plasticc_noZ,
+    lazy_load_plasticc_wZ,
+)
 from astronet.fetch_models import fetch_model
 from astronet.metrics import (
     DistributedWeightedLogLoss,
