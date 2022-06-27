@@ -27,6 +27,7 @@ from astronet.custom_callbacks import (
     DetectOverfittingCallback,
     TimeHistoryCallback,
 )
+from astronet.datasets import lazy_load_plasticc_noZ, lazy_load_plasticc_wZ
 from astronet.fetch_models import fetch_model
 from astronet.metrics import (
     DistributedWeightedLogLoss,
@@ -140,18 +141,13 @@ class Training(object):
         csv_logger_file = f"{asnwd}/logs/{self.architecture}/training-{LABEL}.log"
 
         if self.redshift is not None:
-            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset=self.dataset,
-                redshift=self.redshift,
-                testset=self.testset,
-            )
+            train_ds = lazy_load_plasticc_wZ("train")
+            test_ds = lazy_load_plasticc_wZ("test")
             hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
         else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(
-                dataset,
-                testset=self.testset,
-                fink=self.fink,
-            )
+            train_ds = lazy_load_plasticc_noZ("train")
+            test_ds = lazy_load_plasticc_noZ("test")
+
             hyper_results_file = (
                 f"{asnwd}/astronet/{self.architecture}/opt/runs/{dataset}/results.json"
             )
