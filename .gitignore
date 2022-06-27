@@ -4,9 +4,12 @@
 checkpoints/
 
 # atx Models
-# astronet/atx/models/*/model*
+astronet/atx/models/*/archive
+astronet/atx/models/*/model*
 astronet/atx/models/*/weights*
 !astronet/atx/models/*/*.json
+!astronet/atx/models/model-UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739
+!astronet/atx/models/model-GR-noZ-206145-1644662345-0.3.1.dev36+gfd02ace-LL0.969
 
 # Archived models and weights
 archive
