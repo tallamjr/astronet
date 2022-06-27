@@ -46,13 +46,13 @@ def lazy_load_tfdataset_from_numpy(file: str):
 def lazy_load_plasticc_wZ(train_or_test: str = "train"):
 
     if train_or_test == "train":
-        X = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy"
-        Z = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_Z_full_test_no_99.npy"
-        y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
+        X = f"{asnwd}/data/plasticc/processed/X_train.npy"
+        Z = f"{asnwd}/data/plasticc/processed/Z_train.npy"
+        y = f"{asnwd}/data/plasticc/processed/y_train.npy"
     elif train_or_test == "test_set":
-        X = f"{asnwd}/data/plasticc/test_set/infer/X_test.npy"
-        X = f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy"
-        y = f"{asnwd}/data/plasticc/test_set/infer/y_test.npy"
+        X = f"{asnwd}/data/plasticc/processed/X_test.npy"
+        Z = f"{asnwd}/data/plasticc/processed/Z_test.npy"
+        y = f"{asnwd}/data/plasticc/processed/y_test.npy"
     else:
         return -1
 
@@ -84,11 +84,11 @@ def lazy_load_plasticc_wZ(train_or_test: str = "train"):
 def lazy_load_plasticc_noZ(train_or_test: str = "train"):
 
     if train_or_test == "train":
-        X = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_X_full_test_no_99.npy"
-        y = f"{asnwd}/data/plasticc/test_set/no99/full_test_transformed_df_timesteps_100_y_full_test_no_99.npy"
-    elif train_or_test == "test_set":
-        X = f"{asnwd}/data/plasticc/test_set/infer/X_test.npy"
-        y = f"{asnwd}/data/plasticc/test_set/infer/y_test.npy"
+        X = f"{asnwd}/data/plasticc/processed/X_train.npy"
+        y = f"{asnwd}/data/plasticc/processed/y_train.npy"
+    elif train_or_test == "test":
+        X = f"{asnwd}/data/plasticc/processed/X_test.npy"
+        y = f"{asnwd}/data/plasticc/processed/y_test.npy"
     else:
         return -1
 
