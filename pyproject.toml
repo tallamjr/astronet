@@ -30,7 +30,6 @@ exclude = '''
 
 [tool.setuptools_scm]
 fallback_version = "v0.9.4"
-relative_to = "setup.py"
 
 [tool.check-manifest]
 ignore-default-rules = false
