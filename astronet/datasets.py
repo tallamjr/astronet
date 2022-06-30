@@ -44,22 +44,6 @@ def lazy_load_tfdataset_from_numpy(file: str):
 
 def lazy_load_plasticc_wZ(X, Z, y):
 
-    # if train_or_test == "train":
-    #     X = f"{asnwd}/data/plasticc/processed/X_train.npy"
-    #     Z = f"{asnwd}/data/plasticc/processed/Z_train.npy"
-    #     y = f"{asnwd}/data/plasticc/processed/y_train.npy"
-    # elif train_or_test == "test_set":
-    #     X = f"{asnwd}/data/plasticc/processed/X_test.npy"
-    #     Z = f"{asnwd}/data/plasticc/processed/Z_test.npy"
-    #     y = f"{asnwd}/data/plasticc/processed/y_test.npy"
-    # else:
-    #     return -1
-
-    # # memmap the file
-    # X = np.load(X, mmap_mode="r")
-    # Z = np.load(Z, mmap_mode="r")
-    # y = np.load(y, mmap_mode="r")
-
     # generator function
     def generator():
         for x, z, L in zip(X, Z, y):
@@ -81,19 +65,6 @@ def lazy_load_plasticc_wZ(X, Z, y):
 
 
 def lazy_load_plasticc_noZ(X, y):
-
-    # if train_or_test == "train":
-    #     X = f"{asnwd}/data/plasticc/processed/X_train.npy"
-    #     y = f"{asnwd}/data/plasticc/processed/y_train.npy"
-    # elif train_or_test == "test":
-    #     X = f"{asnwd}/data/plasticc/processed/X_test.npy"
-    #     y = f"{asnwd}/data/plasticc/processed/y_test.npy"
-    # else:
-    #     return -1
-
-    # # memmap the file
-    # X = np.load(X, mmap_mode="r")
-    # y = np.load(y, mmap_mode="r")
 
     # generator function
     def generator():
