@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.utils import astronet_logger
 
 log = astronet_logger(__file__)
@@ -43,23 +42,7 @@ def lazy_load_tfdataset_from_numpy(file: str):
     return dataset
 
 
-def lazy_load_plasticc_wZ(train_or_test: str = "train"):
-
-    if train_or_test == "train":
-        X = f"{asnwd}/data/plasticc/processed/X_train.npy"
-        Z = f"{asnwd}/data/plasticc/processed/Z_train.npy"
-        y = f"{asnwd}/data/plasticc/processed/y_train.npy"
-    elif train_or_test == "test_set":
-        X = f"{asnwd}/data/plasticc/processed/X_test.npy"
-        Z = f"{asnwd}/data/plasticc/processed/Z_test.npy"
-        y = f"{asnwd}/data/plasticc/processed/y_test.npy"
-    else:
-        return -1
-
-    # memmap the file
-    X = np.load(X, mmap_mode="r")
-    Z = np.load(Z, mmap_mode="r")
-    y = np.load(y, mmap_mode="r")
+def lazy_load_plasticc_wZ(X, Z, y):
 
     # generator function
     def generator():
@@ -81,20 +64,7 @@ def lazy_load_plasticc_wZ(train_or_test: str = "train"):
     return dataset
 
 
-def lazy_load_plasticc_noZ(train_or_test: str = "train"):
-
-    if train_or_test == "train":
-        X = f"{asnwd}/data/plasticc/processed/X_train.npy"
-        y = f"{asnwd}/data/plasticc/processed/y_train.npy"
-    elif train_or_test == "test":
-        X = f"{asnwd}/data/plasticc/processed/X_test.npy"
-        y = f"{asnwd}/data/plasticc/processed/y_test.npy"
-    else:
-        return -1
-
-    # memmap the file
-    X = np.load(X, mmap_mode="r")
-    y = np.load(y, mmap_mode="r")
+def lazy_load_plasticc_noZ(X, y):
 
     # generator function
     def generator():

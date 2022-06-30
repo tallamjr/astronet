@@ -70,6 +70,11 @@ filterwarnings = [
     'ignore:function ham\(\) is deprecated:DeprecationWarning',
 ]
 
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "serial",
+]
+
 [tool.coverage.run]
 omit = [
     "astronet/tests/*",

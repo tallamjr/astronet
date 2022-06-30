@@ -18,7 +18,6 @@ from astronet.constants import (
     LSST_FILTER_MAP,
     LSST_PB_WAVELENGTHS,
     PLASTICC_CLASS_MAPPING,
-    SYSTEM,
 )
 from astronet.metrics import WeightedLogLoss
 from astronet.preprocess import (
@@ -186,7 +185,7 @@ def find_optimal_batch_size(training_set_length: int) -> int:
     full for most of the time.
     """
 
-    if training_set_length < 10000 or SYSTEM == "Darwin":
+    if training_set_length < 10000:
         batch_size_list = [16, 32, 64]
     else:
         # batch_size_list = [96, 128, 256]
@@ -334,8 +333,7 @@ def load_wisdm_2010(timesteps=200, step=200):
     ]
 
     df = pd.read_csv(
-        str(Path(__file__).absolute().parent.parent)
-        + "/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
+        f"{Path(__file__).absolute().parent.parent}/data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt",
         header=None,
         names=column_names,
     )

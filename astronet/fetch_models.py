@@ -55,6 +55,7 @@ def fetch_model(
             model_params.pop(key)
 
     log.info(model_params)
+    log.info(f"LOADING {architecture}")
 
     if architecture == "tinho":
 

@@ -1,18 +1,10 @@
 import inspect
-import json
 import random as python_random
-from pathlib import Path
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-import seaborn as sns
 import tensorflow as tf
-from tensorflow import keras
 
-from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.metrics import WeightedLogLoss
 from astronet.tests.conftest import ISA
 from astronet.train import Training
 from astronet.utils import astronet_logger
@@ -39,19 +31,19 @@ class TestTrain:
                 "atx",
                 "plasticc",
                 "scaledown-by-4",
-                1.79,
+                4.35,
             ),
             (
                 "t2",
                 "plasticc",
                 "1613517996-0a72904",
-                2.19,
+                2.03,
             ),
             (
                 "tinho",
                 "plasticc",
                 "1613517996-0a72904",
-                1.99,
+                1.97,
             ),
         ),
     )
@@ -72,32 +64,31 @@ class TestTrain:
         training = Training(**params)
 
         loss = training()
-        # loss = training.get_wloss
         assert wloss == pytest.approx(loss, 0.01)
         tf.keras.backend.clear_session()
 
-    @pytest.mark.xfail(reason="Pending results...")
+    # @pytest.mark.xfail(reason="Pending results...")
     @pytest.mark.parametrize(
         ("architecture", "dataset", "hyperrun", "wloss"),
         (
-            # ( TODO
-            #     "atx",
-            #     "plasticc",
-            #     "scaledown-by-4",
-            #     1.79,
-            # ),
+            (
+                "atx",
+                "plasticc",
+                "scaledown-by-4",
+                5.03,
+            ),
             (
                 "t2",
                 "plasticc",
                 "1613517996-0a72904",
-                2.19,
+                2.10,
             ),
-            # ( TODO
-            #     "t2",
-            #     "plasticc",
-            #     "1613517996-0a72904",
-            #     2.19,
-            # ),
+            (
+                "tinho",
+                "plasticc",
+                "1613517996-0a72904",
+                2.03,
+            ),
         ),
     )
     def test_train_UGRIZY_noZ(self, architecture, dataset, hyperrun, wloss):
@@ -117,11 +108,9 @@ class TestTrain:
         training = Training(**params)
 
         loss = training()
-        # loss = training.get_wloss
         assert wloss == pytest.approx(loss, 0.01)
         tf.keras.backend.clear_session()
 
-    @pytest.mark.xfail(reason="Pending results...")
     @pytest.mark.parametrize(
         ("architecture", "dataset", "hyperrun", "wloss"),
         (
@@ -129,19 +118,19 @@ class TestTrain:
                 "atx",
                 "plasticc",
                 "scaledown-by-4",
-                1.79,
+                4.94,
             ),
             (
                 "t2",
                 "plasticc",
                 "1613517996-0a72904",
-                2.19,
+                2.03,
             ),
             (
                 "tinho",
                 "plasticc",
                 "1613517996-0a72904",
-                1.99,
+                2.08,
             ),
         ),
     )
@@ -162,7 +151,6 @@ class TestTrain:
         training = Training(**params)
 
         loss = training()
-        # loss = training.get_wloss
         assert wloss == pytest.approx(loss, 0.01)
         tf.keras.backend.clear_session()
 

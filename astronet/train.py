@@ -23,19 +23,19 @@ from tensorflow.keras.callbacks import (
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import SYSTEM
-from astronet.custom_callbacks import (
-    DetectOverfittingCallback,
-    TimeHistoryCallback,
+from astronet.custom_callbacks import TimeHistoryCallback
+from astronet.datasets import (
+    lazy_load_plasticc_noZ,
+    lazy_load_plasticc_wZ,
 )
 from astronet.fetch_models import fetch_model
 from astronet.metrics import (
     DistributedWeightedLogLoss,
     WeightedLogLoss,
 )
-from astronet.utils import (
+from astronet.utils import (  # load_dataset,
     astronet_logger,
     find_optimal_batch_size,
-    load_dataset,
 )
 
 try:
@@ -139,24 +139,24 @@ class Training(object):
         checkpoint_path = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/checkpoints/checkpoint-{LABEL}"
         csv_logger_file = f"{asnwd}/logs/{self.architecture}/training-{LABEL}.log"
 
-        if self.redshift is not None:
-            X_train, y_train, X_test, y_test, loss, ZX_train, ZX_test = load_dataset(
-                dataset=self.dataset,
-                redshift=self.redshift,
-                testset=self.testset,
-            )
-            hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
-        else:
-            X_train, y_train, X_test, y_test, loss = load_dataset(
-                dataset,
-                testset=self.testset,
-                fink=self.fink,
-            )
-            hyper_results_file = (
-                f"{asnwd}/astronet/{self.architecture}/opt/runs/{dataset}/results.json"
-            )
+        # Lazy load data
+        X_train = np.load(f"{asnwd}/data/plasticc/processed/X_train.npy", mmap_mode="r")
+        Z_train = np.load(f"{asnwd}/data/plasticc/processed/Z_train.npy", mmap_mode="r")
+        y_train = np.load(f"{asnwd}/data/plasticc/processed/y_train.npy", mmap_mode="r")
 
+        X_test = np.load(f"{asnwd}/data/plasticc/processed/X_test.npy", mmap_mode="r")
+        Z_test = np.load(f"{asnwd}/data/plasticc/processed/Z_test.npy", mmap_mode="r")
+        y_test = np.load(f"{asnwd}/data/plasticc/processed/y_test.npy", mmap_mode="r")
+
+        # >>> train_ds.element_spec[1].shape
+        # TensorShape([14])
+        # num_classes = train_ds.element_spec[1].shape.as_list()[0]
         num_classes = y_train.shape[1]
+
+        if self.fink is not None:
+            # Take only G, R bands
+            X_train = X_train[:, :, 0:3:2]
+            X_test = X_test[:, :, 0:3:2]
 
         log.info(f"{X_train.shape, y_train.shape}")
 
@@ -165,59 +165,48 @@ class Training(object):
             timesteps,
             num_features,
         ) = X_train.shape  # X_train.shape[1:] == (TIMESTEPS, num_features)
+
         BATCH_SIZE = find_optimal_batch_size(num_samples)
         log.info(f"BATCH_SIZE:{BATCH_SIZE}")
+
         input_shape = (BATCH_SIZE, timesteps, num_features)
         log.info(f"input_shape:{input_shape}")
 
-        def get_compiled_model_and_data(loss, hyper_results_file):
+        def get_compiled_model_and_data(loss):
 
             if self.redshift is not None:
-                input_shapes = [input_shape, (BATCH_SIZE, ZX_train.shape[1])]
+                hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
+                input_shapes = [input_shape, (BATCH_SIZE, Z_train.shape[1])]
                 # model.build_graph(input_shapes)
 
-                train_input = [X_train, ZX_train]
-                test_input = [X_test, ZX_test]
-
                 train_ds = (
-                    tf.data.Dataset.from_tensor_slices(
-                        (
-                            {"input_1": train_input[0], "input_2": train_input[1]},
-                            y_train,
-                        )
-                    )
+                    lazy_load_plasticc_wZ(X_train, Z_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
                 test_ds = (
-                    tf.data.Dataset.from_tensor_slices(
-                        ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
-                    )
+                    lazy_load_plasticc_wZ(X_test, Z_test, y_test)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
+
             else:
+                hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results.json"
                 # model.build_graph(input_shape)
                 input_shapes = input_shape
-                train_input = X_train
-                test_input = X_test
 
                 train_ds = (
-                    tf.data.Dataset.from_tensor_slices((train_input, y_train))
+                    lazy_load_plasticc_noZ(X_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
                 test_ds = (
-                    tf.data.Dataset.from_tensor_slices((test_input, y_test))
+                    lazy_load_plasticc_noZ(X_test, y_test)
                     .batch(BATCH_SIZE, drop_remainder=True)
                     .prefetch(tf.data.AUTOTUNE)
                 )
-
-            if SYSTEM == "Darwin":
-                train_ds = train_ds.take(3)
-                test_ds = test_ds.take(3)
 
             model, event = fetch_model(
                 model=self.model,
@@ -236,7 +225,7 @@ class Training(object):
                 run_eagerly=True,  # Show values when debugging. Also required for use with custom_log_loss
             )
 
-            return model, train_ds, test_ds, event
+            return model, train_ds, test_ds, event, hyper_results_file
 
         VALIDATION_BATCH_SIZE = find_optimal_batch_size(X_test.shape[0])
         log.info(f"VALIDATION_BATCH_SIZE:{VALIDATION_BATCH_SIZE}")
@@ -263,13 +252,31 @@ class Training(object):
 
                 # If clustering weights (model compression), build_model. Otherwise, T2Model should produce
                 # original model. TODO: Include flag for choosing between the two, following run with FINK
-                model, train_ds, test_ds, event = get_compiled_model_and_data(
-                    loss, hyper_results_file
-                )
+                (
+                    model,
+                    train_ds,
+                    test_ds,
+                    event,
+                    hyper_results_file,
+                ) = get_compiled_model_and_data(loss)
         else:
-            model, train_ds, test_ds, event = get_compiled_model_and_data(
-                loss, hyper_results_file
-            )
+            loss = WeightedLogLoss()
+            (
+                model,
+                train_ds,
+                test_ds,
+                event,
+                hyper_results_file,
+            ) = get_compiled_model_and_data(loss)
+
+        if "pytest" in sys.modules:
+            NTAKE = 3
+
+            train_ds = train_ds.take(NTAKE)
+            test_ds = test_ds.take(NTAKE)
+
+            ind = np.array([x for x in range(NTAKE * BATCH_SIZE)])
+            y_test = np.take(y_test, ind, axis=0)
 
         time_callback = TimeHistoryCallback()
 
@@ -337,21 +344,22 @@ class Training(object):
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
-        y_test_ds = (
-            tf.data.Dataset.from_tensor_slices(y_test)
-            .batch(BATCH_SIZE, drop_remainder=True)
-            .prefetch(tf.data.AUTOTUNE)
-        )
+        # y_test_ds = (
+        #     tf.data.Dataset.from_tensor_slices(y_test)
+        #     .batch(BATCH_SIZE, drop_remainder=True)
+        #     .prefetch(tf.data.AUTOTUNE)
+        # )
 
-        if SYSTEM == "Darwin":
-            y_test_ds = y_test_ds.take(3)
+        # if SYSTEM == "Darwin":
+        #     y_test_ds = y_test_ds.take(3)
 
         y_preds = model.predict(test_ds)
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
 
-        y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
-        WLOSS = loss(y_test_np, y_preds).numpy()
+        # y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
+
+        WLOSS = loss(y_test, y_preds).numpy()
         log.info(f"LL-Test Model Predictions: {WLOSS:.8f}")
         if "pytest" in sys.modules:
             return WLOSS
@@ -398,9 +406,9 @@ class Training(object):
         event["model_evaluate_on_test_loss"] = model.evaluate(
             test_ds, verbose=0, batch_size=batch_size
         )[0]
-        event["model_prediction_on_test"] = loss(y_test_np, y_preds).numpy()
+        event["model_prediction_on_test"] = loss(y_test, y_preds).numpy()
 
-        y_test = np.argmax(y_test_np, axis=1)
+        y_test = np.argmax(y_test, axis=1)
         y_preds = np.argmax(y_preds, axis=1)
 
         event["model_predict_precision_score"] = precision_score(
@@ -485,12 +493,6 @@ class Training(object):
                 f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-EXPORT",
                 include_optimizer=True,
             )
-
-    @property
-    def get_wloss(self):
-        """I'm the 'x' property."""
-        print("getter of x called")
-        return self.wloss
 
 
 if __name__ == "__main__":
