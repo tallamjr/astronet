@@ -29,7 +29,7 @@ exclude = '''
 '''
 
 [tool.setuptools_scm]
-fallback_version = "v0.9.4"
+fallback_version = "v0.10.0"
 
 [tool.check-manifest]
 ignore-default-rules = false
