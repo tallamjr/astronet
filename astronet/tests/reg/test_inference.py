@@ -7,7 +7,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
 from astronet.tests.conftest import BATCH_SIZE
 from astronet.tinho.lite import LiteModel
@@ -60,27 +59,6 @@ class TestInference:
         # Fix ValueError of shape mismatch.
         X_test, y_test, Z_test = get_fixt_UGRIZY_wZ
 
-        test_input = [X_test, Z_test]
-
-        test_ds = (
-            tf.data.Dataset.from_tensor_slices(
-                ({"input_1": test_input[0], "input_2": test_input[1]}, y_test)
-            )
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        y_test_ds = (
-            tf.data.Dataset.from_tensor_slices(y_test)
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        if LOCAL_DEBUG is not None:
-            log.info("LOCAL_DEBUG set, reducing dataset size...")
-            test_ds = test_ds.take(300)
-            y_test_ds = y_test_ds.take(300)
-
         worker_id = (
             os.environ.get("PYTEST_XDIST_WORKER")
             if "PYTEST_CURRENT_TEST" in os.environ
@@ -95,9 +73,7 @@ class TestInference:
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(test_input)
-
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
+        y_preds = model.predict([X_test, Z_test], batch_size=BATCH_SIZE)
 
         if architecture == "atx":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.739, 0.01)
@@ -119,28 +95,6 @@ class TestInference:
 
         X_test, y_test, _ = get_fixt_UGRIZY_wZ
 
-        test_input = X_test
-
-        test_ds = (
-            tf.data.Dataset.from_tensor_slices((test_input, y_test))
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        y_test_ds = (
-            tf.data.Dataset.from_tensor_slices(y_test)
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        if LOCAL_DEBUG is not None:
-            print("LOCAL_DEBUG set, reducing dataset size...")
-            test_ds = test_ds.take(300)
-            y_test_ds = y_test_ds.take(300)
-
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-        x_test = np.concatenate([x for x, y in test_ds], axis=0)
-
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
@@ -148,7 +102,7 @@ class TestInference:
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(x_test)
+        y_preds = model.predict(X_test, batch_size=BATCH_SIZE)
 
         if architecture == "atx":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.969, 0.01)
@@ -182,27 +136,6 @@ class TestInference:
         X_test, y_test, _ = get_fixt_UGRIZY_wZ
         X_test = X_test[:, :, 0:3:2]
 
-        test_input = X_test
-
-        test_ds = (
-            tf.data.Dataset.from_tensor_slices((test_input, y_test))
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        y_test_ds = (
-            tf.data.Dataset.from_tensor_slices(y_test)
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        if LOCAL_DEBUG is not None:
-            print("LOCAL_DEBUG set, reducing dataset size...")
-            test_ds = test_ds.take(300)
-            y_test_ds = y_test_ds.take(300)
-
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-
         model = keras.models.load_model(
             f"{asnwd}/astronet/{architecture}/models/{dataset}/model-{model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
@@ -210,7 +143,7 @@ class TestInference:
         )
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(test_ds)
+        y_preds = model.predict(X_test, batch_size=BATCH_SIZE)
 
         if architecture == "atx":
             assert wloss(y_test, y_preds).numpy() == pytest.approx(0.969, 0.01)
@@ -241,33 +174,11 @@ class TestInference:
         X_test, y_test, _ = get_fixt_UGRIZY_wZ
         X_test = X_test[:, :, 0:3:2]
 
-        test_input = X_test
-
-        test_ds = (
-            tf.data.Dataset.from_tensor_slices((test_input, y_test))
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        y_test_ds = (
-            tf.data.Dataset.from_tensor_slices(y_test)
-            .batch(BATCH_SIZE, drop_remainder=False)
-            .prefetch(tf.data.AUTOTUNE)
-        )
-
-        if LOCAL_DEBUG is not None:
-            print("LOCAL_DEBUG set, reducing dataset size...")
-            test_ds = test_ds.take(300)
-            y_test_ds = y_test_ds.take(300)
-
-        y_test = np.concatenate([y for y in y_test_ds], axis=0)
-        x_test = np.concatenate([x for x, y in test_ds], axis=0)
-
         model_path = f"{asnwd}/astronet/tinho/models/{dataset}/{model_name}"
         model = LiteModel.from_file(model_path=model_path)
 
         wloss = WeightedLogLoss()
-        y_preds = model.predict(x_test)
+        y_preds = model.predict(X_test, batch_size=BATCH_SIZE)
 
         if architecture == "tinho":
             loss = wloss(y_test, y_preds).numpy()
