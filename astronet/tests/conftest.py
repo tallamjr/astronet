@@ -22,7 +22,7 @@ ISA = subprocess.run(
 
 SKIP_IF_M1 = pytest.mark.skipif(ISA == "arm64", reason="Error on arm-m1")
 
-BATCH_SIZE = 64
+BATCH_SIZE = 2048
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -79,14 +79,8 @@ def get_fixt_UGRIZY_wZ(tmp_path_factory, worker_id, name="fixt_UGRIZY_wZ"):
 
 def fixt_UGRIZY_wZ():
     """This fixture will only be available within the scope of TestPlots"""
-    X_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-    )
-    y_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-    )
-    Z_test = np.load(
-        f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
-    )
+    X_test = np.load(f"{asnwd}/data/plasticc/processed/X_test.npy")
+    Z_test = np.load(f"{asnwd}/data/plasticc/processed/Z_test.npy")
+    y_test = np.load(f"{asnwd}/data/plasticc/processed/y_test.npy")
 
     return X_test, y_test, Z_test
