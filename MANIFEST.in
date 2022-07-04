@@ -21,6 +21,8 @@ include *.yml
 include data/full-plasticc.encoding
 include pytest.ini
 
+exclude *.md
+
 include astronet/tinho/tinho.sh
 
 graft astronet/atx/models/plasticc/model-9887359-1641295475-0.1.dev943+gc9bafac.d20220104
