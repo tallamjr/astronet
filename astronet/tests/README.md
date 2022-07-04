@@ -54,21 +54,13 @@ $ tree . I "baseline|pytest.log"
 
 Above is the directory structure of the tests, separated into unit, integration and functional tests
 
-#### Unit Tests `unit`
+**Unit Tests `unit`**: Testing smallest units or modules individually.
 
-Testing smallest units or modules individually.
+**Integration Tests `int`**: Testing integration of two or more units/modules combined for performing tasks.
 
-#### Integration Tests `int`
+**Functional Tests `func`**: Testing the behaviour of the application as per the requirement.
 
-Testing integration of two or more units/modules combined for performing tasks.
-
-#### Functional Tests `unit`
-
-Testing the behaviour of the application as per the requirement.
-
-#### Regression Tests `unit`
-
-Ensure the results obtained are the same as before
+**Regression Tests `reg`**: Ensure the results obtained are the same as before
 
 ### Running Tests
 
@@ -80,7 +72,7 @@ Note: some tests require large data files
 
 If a new plot is created, it should be visually inspected and a new baseline generated like so:
 
-**NEEDS TO BE UPDATE BELOW**
+🚧 **NEEDS TO BE UPDATE BELOW** 🚧
 
 ```bash
 $ cd astronet/tests/unit/viz
