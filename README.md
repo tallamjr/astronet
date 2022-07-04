@@ -22,6 +22,8 @@
 
 Expect this to be "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
 
+If you are interested in contributing to this package, please review [`CONTRIBUTING.md`](https://github.com/tallamjr/astronet/blob/master/CONTRIBUTING.md)
+
 ___________________________
 
 ### Citation
