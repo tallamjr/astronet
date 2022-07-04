@@ -14,7 +14,6 @@ jobs:
   check:
     # Don't run on forks
     if: github.repository == 'tallamjr/astronet'
-  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
