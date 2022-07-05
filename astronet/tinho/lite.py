@@ -1,31 +1,37 @@
+# Copyright 2020 - 2022
+# Author: Tarek Allam Jr.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
-import os
-import random
-import subprocess
 import sys
 import warnings
 import zipfile
-from pathlib import Path
-from typing import Dict
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from fink_client.visualisation import extract_field
-from fink_utils.photometry.conversion import mag2fluxcal_snana
-from sklearn.preprocessing import robust_scale as rs
 from tensorflow.python.ops.numpy_ops import np_config
 
-import astronet
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
-from astronet.metrics import WeightedLogLoss
-from astronet.preprocess import generate_gp_all_objects, robust_scale
 
 warnings.filterwarnings("ignore")
 np_config.enable_numpy_behavior()
 
 
 class LiteModel:
+    """Derived from
+    https://micwurm.medium.com/using-tensorflow-lite-to-speed-up-predictions-a3954886eb98"""
+
     @classmethod
     def from_file(cls, model_path):
         return LiteModel(tf.lite.Interpreter(model_path=model_path))
