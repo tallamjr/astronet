@@ -14,13 +14,12 @@ recursive-exclude astronet *.pdf
 recursive-exclude astronet *.pkl
 recursive-exclude astronet *.png
 
-include *.cff
-include *.txt
-include *.yaml
-include *.yml
 include data/full-plasticc.encoding
-include pytest.ini
 
+exclude *.cff
+exclude *.txt
+exclude *.yaml
+exclude *.yml
 exclude *.md
 
 include astronet/tinho/tinho.sh
