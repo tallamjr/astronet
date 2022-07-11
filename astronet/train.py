@@ -48,10 +48,7 @@ from astronet.metrics import (
     DistributedWeightedLogLoss,
     WeightedLogLoss,
 )
-from astronet.utils import (  # load_dataset,
-    astronet_logger,
-    find_optimal_batch_size,
-)
+from astronet.utils import astronet_logger, find_optimal_batch_size
 
 try:
     log = astronet_logger(__file__)
@@ -192,7 +189,6 @@ class Training(object):
             if self.redshift is not None:
                 hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
                 input_shapes = [input_shape, (BATCH_SIZE, Z_train.shape[1])]
-                # model.build_graph(input_shapes)
 
                 train_ds = (
                     lazy_load_plasticc_wZ(X_train, Z_train, y_train)
@@ -208,7 +204,6 @@ class Training(object):
 
             else:
                 hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results.json"
-                # model.build_graph(input_shape)
                 input_shapes = input_shape
 
                 train_ds = (
@@ -359,20 +354,9 @@ class Training(object):
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
 
-        # y_test_ds = (
-        #     tf.data.Dataset.from_tensor_slices(y_test)
-        #     .batch(BATCH_SIZE, drop_remainder=True)
-        #     .prefetch(tf.data.AUTOTUNE)
-        # )
-
-        # if SYSTEM == "Darwin":
-        #     y_test_ds = y_test_ds.take(3)
-
         y_preds = model.predict(test_ds)
 
         log.info(f"{y_preds.shape}, {type(y_preds)}")
-
-        # y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
 
         WLOSS = loss(y_test, y_preds).numpy()
         log.info(f"LL-Test Model Predictions: {WLOSS:.8f}")
@@ -495,7 +479,7 @@ class Training(object):
             model_for_pruning.fit(
                 train_ds,
                 callbacks=callbacks,
-                epochs=2,
+                epochs=20,
             )
 
             model_for_pruning.save(
@@ -505,7 +489,7 @@ class Training(object):
 
             model_for_export = tfmot.sparsity.keras.strip_pruning(model_for_pruning)
             model_for_export.save(
-                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-EXPORT",
+                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}-PRUNED-STRIPPED",
                 include_optimizer=True,
             )
 
