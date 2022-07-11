@@ -14,21 +14,16 @@
 # limitations under the License.
 
 import argparse
-import json
 import os
 import pathlib
 import random as python_random
 import subprocess
 import sys
-import tempfile
 import zipfile
 from collections import Counter
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
-import snappy
 import tensorflow as tf
 import tensorflow_model_optimization as tfmot
 from pandas.core.common import flatten
@@ -36,7 +31,7 @@ from tensorflow import keras
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
-from astronet.utils import find_optimal_batch_size, get_encoding
+from astronet.utils import get_encoding
 
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -55,7 +50,8 @@ def print_sparsity(model):
         n_zeros = np.count_nonzero(w == 0)
         sparsity = n_zeros / n_weights * 100.0
         if sparsity > 0:
-            return "    {} - {:.1f}% sparsity".format(w.name, sparsity)
+            return f"{sparsity:.1f}% sparsity in {w.name} layer"
+    return "No zero magnitude weights"
 
 
 def print_clusters(model):
