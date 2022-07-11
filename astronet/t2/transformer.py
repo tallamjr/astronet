@@ -183,8 +183,8 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
 
 class TransformerBlock(PrunableClusterableLayer):
     # TODO: Update docstrings
-    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
-        super(TransformerBlock, self).__init__()
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1, **kwargs):
+        super(TransformerBlock, self).__init__(**kwargs)
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.ff_dim = ff_dim
