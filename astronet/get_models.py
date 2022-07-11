@@ -25,11 +25,18 @@ from tensorflow.python.ops.numpy_ops import np_config
 import astronet
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.metrics import WeightedLogLoss
+from astronet.t2.transformer import (
+    ConvEmbedding,
+    PositionalEncoding,
+    RelativePositionEmbedding,
+    TransformerBlock,
+)
 from astronet.tinho.compress import (
     inspect_model,
     print_clusters,
     print_sparsity,
 )
+from astronet.tinho.layers import ClusterWeights
 from astronet.tinho.lite import LiteModel
 from astronet.utils import astronet_logger
 
@@ -49,7 +56,11 @@ def get_model(
 
     model = tf.keras.models.load_model(
         model_path,
-        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        custom_objects=dict(
+            ConvEmbedding=ConvEmbedding,
+            TransformerBlock=TransformerBlock,
+            WeightedLogLoss=WeightedLogLoss(),
+        ),
         compile=False,
     )
 
@@ -100,7 +111,12 @@ def get_clustered_model(
 
     model = tf.keras.models.load_model(
         model_path,
-        custom_objects={"WeightedLogLoss": WeightedLogLoss()},
+        custom_objects={
+            "ConvEmbedding": ConvEmbedding,
+            "TransformerBlock": TransformerBlock,
+            "ClusterWeights": ClusterWeights,
+            "WeightedLogLoss": WeightedLogLoss(),
+        },
         compile=False,
     )
 
