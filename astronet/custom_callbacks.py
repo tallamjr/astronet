@@ -24,6 +24,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
+from astronet.tinho.compress import print_sparsity
 from astronet.utils import astronet_logger
 
 log = astronet_logger(__file__)
@@ -54,6 +55,16 @@ class SGEBreakoutCallback(tf.keras.callbacks.Callback):
         if int(hrs) > self.threshold:
             log.info("Stopping training...")
             self.model.stop_training = True
+
+
+class PrintModelSparsity(tf.keras.callbacks.Callback):
+    def on_epoch_begin(self, epoch, logs={}):
+        sparsity = print_sparsity(self.model)
+        log.info(f"Epoch Start -- Current level of sparsity: {sparsity}")
+
+    def on_epoch_end(self, epoch, logs={}):
+        sparsity = print_sparsity(self.model)
+        log.info(f"Epoch End -- Current level of sparsity: {sparsity}")
 
 
 class TimeHistoryCallback(tf.keras.callbacks.Callback):
