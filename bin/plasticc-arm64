@@ -31,29 +31,6 @@ echo "Running $1 using $architecture architecture"
 
 dataset="plasticc"
 
-# if [ $architecture == "atx" ]; then
-#     if [ $operation == "hyper" ]; then
-#         # Hyperparameter Optimisation
-#         python $ASNWD/astronet/$architecture/opt/hypertrain.py \
-#             --dataset $dataset \
-#             --epochs 40 \
-#             --num-trials 5 \
-#             --testset "" \
-#             --fink ""
-#             # --redshift "" # With or without redshift. Remove argument if without
-#     elif [ $operation == "train" ]; then
-#         # Train
-#         model="scaledown-by-4"  # atx main model
-#         python $ASNWD/astronet/$architecture/train.py \
-#             --dataset $dataset \
-#             --epochs 400 \
-#             --model $model \
-#             --testset "" \
-#             --fink ""
-#             # --redshift "" # With or without redshift. Remove argument if without
-#     else
-#         echo "Please provide an argument for $operation"
-#     fi
 if [ $operation == "hyper" ]; then
     # Hyperparameter Optimisation
     python $ASNWD/astronet/$architecture/opt/hypertrain.py \
@@ -70,16 +47,14 @@ elif [ $operation == "train" ]; then
      "atx") model="scaledown-by-4" ;;
      *) model="1613517996-0a72904" ;; # t2 and tinho use same starting hyperparameters
     esac
-    # model="1613517996-0a72904" # t2 main model, all passbands
-    # model="1613517996-0a72904" # t2 fink model, g & r bands only, no z
     python $ASNWD/astronet/train.py \
         --architecture $architecture \
         --dataset $dataset \
         --epochs 1 \
         --model $model \
         --testset "" \
-        --redshift "" # With or without redshift. Remove argument if without
-        # --fink ""
+        --fink ""
+        # --redshift "" # With or without redshift. Remove argument if without
 else
     echo "Please provide an argument for $operation"
 fi
