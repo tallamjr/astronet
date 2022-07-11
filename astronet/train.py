@@ -38,7 +38,10 @@ from tensorflow.keras.callbacks import (
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import SYSTEM
-from astronet.custom_callbacks import TimeHistoryCallback
+from astronet.custom_callbacks import (
+    PrintModelSparsity,
+    TimeHistoryCallback,
+)
 from astronet.datasets import (
     lazy_load_plasticc_noZ,
     lazy_load_plasticc_wZ,
@@ -452,7 +455,11 @@ class Training(object):
             # Helper function uses `prune_low_magnitude` to make only the
             # Dense layers train with pruning.
             def apply_pruning_to_dense(layer):
-                if isinstance(layer, tf.keras.layers.Dense):
+                layer_name = layer.__class__.__name__
+                # prunable_layers = ["ConvEmbedding", "TransformerBlock", "ClusterWeights"]
+                # if layer_name in prunable_layers:
+                if isinstance(layer, tfmot.sparsity.keras.PrunableLayer):
+                    log.info(f"Pruning {layer_name}")
                     return tfmot.sparsity.keras.prune_low_magnitude(layer)
                 return layer
 
@@ -465,8 +472,20 @@ class Training(object):
 
             model_for_pruning.summary(print_fn=log.info)
 
+            log_dir = f"{asnwd}/logs/{self.architecture}"
+
             callbacks = [
                 tfmot.sparsity.keras.UpdatePruningStep(),
+                tfmot.sparsity.keras.PruningSummaries(log_dir=log_dir),
+                PrintModelSparsity(),
+                EarlyStopping(
+                    min_delta=0.001,
+                    mode="min",
+                    monitor="val_loss",
+                    patience=25,
+                    restore_best_weights=True,
+                    verbose=1,
+                ),
             ]
 
             model_for_pruning.compile(
@@ -479,7 +498,7 @@ class Training(object):
             model_for_pruning.fit(
                 train_ds,
                 callbacks=callbacks,
-                epochs=20,
+                epochs=100,
             )
 
             model_for_pruning.save(
