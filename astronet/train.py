@@ -55,7 +55,7 @@ from astronet.utils import astronet_logger, find_optimal_batch_size
 
 try:
     log = astronet_logger(__file__)
-    log.info("\n" + "=" * (shutil.get_terminal_size((80, 20))[0]))
+    log.info("Running...\n" + "=" * (shutil.get_terminal_size((80, 20))[0]))
     log.info(f"File Path: {Path(__file__).absolute()}")
     log.info(f"Parent of Directory Path: {Path().absolute().parent}")
 except Exception as e:
@@ -187,7 +187,9 @@ class Training(object):
         input_shape = (BATCH_SIZE, timesteps, num_features)
         log.info(f"input_shape:{input_shape}")
 
-        def get_compiled_model_and_data(loss):
+        drop_remainder = False
+
+        def get_compiled_model_and_data(loss, drop_remainder):
 
             if self.redshift is not None:
                 hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
@@ -196,13 +198,15 @@ class Training(object):
                 train_ds = (
                     lazy_load_plasticc_wZ(X_train, Z_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
-                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
+                    .cache()
                 )
                 test_ds = (
                     lazy_load_plasticc_wZ(X_test, Z_test, y_test)
-                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
+                    .cache()
                 )
 
             else:
@@ -212,13 +216,15 @@ class Training(object):
                 train_ds = (
                     lazy_load_plasticc_noZ(X_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
-                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
+                    .cache()
                 )
                 test_ds = (
                     lazy_load_plasticc_noZ(X_test, y_test)
-                    .batch(BATCH_SIZE, drop_remainder=True)
+                    .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
+                    .cache()
                 )
 
             model, event = fetch_model(
@@ -271,7 +277,7 @@ class Training(object):
                     test_ds,
                     event,
                     hyper_results_file,
-                ) = get_compiled_model_and_data(loss)
+                ) = get_compiled_model_and_data(loss, drop_remainder)
         else:
             loss = WeightedLogLoss()
             (
@@ -280,9 +286,9 @@ class Training(object):
                 test_ds,
                 event,
                 hyper_results_file,
-            ) = get_compiled_model_and_data(loss)
+            ) = get_compiled_model_and_data(loss, drop_remainder)
 
-        if "pytest" in sys.modules:
+        if "pytest" in sys.modules or SYSTEM == "Darwin":
             NTAKE = 3
 
             train_ds = train_ds.take(NTAKE)
@@ -356,6 +362,12 @@ class Training(object):
         log.info(
             f"LL-BATCHED-OP Model Evaluate: {model.evaluate(test_ds, verbose=0, batch_size=VALIDATION_BATCH_SIZE)[0]}"
         )
+
+        if drop_remainder:
+            ind = np.array(
+                [x for x in range((y_test.shape[0] // BATCH_SIZE) * BATCH_SIZE)]
+            )
+            y_test = np.take(y_test, ind, axis=0)
 
         y_preds = model.predict(test_ds)
 
