@@ -460,27 +460,39 @@ class Training(object):
             with open(train_results_file, "w") as rf:
                 json.dump(data, rf, sort_keys=True, indent=4)
 
-        if len(tf.config.list_physical_devices("GPU")) < 2 and SYSTEM != "Darwin":
+        if len(tf.config.list_physical_devices("GPU")) < 2:  # and SYSTEM != "Darwin":
             # PRUNE
             import tensorflow_model_optimization as tfmot
 
-            # Helper function uses `prune_low_magnitude` to make only the
-            # Dense layers train with pruning.
-            def apply_pruning_to_dense(layer):
-                layer_name = layer.__class__.__name__
-                # prunable_layers = ["ConvEmbedding", "TransformerBlock", "ClusterWeights"]
-                # if layer_name in prunable_layers:
-                if isinstance(layer, tfmot.sparsity.keras.PrunableLayer):
-                    log.info(f"Pruning {layer_name}")
-                    return tfmot.sparsity.keras.prune_low_magnitude(layer)
-                return layer
+            # # Helper function uses `prune_low_magnitude` to make only the
+            # # Dense layers train with pruning.
+            # def apply_pruning_to_dense(layer):
+            #     layer_name = layer.__class__.__name__
+            #     prunable_layers = {
+            #         "ConvEmbedding": (100, 32),
+            #         "TransformerBlock": (100, 32),
+            #         "ClusterWeights": (14,),
+            #     }
+            #     if (
+            #         isinstance(layer, tfmot.sparsity.keras.PrunableLayer)
+            #         and layer_name in prunable_layers.keys()
+            #     ):
+            #         log.info(f"Pruning {layer_name}")
+            #         return tfmot.sparsity.keras.prune_low_magnitude(
+            #             layer, input_shape=prunable_layers[layer_name]
+            #         )
+            #     return layer
+            # # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
+            # # to the layers of the model.
+            # model_for_pruning = tf.keras.models.clone_model(
+            #     model,
+            #     clone_function=apply_pruning_to_dense,
+            # )
 
-            # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
-            # to the layers of the model.
-            model_for_pruning = tf.keras.models.clone_model(
-                model,
-                clone_function=apply_pruning_to_dense,
-            )
+            model = tfmot.clustering.keras.strip_clustering(model)
+            inputs = tf.keras.Input(shape=[100, 2])
+            model(inputs)
+            model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(model)
 
             model_for_pruning.summary(print_fn=log.info)
 
@@ -510,7 +522,7 @@ class Training(object):
             model_for_pruning.fit(
                 train_ds,
                 callbacks=callbacks,
-                epochs=100,
+                epochs=1,
             )
 
             model_for_pruning.save(
