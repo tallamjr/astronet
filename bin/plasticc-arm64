@@ -27,7 +27,7 @@ operation=$1 # i.e. {train, hyper}
 # Architecture
 ## Current options: {tinho, t2, atx}
 architecture=$2
-echo "Running $1 using $architecture architecture"
+echo "Running $operation using $architecture architecture"
 
 dataset="plasticc"
 

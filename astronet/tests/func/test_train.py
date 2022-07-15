@@ -39,6 +39,10 @@ python_random.seed(RANDOM_SEED)
 class TestTrain:
     """A class with common parameters, `architecture`, `dataset` and the `hyperrun`."""
 
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.epochs = 2
+
     @pytest.mark.parametrize(
         ("architecture", "dataset", "hyperrun", "wloss"),
         (
@@ -65,7 +69,7 @@ class TestTrain:
     def test_train_UGRIZY_wZ(self, architecture, dataset, hyperrun, wloss):
 
         params = {
-            "epochs": 2,
+            "epochs": self.epochs,
             "architecture": architecture,
             "dataset": dataset,
             "model": hyperrun,
@@ -109,7 +113,7 @@ class TestTrain:
     def test_train_UGRIZY_noZ(self, architecture, dataset, hyperrun, wloss):
 
         params = {
-            "epochs": 2,
+            "epochs": self.epochs,
             "architecture": architecture,
             "dataset": dataset,
             "model": hyperrun,
@@ -152,7 +156,7 @@ class TestTrain:
     def test_train_GR_noZ(self, architecture, dataset, hyperrun, wloss):
 
         params = {
-            "epochs": 2,
+            "epochs": self.epochs,
             "architecture": architecture,
             "dataset": dataset,
             "model": hyperrun,
