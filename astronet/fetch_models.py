@@ -18,8 +18,10 @@ import json
 from typing import Union
 
 from astronet.atx.model import ATXModel
-from astronet.t2.model import T2Model
-from astronet.tinho.funcmodel import build_model
+
+# from astronet.t2.model import T2Model
+from astronet.t2.funcmodel import build_t2_model
+from astronet.tinho.funcmodel import build_tinho_model
 from astronet.utils import astronet_logger
 
 log = astronet_logger(__file__)
@@ -76,7 +78,7 @@ def fetch_model(
 
         num_filters = event["embed_dim"]  # --> Embedding size for each token
 
-        model = build_model(
+        model = build_tinho_model(
             input_shapes,
             num_filters=num_filters,
             input_dim=input_shape,
@@ -90,15 +92,25 @@ def fetch_model(
 
         num_filters = event["embed_dim"]  # --> Embedding size for each token
 
-        model = T2Model(
-            input_dim=input_shape,
+        # model = T2Model(
+        #     input_dim=input_shape,
+        #     num_filters=num_filters,
+        #     num_aux_feats=num_aux_feats,
+        #     add_aux_feats_to="L",
+        #     num_classes=num_classes,
+        #     **model_params,
+        # )
+        # model.build_graph(input_shapes)
+
+        model = build_t2_model(
+            input_shapes,
             num_filters=num_filters,
+            input_dim=input_shape,
             num_aux_feats=num_aux_feats,
             add_aux_feats_to="L",
             num_classes=num_classes,
             **model_params,
         )
-        model.build_graph(input_shapes)
 
     elif architecture == "atx":
 
