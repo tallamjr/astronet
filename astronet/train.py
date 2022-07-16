@@ -488,11 +488,27 @@ class Training(object):
             #     model,
             #     clone_function=apply_pruning_to_dense,
             # )
+            # model = tfmot.clustering.keras.strip_clustering(model)
+            # inputs = tf.keras.Input(shape=[100, 2])
+            # model(inputs)
+            # model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(model)
+            # Helper function uses `prune_low_magnitude` to make only the
+            # Dense layers train with pruning.
+            def apply_pruning_to_dense(layer):
+                layer_name = layer.__class__.__name__
+                if isinstance(layer, tf.keras.layers.Dense):
+                    log.info(f"Pruning {layer_name}")
+                    return tfmot.sparsity.keras.prune_low_magnitude(
+                        layer, input_shape=(14,)
+                    )
+                return layer
 
-            model = tfmot.clustering.keras.strip_clustering(model)
-            inputs = tf.keras.Input(shape=[100, 2])
-            model(inputs)
-            model_for_pruning = tfmot.sparsity.keras.prune_low_magnitude(model)
+            # Use `tf.keras.models.clone_model` to apply `apply_pruning_to_dense`
+            # to the layers of the model.
+            model_for_pruning = tf.keras.models.clone_model(
+                model,
+                clone_function=apply_pruning_to_dense,
+            )
 
             model_for_pruning.summary(print_fn=log.info)
 
@@ -521,8 +537,13 @@ class Training(object):
 
             model_for_pruning.fit(
                 train_ds,
+                batch_size=BATCH_SIZE,
+                shuffle=True,
+                validation_data=test_ds,
+                validation_batch_size=VALIDATION_BATCH_SIZE,
+                verbose=False,
                 callbacks=callbacks,
-                epochs=1,
+                epochs=5,
             )
 
             model_for_pruning.save(
