@@ -17,17 +17,17 @@
 # https://www.rc.ucl.ac.uk/docs/Job_Results/#qsub-emailing
 #$ -m base
 
-# Request a number of GPU cards, in this case 2 (the maximum)
-#$ -l gpu=2
+# Request a number of GPU cards, (V100:EF - 2 max, A100:L - 4 max)
+#$ -l gpu=4
 
-# Request a V100 node only
-#$ -ac allow=EF
+# Request a A100 node only
+#$ -ac allow=L
 
 # Request ten minutes of wallclock time (format hours:minutes:seconds).
 #$ -l h_rt=47:10:0
 
 # Request 1 gigabyte of RAM (must be an integer followed by M, G, or T)
-#$ -l mem=80G
+#$ -l mem=40G
 
 # Request 15 gigabyte of TMPDIR space (default is 10 GB - remove if cluster is diskless)
 #$ -l tmpfs=15G
@@ -38,7 +38,7 @@
 #$ -j yes
 
 # Set the name of the job.
-#$ -N t2-train-tfmot-wClusteringUGRIZY-GPU2
+#$ -N t2-train-tfmot-wClusteringUGRIZY-GPU4
 
 # Set the working directory to somewhere in your scratch space.
 #  This is a necessary step as compute nodes cannot write to $HOME.
