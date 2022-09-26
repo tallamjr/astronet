@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import random
 from functools import partial
 from typing import Dict, List, Union
 
@@ -324,16 +325,25 @@ def generate_gp_all_objects(
         columns=columns,
     )
 
-    for object_id in object_list:
-        print(f"OBJECT ID:{object_id} at INDEX:{object_list.index(object_id)}")
-        df = obs_transient[obs_transient["object_id"] == object_id]
+    if len(object_list) > 10000:
+        print(f"SUB-SAMPPLING NUM OBJECT LIST FROM {len(object_list)} TO 10000")
+        object_list = random.sample(object_list, 10000)
 
+    for object_id in object_list:
+        df = obs_transient[obs_transient["object_id"] == object_id]
+        num_passbands = len(np.unique(df["filter"]))
+        if num_passbands < 6:
+            print(
+                f"SKIPPING OBJECT ID:{object_id}, ONLY {num_passbands} FILTER RECORDED"
+            )
+            continue
         obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
 
         obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
         obj_gps = obj_gps.reset_index()
         obj_gps["object_id"] = object_id
         adf = np.vstack((adf, obj_gps))
+        print(f"COMPLETED OBJECT ID:{object_id}")
     return pd.DataFrame(data=adf, columns=obj_gps.columns)
 
 
