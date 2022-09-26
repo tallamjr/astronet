@@ -97,6 +97,35 @@ LSST_PB_COLORS = {
 }
 
 
+ELASTICC_FILTER_MAP = {
+    "u": "lsstu",
+    "g": "lsstg",
+    "r": "lsstr",
+    "i": "lssti",
+    "z": "lsstz",
+    "Y": "lssty",
+}
+
+# Central passbands wavelengths
+ELASTICC_PB_WAVELENGTHS = {
+    "lsstu": 3685.0,
+    "lsstg": 4802.0,
+    "lsstr": 6231.0,
+    "lssti": 7542.0,
+    "lsstz": 8690.0,
+    "lssty": 9736.0,
+}
+
+ELASTICC_PB_COLORS = {
+    "lsstu": "#984ea3",  # Purple: https://www.color-hex.com/color/984ea3
+    "lsstg": "#4daf4a",  # Green: https://www.color-hex.com/color/4daf4a
+    "lsstr": "#e41a1c",  # Red: https://www.color-hex.com/color/e41a1c
+    "lssti": "#377eb8",  # Blue: https://www.color-hex.com/color/377eb8
+    "lsstz": "#ff7f00",  # Orange: https://www.color-hex.com/color/ff7f00
+    "lssty": "#e3c530",  # Yellow: https://www.color-hex.com/color/e3c530
+}
+
+
 # ===================================================== ZTF ==================================== #
 ZTF_FILTER_MAP = {1: "ztfg", 2: "ztfr", 3: "ztfi"}
 
