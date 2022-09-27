@@ -42,10 +42,7 @@ from astronet.custom_callbacks import (
     PrintModelSparsity,
     TimeHistoryCallback,
 )
-from astronet.datasets import (
-    lazy_load_plasticc_noZ,
-    lazy_load_plasticc_wZ,
-)
+from astronet.datasets import lazy_load_noZ, lazy_load_wZ
 from astronet.fetch_models import fetch_model
 from astronet.metrics import (
     DistributedWeightedLogLoss,
@@ -155,13 +152,16 @@ class Training(object):
         csv_logger_file = f"{asnwd}/logs/{self.architecture}/training-{LABEL}.log"
 
         # Lazy load data
-        X_train = np.load(f"{asnwd}/data/plasticc/processed/X_train.npy", mmap_mode="r")
-        Z_train = np.load(f"{asnwd}/data/plasticc/processed/Z_train.npy", mmap_mode="r")
-        y_train = np.load(f"{asnwd}/data/plasticc/processed/y_train.npy", mmap_mode="r")
+        # DPATH = f"{asnwd}/data/plasticc/processed"
+        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/t2"
 
-        X_test = np.load(f"{asnwd}/data/plasticc/processed/X_test.npy", mmap_mode="r")
-        Z_test = np.load(f"{asnwd}/data/plasticc/processed/Z_test.npy", mmap_mode="r")
-        y_test = np.load(f"{asnwd}/data/plasticc/processed/y_test.npy", mmap_mode="r")
+        X_train = np.load(f"{DPATH}/X_train.npy", mmap_mode="r")
+        Z_train = np.load(f"{DPATH}/Z_train.npy", mmap_mode="r")
+        y_train = np.load(f"{DPATH}/y_train.npy", mmap_mode="r")
+
+        X_test = np.load(f"{DPATH}/X_test.npy", mmap_mode="r")
+        Z_test = np.load(f"{DPATH}/Z_test.npy", mmap_mode="r")
+        y_test = np.load(f"{DPATH}/y_test.npy", mmap_mode="r")
 
         # >>> train_ds.element_spec[1].shape
         # TensorShape([14])
@@ -173,7 +173,7 @@ class Training(object):
             X_train = X_train[:, :, 0:3:2]
             X_test = X_test[:, :, 0:3:2]
 
-        log.info(f"{X_train.shape, y_train.shape}")
+        log.info(f"{X_train.shape, Z_train.shape, y_train.shape}")
 
         (
             num_samples,
@@ -196,14 +196,14 @@ class Training(object):
                 input_shapes = [input_shape, (BATCH_SIZE, Z_train.shape[1])]
 
                 train_ds = (
-                    lazy_load_plasticc_wZ(X_train, Z_train, y_train)
+                    lazy_load_wZ(X_train, Z_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
                     .cache()
                 )
                 test_ds = (
-                    lazy_load_plasticc_wZ(X_test, Z_test, y_test)
+                    lazy_load_wZ(X_test, Z_test, y_test)
                     .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
                     .cache()
@@ -214,14 +214,14 @@ class Training(object):
                 input_shapes = input_shape
 
                 train_ds = (
-                    lazy_load_plasticc_noZ(X_train, y_train)
+                    lazy_load_noZ(X_train, y_train)
                     .shuffle(1000, seed=RANDOM_SEED)
                     .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
                     .cache()
                 )
                 test_ds = (
-                    lazy_load_plasticc_noZ(X_test, y_test)
+                    lazy_load_noZ(X_test, y_test)
                     .batch(BATCH_SIZE, drop_remainder=drop_remainder)
                     .prefetch(tf.data.AUTOTUNE)
                     .cache()
@@ -288,7 +288,7 @@ class Training(object):
                 hyper_results_file,
             ) = get_compiled_model_and_data(loss, drop_remainder)
 
-        if "pytest" in sys.modules or SYSTEM == "Darwin":
+        if "pytest" in sys.modules:  # or SYSTEM == "Darwin":
             NTAKE = 3
 
             train_ds = train_ds.take(NTAKE)
@@ -386,13 +386,13 @@ class Training(object):
         )  # Prepend which filters have been used in training
         LABEL += f"-LL{WLOSS:.3f}"  # Append loss score
 
-        if SYSTEM != "Darwin":
-            model.save(
-                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
-            )
-            model.save_weights(
-                f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/weights/weights-{LABEL}"
-            )
+        # if SYSTEM != "Darwin":
+        model.save(
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{LABEL}"
+        )
+        model.save_weights(
+            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/weights/weights-{LABEL}"
+        )
 
         if X_test.shape[0] < 10000:
             batch_size = X_test.shape[0]  # Use all samples in test set to evaluate
@@ -456,9 +456,9 @@ class Training(object):
             # print(previous_results)
             # print(data)
 
-        if SYSTEM != "Darwin":
-            with open(train_results_file, "w") as rf:
-                json.dump(data, rf, sort_keys=True, indent=4)
+        # if SYSTEM != "Darwin":
+        with open(train_results_file, "w") as rf:
+            json.dump(data, rf, sort_keys=True, indent=4)
 
         if len(tf.config.list_physical_devices("GPU")) < 2 and SYSTEM != "Darwin":
             # PRUNE
