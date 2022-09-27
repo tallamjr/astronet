@@ -132,7 +132,7 @@ def plot_confusion_matrix(
 
     sns.set(style="whitegrid", palette="muted", font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(14, 10))
+    fig, ax = plt.subplots(figsize=(26, 20))
     ax = sns.heatmap(
         cm / np.sum(cm, axis=1, keepdims=1),
         annot=True,
@@ -155,7 +155,7 @@ def plot_confusion_matrix(
     plt.ylabel("Actual")
     plt.xlabel("Predicted")
 
-    if dataset == "plasticc":
+    if (dataset == "plasticc") or (dataset == "elasticc"):
         wloss = WeightedLogLoss()
         wloss = wloss(y_test, y_preds).numpy()
         plt.title(f"Test Set Confusion Matrix, Log Loss = {wloss:.3f}")
@@ -550,7 +550,9 @@ if __name__ == "__main__":
     print(X_test.shape, y_test.shape)
 
     dataset = args.dataset
-    with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results.json") as f:
+    with open(
+        f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json"
+    ) as f:
         events = json.load(f)
         if args.model:
             # Get params for model chosen with cli args

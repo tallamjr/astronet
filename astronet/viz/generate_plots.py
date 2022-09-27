@@ -23,6 +23,7 @@ import time
 from collections import Counter
 from pathlib import Path
 
+import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -91,17 +92,13 @@ class Plots(object):
     def __call__(self):
 
         start = time.time()
-        X_test = np.load(
-            f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
-        )
-        y_test = np.load(
-            f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
-        )
-        Z_test = np.load(
-            f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
-        )
 
-        X_test = X_test[:, :, 0:3:2] if self.ztf is not None else X_test
+        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/t2"
+
+        X_test = np.load(f"{DPATH}/X_test.npy", mmap_mode="r")
+        Z_test = np.load(f"{DPATH}/Z_test.npy", mmap_mode="r")
+        y_test = np.load(f"{DPATH}/y_test.npy", mmap_mode="r")
+
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
         (
@@ -124,6 +121,7 @@ class Plots(object):
             )
 
             results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results_with_z.json"
+            print(results_filename)
 
         else:
             test_input = X_test
@@ -134,6 +132,7 @@ class Plots(object):
             )
 
             results_filename = f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/results.json"
+            print(results_filename)
 
         with open(results_filename) as f:
             events = json.load(f)
@@ -156,10 +155,16 @@ class Plots(object):
             compile=False,
         )
 
-        dataform = "testset"
-        encoding, class_encoding, class_names = get_encoding(
-            self.dataset, dataform=dataform
-        )
+        encoding_filename = f"{DPATH}/dataset.enc"
+
+        with open(encoding_filename, "rb") as eb:
+            encoding = joblib.load(eb)
+        class_names = encoding.categories_[0]
+
+        # dataform = "testset"
+        # encoding, class_encoding, class_names = get_encoding(
+        #     self.dataset, dataform=dataform
+        # )
 
         y_true_test = encoding.inverse_transform(y_test)
         print("N_TEST:", Counter(list(flatten(y_true_test))))
