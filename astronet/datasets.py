@@ -57,7 +57,7 @@ def lazy_load_tfdataset_from_numpy(file: str):
     return dataset
 
 
-def lazy_load_plasticc_wZ(X, Z, y):
+def lazy_load_wZ(X, Z, y):
 
     # generator function
     def generator():
@@ -79,7 +79,7 @@ def lazy_load_plasticc_wZ(X, Z, y):
     return dataset
 
 
-def lazy_load_plasticc_noZ(X, y):
+def lazy_load_noZ(X, y):
 
     # generator function
     def generator():
