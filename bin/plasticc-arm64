@@ -29,12 +29,11 @@ operation=$1 # i.e. {train, hyper}
 architecture=$2
 echo "Running $operation using $architecture architecture"
 
-dataset="plasticc"
+dataset="elasticc"
 
 if [ $operation == "hyper" ]; then
     # Hyperparameter Optimisation
     python $ASNWD/astronet/$architecture/opt/hypertrain.py \
-        --architecture $architecture \
         --dataset $dataset \
         --epochs 40 \
         --num-trials 5 \
@@ -50,11 +49,11 @@ elif [ $operation == "train" ]; then
     python $ASNWD/astronet/train.py \
         --architecture $architecture \
         --dataset $dataset \
-        --epochs 1 \
+        --epochs 200 \
         --model $model \
         --testset "" \
-        --fink ""
-        # --redshift "" # With or without redshift. Remove argument if without
+        --redshift "" # With or without redshift. Remove argument if without
+        # --fink ""
 else
     echo "Please provide an argument for $operation"
 fi
