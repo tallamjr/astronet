@@ -31,9 +31,7 @@ def plot_wisdm_activity(activity: str, df: pd.DataFrame, cols: List) -> None:
         ax.legend(loc="lower left", bbox_to_anchor=(1.0, 0.5))
 
 
-def plot_event(
-    object_name: str, df: pd.DataFrame, filters: List, pb_colors: Dict
-) -> None:
+def plot_event(object_name: str, df: pd.DataFrame, filters: List, pb_colors: Dict) -> None:
     # TODO: Update docstrings
     f, ax = plt.subplots()
     for passband in filters:
@@ -101,9 +99,7 @@ def plot_event_data_with_model(
     ax.set_ylabel("Flux units")
     if show_title:
         ax.title(
-            "Object ID: {}\nPhoto-z = {:.3f}".format(
-                obj_data.meta["name"], obj_data.meta["z"]
-            )
+            "Object ID: {}\nPhoto-z = {:.3f}".format(obj_data.meta["name"], obj_data.meta["z"])
         )
     if show_legend:
         ax.legend(
@@ -118,9 +114,7 @@ def plot_event_data_with_model(
     return f, ax
 
 
-def plot_event_gp_mean(
-    df: pd.DataFrame, object_id: Union[int, str], pb_colors: Dict
-) -> None:
+def plot_event_gp_mean(df: pd.DataFrame, object_id: Union[int, str], pb_colors: Dict) -> None:
     # TODO: Update docstrings
 
     df = df[df["object_id"] == object_id]

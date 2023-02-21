@@ -75,9 +75,7 @@ def __filter_dataframe_only_supernova(
     return filtered_dataframe
 
 
-def __transient_trim(
-    object_list: List[str], df: pd.DataFrame
-) -> (pd.DataFrame, List[np.array]):
+def __transient_trim(object_list: List[str], df: pd.DataFrame) -> (pd.DataFrame, List[np.array]):
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -121,9 +119,7 @@ def __transient_trim(
                 obs_time < obs_detected_time.iat[-1] + 1000
             )
             obs_transient = obs[is_obs_transient]
-        obs_transient["mjd"] -= min(
-            obs_transient["mjd"]
-        )  # so all transients start at time 0
+        obs_transient["mjd"] -= min(obs_transient["mjd"])  # so all transients start at time 0
         good_object_list.append(object_list.index(obj))
         adf = np.vstack((adf, obs_transient))
 
@@ -428,9 +424,7 @@ def remap_filters(df: pd.DataFrame, filter_map: Dict) -> pd.DataFrame:
     return df
 
 
-def robust_scale(
-    dataframe: pd.DataFrame, scale_columns: List[Union[str, int]]
-) -> pd.DataFrame:
+def robust_scale(dataframe: pd.DataFrame, scale_columns: List[Union[str, int]]) -> pd.DataFrame:
     """Standardize a dataset along axis=0 (rows)
 
     Parameters
@@ -454,9 +448,7 @@ def robust_scale(
 
     scaler = RobustScaler()
     scaler = scaler.fit(dataframe[scale_columns])
-    dataframe.loc[:, scale_columns] = scaler.transform(
-        dataframe[scale_columns].to_numpy()
-    )
+    dataframe.loc[:, scale_columns] = scaler.transform(dataframe[scale_columns].to_numpy())
     return dataframe
 
 

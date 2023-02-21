@@ -40,9 +40,7 @@ class ClusterableWeightsCA(tfmot.clustering.keras.ClusteringAlgorithm):
 
         # We find the nearest cluster centroids and store them so that ops can build
         # their kernels upon it
-        pulling_indices = tf.argmin(
-            tf.abs(tiled_weights - tiled_cluster_centroids), axis=2
-        )
+        pulling_indices = tf.argmin(tf.abs(tiled_weights - tiled_cluster_centroids), axis=2)
 
         return pulling_indices
 
@@ -74,9 +72,7 @@ class ConvEmbedding(PrunableClusterableLayer):
     def __init__(self, num_filters, **kwargs):
         super(ConvEmbedding, self).__init__(**kwargs)
         self.num_filters = num_filters
-        self.conv1d = layers.Conv1D(
-            filters=num_filters, kernel_size=1, activation="relu"
-        )
+        self.conv1d = layers.Conv1D(filters=num_filters, kernel_size=1, activation="relu")
 
     def get_config(self):
         config = super().get_config()
@@ -168,16 +164,14 @@ class RelativePositionEmbedding(tf.keras.layers.Layer):
         position = tf.cast(tf.range(length), tf.float32)
         num_timescales = self._hidden_size // 2
         min_timescale, max_timescale = self._min_timescale, self._max_timescale
-        log_timescale_increment = math.log(
-            float(max_timescale) / float(min_timescale)
-        ) / (tf.cast(num_timescales, tf.float32) - 1)
+        log_timescale_increment = math.log(float(max_timescale) / float(min_timescale)) / (
+            tf.cast(num_timescales, tf.float32) - 1
+        )
         inv_timescales = min_timescale * tf.exp(
             tf.cast(tf.range(num_timescales), tf.float32) * -log_timescale_increment
         )
         scaled_time = tf.expand_dims(position, 1) * tf.expand_dims(inv_timescales, 0)
-        position_embeddings = tf.concat(
-            [tf.sin(scaled_time), tf.cos(scaled_time)], axis=1
-        )
+        position_embeddings = tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
         return inputs + position_embeddings
 
 
