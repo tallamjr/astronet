@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
 from functools import partial
 from typing import Dict, List, Union
 
@@ -24,6 +23,20 @@ import scipy.optimize as op
 from astropy.table import Table, vstack
 
 from astronet.constants import LSST_PB_WAVELENGTHS
+
+# Central passbands wavelengths
+pb_wavelengths = {
+    "lsstu": 3685.0,
+    "lsstg": 4802.0,
+    "lsstr": 6231.0,
+    "lssti": 7542.0,
+    "lsstz": 8690.0,
+    "lssty": 9736.0,
+}
+wavelengths_pb = {v: k for k, v in pb_wavelengths.items()}  # inverted map
+
+
+filter_set = (["lsstu", "lsstg", "lsstr", "lssti", "lsstz", "lssty"],)
 
 
 def __filter_dataframe_only_supernova(
@@ -184,6 +197,12 @@ def fit_2d_gp(
     signal_to_noises = np.abs(obj_flux) / np.sqrt(
         obj_flux_error**2 + (1e-2 * np.max(obj_flux)) ** 2
     )
+
+    signal_to_noises = signal_to_noises.reset_index(drop=True)
+    obj_flux = obj_flux.reset_index(drop=True)
+
+    obj_flux_error = obj_flux_error.reset_index(drop=True)
+
     scale = np.abs(obj_flux[signal_to_noises.idxmax()])
 
     kernel = (0.5 * scale) ** 2 * george.kernels.Matern32Kernel(
@@ -261,15 +280,12 @@ def generate_gp_single_event(
     filters = df["filter"]
     filters = list(np.unique(filters))
 
-    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filters)
-    inverse_pb_wavelengths = {v: k for k, v in pb_wavelengths.items()}
-
-    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
-
     number_gp = timesteps
     gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
+
+    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+    gp_wavelengths = np.vectorize(pb_wavelengths.get)(filter_set)
     obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
-    obj_gps["filter"] = obj_gps["filter"].map(inverse_pb_wavelengths)
 
     return obj_gps
 
@@ -325,18 +341,9 @@ def generate_gp_all_objects(
         columns=columns,
     )
 
-    if len(object_list) > 10000:
-        print(f"SUB-SAMPPLING NUM OBJECT LIST FROM {len(object_list)} TO 10000")
-        object_list = random.sample(object_list, 10000)
-
     for object_id in object_list:
         df = obs_transient[obs_transient["object_id"] == object_id]
-        num_passbands = len(np.unique(df["filter"]))
-        if num_passbands < 6:
-            print(
-                f"SKIPPING OBJECT ID:{object_id}, ONLY {num_passbands} FILTER RECORDED"
-            )
-            continue
+
         obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
 
         obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
@@ -379,6 +386,7 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
     for wavelength in unique_wavelengths:
         gp_wavelengths = np.ones(number_gp) * wavelength
         pred_x_data = np.vstack([gp_times, gp_wavelengths]).T
+
         pb_pred, pb_pred_var = gp_predict(pred_x_data, return_var=True)
         # stack the GP results in a array momentarily
         obj_gp_pb_array = np.column_stack((gp_times, pb_pred, np.sqrt(pb_pred_var)))
@@ -397,6 +405,10 @@ def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
             obj_gps = vstack((obj_gps, obj_gp_pb))
 
     obj_gps = obj_gps.to_pandas()
+
+    # Map the wavelenghts to the original passband denominations
+    obj_gps["filter"] = np.vectorize(wavelengths_pb.get)(obj_gps["filter"])
+
     return obj_gps
 
 

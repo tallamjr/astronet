@@ -64,7 +64,7 @@ def plot_event_data_with_model(
 
     f, ax = plt.subplots()
 
-    passbands = list(np.unique(obj_data["filter"]))
+    passbands = list(np.unique(obj_model["filter"]))
     for pb in passbands:
         obj_data_pb = obj_data[obj_data["filter"] == pb]  # obj LC in that passband
         if obj_model is not None:

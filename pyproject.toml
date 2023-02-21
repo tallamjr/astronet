@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Not necessary for packaging but every self-respecting Python
 # package should a) use black and b) fix the WRONG default.
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''
