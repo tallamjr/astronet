@@ -49,7 +49,6 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class CustomFormatter(logging.Formatter):
-
     grey = "\x1b[38;20m"
     yellow = "\x1b[33;20m"
     red = "\x1b[31;20m"
@@ -124,7 +123,6 @@ def astronet_logger(name: str, level: str = "INFO") -> logging.Logger:
 
 
 def tfrecords():
-
     # x = train_input[0:5000, :, :]
     # x = tf.convert_to_tensor(x)
     # x = tf.io.serialize_tensor(x)
@@ -207,7 +205,6 @@ def find_optimal_batch_size(training_set_length: int) -> int:
         batch_size_list = [2048]
     ratios = []
     for batch_size in batch_size_list:
-
         remainder = training_set_length % batch_size
 
         if remainder == 0:
@@ -274,8 +271,11 @@ def create_dataset(
 
     Xs, ys = [], []
     for i in range(0, len(X) - time_steps, step):
-        v = X.iloc[i : (i + time_steps)].values
-        labels = y.iloc[i : i + time_steps]
+        # v = X.iloc[i : (i + time_steps)].values
+        v = X[i : (i + time_steps), :].to_numpy()
+        # labels = y.iloc[i : i + time_steps]
+        labels = y[i : (i + time_steps)]
+
         Xs.append(v)
         ys.append(stats.mode(labels)[0][0])
 
@@ -1843,11 +1843,7 @@ def load_dataset(
         np.random.seed(RANDOM_SEED)
         # random_state: if None, the random number generator is the RandomState instance used by np.random.
 
-        from imblearn.over_sampling import SVMSMOTE
-        from imblearn.under_sampling import (
-            InstanceHardnessThreshold,
-            RandomUnderSampler,
-        )
+        from imblearn.under_sampling import RandomUnderSampler
 
         # sampler = SVMSMOTE(sampling_strategy="not majority")
         # sampler = InstanceHardnessThreshold(sampling_strategy="not minority")
