@@ -21,7 +21,6 @@ from tensorflow.keras import layers
 from astronet.t2.transformer import (
     ConvEmbedding,
     PositionalEncoding,
-    RelativePositionEmbedding,
     TransformerBlock,
 )
 from astronet.utils import astronet_logger
@@ -43,7 +42,6 @@ def build_model(
     add_aux_feats_to="L",
     **kwargs,
 ):
-
     cluster_weights = tfmot.clustering.keras.cluster_weights
     CentroidInitialization = tfmot.clustering.keras.CentroidInitialization
 
@@ -127,7 +125,7 @@ def build_model(
             z = tf.tile(z, [1, 100])
             # >>> z.shape
             # TensorShape([None, 200])
-            z = tf.keras.layers.Reshape([100, 2])(z)
+            z = tf.keras.layers.Reshape([100, num_aux_feats])(z)
             # >>> z.shape
             # TensorShape([None, 100, 2])
             x = tf.keras.layers.Concatenate(axis=2)([x, z])
@@ -137,7 +135,7 @@ def build_model(
             z = tf.tile(z, [1, 6])
             # >>> z.shape
             # TensorShape([None, 12])
-            z = tf.keras.layers.Reshape([2, 6])(z)
+            z = tf.keras.layers.Reshape([num_aux_feats, 6])(z)
             # >>> z.shape
             # TensorShape([None, 2, 6])
             x = tf.keras.layers.Concatenate(axis=1)([x, z])
