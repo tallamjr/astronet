@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from functools import partial
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import george
 import numpy as np
@@ -77,7 +77,7 @@ def __filter_dataframe_only_supernova(
 
 def __transient_trim(
     object_list: List[str], df: pd.DataFrame
-) -> (pd.DataFrame, List[np.array]):
+) -> Tuple[pd.DataFrame, List[np.array]]:
     """Trim off light-curve plateau to leave only the transient part +/- 50 time-steps
 
     Parameters
@@ -231,8 +231,8 @@ def fit_2d_gp(
     else:
         # Fit failed. Print out a warning, and use the initial guesses for fit
         # parameters.
-        obj = obj_data["object_id"][0]
-        print("GP fit failed for {}! Using guessed GP parameters.".format(obj))
+        obj = obj_data["object_id"].iloc[0]
+        print(f"GP fit failed for {obj}! Using guessed GP parameters.")
         gp.set_parameter_vector(default_gp_param)
 
     gp_predict = partial(gp.predict, obj_flux)
