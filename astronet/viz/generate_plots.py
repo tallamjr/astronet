@@ -35,15 +35,11 @@ from tensorflow import keras
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
-from astronet.utils import (
-    astronet_logger,
-    find_optimal_batch_size,
-    get_encoding,
-)
+from astronet.preprocess import one_hot_encode
+from astronet.utils import astronet_logger, find_optimal_batch_size
 from astronet.viz.visualise_results import (
     plot_acc_history,
     plot_confusion_matrix,
-    plot_confusion_matrix_against_baseline,
     plot_loss_history,
     plot_multiPR,
     plot_multiROC,
@@ -81,25 +77,30 @@ plt.rcParams.update(
 
 class Plots(object):
     # TODO: Update docstrings
-    def __init__(self, architecture, dataset, model_name, redshift, ztf, savefigs=True):
+    def __init__(self, architecture, dataset, model_name, redshift, savefigs=True):
         self.architecture = architecture
         self.dataset = dataset
         self.model_name = model_name
         self.redshift = redshift
         self.savefigs = savefigs
-        self.ztf = ztf
 
     def __call__(self):
-
         start = time.time()
 
-        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/t2"
+        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed"
 
         X_test = np.load(f"{DPATH}/X_test.npy", mmap_mode="r")
         Z_test = np.load(f"{DPATH}/Z_test.npy", mmap_mode="r")
         y_test = np.load(f"{DPATH}/y_test.npy", mmap_mode="r")
 
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
+
+        y_train = np.load(f"{DPATH}/y_train.npy", mmap_mode="r")
+        enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        encoding_file = f"{DPATH}/x-dataset.enc"
+
+        with open(encoding_file, "wb") as f:
+            joblib.dump(enc, f)
 
         (
             num_samples,
@@ -150,12 +151,12 @@ class Plots(object):
                 )
 
         model = keras.models.load_model(
-            f"{asnwd}/astronet/{self.architecture}/models/{self.dataset}/model-{self.model_name}",
+            f"/Users/tallamjr/github/tallamjr/origin/elasticc/models/model-{self.model_name}",
             custom_objects={"WeightedLogLoss": WeightedLogLoss()},
             compile=False,
         )
 
-        encoding_filename = f"{DPATH}/dataset.enc"
+        encoding_filename = f"{DPATH}/x-dataset.enc"
 
         with open(encoding_filename, "rb") as eb:
             encoding = joblib.load(eb)
@@ -268,7 +269,6 @@ class Plots(object):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Evaluate trained model for given architecture"
     )
@@ -301,13 +301,6 @@ if __name__ == "__main__":
         help="Whether to include redshift features or not",
     )
 
-    parser.add_argument(
-        "-f",
-        "--ztf",
-        default=None,
-        help="Model trained on ZTF-esque data or not",
-    )
-
     try:
         args = parser.parse_args()
         argsdict = vars(args)
@@ -319,19 +312,14 @@ if __name__ == "__main__":
     dataset = args.dataset
     model_name = args.model
     redshift = args.redshift
-    ztf = args.ztf
 
     if redshift is not None:
         redshift = True
-
-    if ztf is not None:
-        ztf = True
 
     plotting = Plots(
         architecture=architecture,
         dataset=dataset,
         model_name=model_name,
         redshift=redshift,
-        ztf=ztf,
     )
     plotting()
