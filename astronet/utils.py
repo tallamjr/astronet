@@ -17,12 +17,13 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import colorama
 import joblib
 import numpy as np
 import pandas as pd
+import polars as pl
 import tensorflow as tf
 from scipy import stats
 from sklearn import model_selection
@@ -234,18 +235,18 @@ def train_val_test_split(df, cols):
 
 
 def create_dataset(
-    X: pd.DataFrame, y: pd.Series, time_steps: int = 1, step: int = 1
-) -> (np.ndarray, np.ndarray):
+    X: pl.DataFrame, y: pl.Series, g: pl.Series, time_steps: int = 1, step: int = 1
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Create dataset from GP interpolated data and splitting according to the timesteps used when
     generating the GP dataframe. This allows for the correct label to be assigned to the
     corresponding X values
 
     Parameters
     ----------
-    X: pd.DataFrame
+    X: pl.DataFrame
         Subset of full dataframe containing only the passband columns
-    y: pd.Series
-        A pd.Series containing the object labels
+    y: pl.Series
+        A pl.Series containing the object labels
     TIME_STEPS: int
         Number relating to how many times the GP has been evaluated
     STEP: int
@@ -269,22 +270,25 @@ def create_dataset(
     ... )
     """
 
-    Xs, ys = [], []
+    Xs, ys, gids = [], [], []
     for i in range(0, len(X) - time_steps, step):
         # v = X.iloc[i : (i + time_steps)].values
         v = X[i : (i + time_steps), :].to_numpy()
         # labels = y.iloc[i : i + time_steps]
         labels = y[i : (i + time_steps)]
 
+        group = g[i : (i + time_steps)]
+
         Xs.append(v)
         ys.append(stats.mode(labels)[0][0])
+        gids.append(stats.mode(group)[0][0])
 
-    return np.array(Xs), np.array(ys).reshape(-1, 1)
+    return np.array(Xs), np.array(ys).reshape(-1, 1), np.array(gids).reshape(-1, 1)
 
 
 def get_encoding(
     dataset: str, dataform: str = None
-) -> (OneHotEncoder, List[str], List[str]):
+) -> Tuple[OneHotEncoder, List[str], List[str]]:
     """Get inverse of the OneHotEncoder used intially encoding the original labels"""
 
     if dataform is not None:
