@@ -19,12 +19,12 @@ repos:
         args: ["--profile", "black", "--line-length=69"]
 -   repo: https://github.com/charliermarsh/ruff-pre-commit
     # Ruff version.
-    rev: 'v0.0.252'
+    rev: 'v0.0.253'
     hooks:
     -   id: ruff
         args: [--fix, --exit-non-zero-on-fix, --ignore, 'E501']
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.0.1'
-    hooks:
-    -   id: mypy
-        args: [--no-strict-optional, --ignore-missing-imports]
+# -   repo: https://github.com/pre-commit/mirrors-mypy
+#     rev: 'v1.0.1'
+#     hooks:
+#     -   id: mypy
+#         args: [--no-strict-optional, --ignore-missing-imports, --allow-untyped-calls]

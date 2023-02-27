@@ -19,6 +19,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
+from typing import Dict, Optional
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -46,7 +47,14 @@ from astronet.utils import (
 )
 
 
-def plot_acc_history(architecture, dataset, model_name, event, save=True, ax=None):
+def plot_acc_history(
+    architecture: str,
+    dataset: str,
+    model_name: str,
+    event: Optional[Dict[str, str]],
+    save: bool = True,
+    ax=None,
+):
     # TODO: Update docstrings
 
     if ax is not None:
@@ -426,18 +434,18 @@ def plot_multiPR(
     )
     lines = []
     labels = []
-    (l,) = plt.plot(
+    (line,) = plt.plot(
         recall["micro"], precision["micro"], color="deeppink", linestyle=":", lw=lw
     )
-    lines.append(l)
+    lines.append(line)
     labels.append(
         "micro-Average Precision-Recall (area = {0:0.2f})"
         "".format(average_precision["micro"])
     )
 
     for i, color in zip(range(n_classes), colors):
-        (l,) = plt.plot(recall[i], precision[i], color=color, lw=lw)
-        lines.append(l)
+        (line,) = plt.plot(recall[i], precision[i], color=color, lw=lw)
+        lines.append(line)
         labels.append(
             "Precision-Recall for {0} (area = {1:0.2f})"
             "".format(class_names[i], average_precision[i])
@@ -480,7 +488,6 @@ def plot_multiPR(
 
 
 if __name__ == "__main__":
-
     try:
         log = astronet_logger(__file__)
         log.info("=" * shutil.get_terminal_size((80, 20))[0])
@@ -488,7 +495,7 @@ if __name__ == "__main__":
         log.info(f"Parent of Directory Path: {Path().absolute().parent}")
     except Exception as e:
         print(f"{e}: Seems you are running from a notebook...")
-        __file__ = f"{Path().resolve().paren.parentt}/astronet/visualise_results.py"
+        __file__ = f"{Path().resolve().parent.parent}/astronet/visualise_results.py"
 
     RANDOM_SEED = 42
     np.random.seed(RANDOM_SEED)
@@ -519,6 +526,13 @@ if __name__ == "__main__":
         "--dataset",
         default="wisdm_2010",
         help="Choose which dataset to use; options include: 'wisdm_2010', 'wisdm_2019'",
+    )
+
+    parser.add_argument(
+        "-z",
+        "--redshift",
+        default=False,
+        help="Was the model trained using redshift or not?",
     )
 
     try:
