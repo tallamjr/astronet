@@ -190,7 +190,6 @@ class Training(object):
         drop_remainder = False
 
         def get_compiled_model_and_data(loss, drop_remainder):
-
             if self.redshift is not None:
                 hyper_results_file = f"{asnwd}/astronet/{self.architecture}/opt/runs/{self.dataset}/results_with_z.json"
                 input_shapes = [input_shape, (BATCH_SIZE, Z_train.shape[1])]
@@ -526,7 +525,6 @@ class Training(object):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="Process named model")
 
     parser.add_argument(
