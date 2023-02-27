@@ -20,7 +20,6 @@ from tensorflow.keras import layers
 from astronet.t2.transformer import (
     ConvEmbedding,
     PositionalEncoding,
-    RelativePositionEmbedding,
     TransformerBlock,
 )
 
@@ -90,7 +89,6 @@ class T2Model(keras.Model):
         self.classifier = layers.Dense(self.num_classes, activation="softmax")
 
     def call(self, inputs, training=None):
-
         # If not a list then inputs are of type tensor: tf.is_tensor(inputs) == True
         if tf.is_tensor(inputs):
             x = self.embedding(inputs)
@@ -126,7 +124,7 @@ class T2Model(keras.Model):
                 z = tf.tile(z, [1, 100])
                 # >>> z.shape
                 # TensorShape([None, 200])
-                z = tf.keras.layers.Reshape([100, 2])(z)
+                z = tf.keras.layers.Reshape([100, self.num_aux_feats])(z)
                 # >>> z.shape
                 # TensorShape([None, 100, 2])
                 x = tf.keras.layers.Concatenate(axis=2)([x, z])
@@ -136,7 +134,7 @@ class T2Model(keras.Model):
                 z = tf.tile(z, [1, 6])
                 # >>> z.shape
                 # TensorShape([None, 12])
-                z = tf.keras.layers.Reshape([2, 6])(z)
+                z = tf.keras.layers.Reshape([self.num_aux_feats, 6])(z)
                 # >>> z.shape
                 # TensorShape([None, 2, 6])
                 x = tf.keras.layers.Concatenate(axis=1)([x, z])
