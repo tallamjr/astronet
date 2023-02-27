@@ -22,11 +22,13 @@
         },
         {
             "balanced_classes": true,
+            "droprate": 0.1,
             "embed_dim": 32,
             "ff_dim": 64,
             "lr": 0.018418964166791764,
             "name": "1611949575-79a63f7",
             "num_heads": 4,
+            "num_layers": 1,
             "objective_score": 0.22009319365024566,
             "z-redshift": true
         },
@@ -153,6 +155,17 @@
             "num_layers": 2,
             "objective_score": 2.2616249561309814,
             "testset": true,
+            "z-redshift": true
+        },
+        {
+            "droprate": 0.1,
+            "embed_dim": 512,
+            "ff_dim": 256,
+            "lr": 0.18418964166791764,
+            "name": "fix",
+            "num_heads": 16,
+            "num_layers": 1,
+            "objective_score": 0.111,
             "z-redshift": true
         }
     ]
