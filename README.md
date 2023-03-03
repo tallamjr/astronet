@@ -51,15 +51,96 @@ ___________________________
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450)
 
-### `astronet.t2` [https://arxiv.org/abs/2105.06178]
+Regenerate plots:
 
-<p>
+```bash
+$ unset LOCAL_DEBUG; python generate_plots.py \
+  --dataset "plasticc" \
+  --architecture "tinho" \
+  --model "UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450"
+  --redshift ""
+
+N_TEST: Counter({90: 415028, 42: 249673, 92: 49591, 62: 43625, 88: 25429, 16: 24119, 65: 23413, 52: 15769, 67: 10107, 95: 8881, 15: 3513, 53: 354, 6: 334, 64: 28})
+LogLoss on Test Set: 0.35725778341293335, Accuracy on Test Set: 0.7862099409103394
+Running predictions
+425/425 - 94s - 94s/epoch - 222ms/step
+LL-Test: 0.450
+Plotting figures...
+                   precision    recall  f1-score   support
+
+$\mu$-Lens-Single       0.64      0.95      0.76       334
+              TDE       0.18      0.92      0.31      3513
+               EB       0.89      0.94      0.92     24119
+             SNII       0.92      0.71      0.80    249673
+            SNIax       0.13      0.61      0.22     15769
+             Mira       0.93      0.99      0.96       354
+            SNIbc       0.46      0.63      0.53     43625
+               KN       0.06      0.71      0.10        28
+          M-dwarf       0.95      0.97      0.96     23413
+        SNIa-91bg       0.25      0.80      0.38     10107
+              AGN       0.86      0.95      0.90     25429
+             SNIa       0.95      0.80      0.87    415028
+              RRL       0.99      0.95      0.97     49591
+           SLSN-I       0.49      0.95      0.65      8881
+
+         accuracy                           0.79    869864
+        macro avg       0.62      0.85      0.67    869864
+     weighted avg       0.88      0.79      0.82    869864
+
+CC-SNe cross-contamination: 4.65%
+```
+
+
+# `astronet.t2` [https://arxiv.org/abs/2105.06178]
+
+>
   <img src="./resources/t2-cam-transformer.png" width="30%" align="middle" />
-</p>
+p>
 
 <!-- ![ARCH](./resources/t2-cam-transformer.png) -->
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_t2-plasticc-1619624444-0.1.dev765+g7c90cbb.d20210428.png)
+
+Regenerate plots
+
+```bash
+$ unset LOCAL_DEBUG; python generate_plots.py \
+  --dataset "plasticc" \
+  --architecture "t2" \
+  --model "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507" \
+  --redshift ""
+
+N_TEST: Counter({90: 415028, 42: 249673, 92: 49591, 62: 43625, 88: 25429, 16: 24119, 65: 23413, 52: 15769, 67: 10107, 95: 8881, 15: 3513, 53: 354, 6: 334, 64: 28})
+LogLoss on Test Set: 0.36900970339775085, Accuracy on Test Set: 0.7745199203491211
+Running predictions
+
+27184/27184 - 358s - 358s/epoch - 13ms/step
+LL-Test: 0.507
+Plotting figures...
+                   precision    recall  f1-score   support
+
+$\mu$-Lens-Single       0.63      0.92      0.75       334
+              TDE       0.21      0.88      0.34      3513
+               EB       0.87      0.94      0.91     24119
+             SNII       0.91      0.70      0.79    249673
+            SNIax       0.13      0.58      0.21     15769
+             Mira       0.91      0.99      0.95       354
+            SNIbc       0.44      0.64      0.52     43625
+               KN       0.08      0.64      0.14        28
+          M-dwarf       0.96      0.95      0.96     23413
+        SNIa-91bg       0.23      0.79      0.36     10107
+              AGN       0.85      0.95      0.90     25429
+             SNIa       0.94      0.80      0.86    415028
+              RRL       0.98      0.95      0.97     49591
+           SLSN-I       0.44      0.95      0.60      8881
+
+         accuracy                           0.78    869864
+        macro avg       0.61      0.83      0.66    869864
+     weighted avg       0.88      0.78      0.81    869864
+
+CC-SNe cross-contamination:   4.81
+
+```
 
 ### `astronet.atx`
 
@@ -70,6 +151,45 @@ ___________________________
 <!-- ![ARCH](./resources/atx-arch.png) -->
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_atx-plasticc-9887359-1641295475-0.1.dev943+gc9bafac.d20220104.png)
+
+Regenerate plots.
+
+```bash
+unset LOCAL_DEBUG; python generate_plots.py \
+  --dataset "plasticc"
+  --architecture "atx"
+  --model "UGRIZY-wZ-9887359-1641295475-0.1.dev943+gc9bafac.d20220104-LL0.739"
+  --redshift ""
+
+N_TEST: Counter({90: 415028, 42: 249673, 92: 49591, 62: 43625, 88: 25429, 16: 24119, 65: 23413, 52: 15769, 67: 10107, 95: 8881, 15: 3513, 53: 354, 6: 334, 64: 28})
+LogLoss on Test Set: 0.4699820876121521, Accuracy on Test Set: 0.7285863161087036
+Running predictions
+27184/27184 - 185s - 185s/epoch - 7ms/step
+LL-Test: 0.739
+Plotting figures...
+                   precision    recall  f1-score   support
+
+$\mu$-Lens-Single       0.83      0.89      0.86       334
+              TDE       0.18      0.89      0.30      3513
+               EB       0.78      0.96      0.86     24119
+             SNII       0.85      0.74      0.79    249673
+            SNIax       0.09      0.58      0.16     15769
+             Mira       0.98      0.98      0.98       354
+            SNIbc       0.42      0.42      0.42     43625
+               KN       0.04      0.36      0.07        28
+          M-dwarf       0.97      0.93      0.95     23413
+        SNIa-91bg       0.30      0.62      0.40     10107
+              AGN       0.83      0.93      0.88     25429
+             SNIa       0.92      0.70      0.79    415028
+              RRL       0.99      0.90      0.94     49591
+           SLSN-I       0.28      0.91      0.42      8881
+
+         accuracy                           0.73    869864
+        macro avg       0.60      0.77      0.63    869864
+     weighted avg       0.84      0.73      0.77    869864
+
+CC-SNe cross-contamination:   6.68
+```
 
 ___________________________
 

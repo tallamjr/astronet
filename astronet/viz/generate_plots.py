@@ -190,8 +190,14 @@ class Plots(object):
 
         # initialize tqdm callback with default parameters
         tqdm_callback = tfa.callbacks.TQDMProgressBar()
-        y_preds = model.predict(test_ds, callbacks=[tqdm_callback], verbose=2)
         y_test_np = np.concatenate([y for y in y_test_ds], axis=0)
+
+        if self.architecture == "tinho":
+            y_preds = model.predict(test_ds, callbacks=[tqdm_callback], verbose=2)
+        else:
+            y_preds = model.predict(
+                [X_test, Z_test], callbacks=[tqdm_callback], verbose=2
+            )
 
         loss = wloss(y_test_np, y_preds).numpy()
         print(f"LL-Test: {loss:.3f}")
@@ -202,6 +208,7 @@ class Plots(object):
 
         print("Plotting figures...")
         cmap = sns.light_palette("Navy", as_cmap=True)
+
         plot_confusion_matrix(
             self.architecture,
             self.dataset,
@@ -211,9 +218,24 @@ class Plots(object):
             encoding,
             class_names,  # enc.categories_[0]
             save=self.savefigs,
+            normalize=False,
             cmap=cmap,
         )
-        log.info("CM DONE...")
+        log.info("RAW CM DONE...")
+
+        plot_confusion_matrix(
+            self.architecture,
+            self.dataset,
+            self.model_name,
+            y_test_np,
+            y_preds,
+            encoding,
+            class_names,  # enc.categories_[0]
+            save=self.savefigs,
+            normalize=True,
+            cmap=cmap,
+        )
+        log.info("NORMALIZED CM DONE...")
 
         # cmap = sns.light_palette("purple", as_cmap=True)
         # plot_confusion_matrix_against_baseline(
@@ -230,39 +252,39 @@ class Plots(object):
         # )
         # log.info("CMB DONE...")
 
-        plot_acc_history(
-            self.architecture, self.dataset, self.model_name, event, save=self.savefigs
-        )
-        log.info("ACC DONE...")
+        # plot_acc_history(
+        #     self.architecture, self.dataset, self.model_name, event, save=self.savefigs
+        # )
+        # log.info("ACC DONE...")
 
-        plot_loss_history(
-            self.architecture, self.dataset, self.model_name, event, save=self.savefigs
-        )
-        log.info("LOSS DONE...")
+        # plot_loss_history(
+        #     self.architecture, self.dataset, self.model_name, event, save=self.savefigs
+        # )
+        # log.info("LOSS DONE...")
 
-        plot_multiROC(
-            self.architecture,
-            self.dataset,
-            self.model_name,
-            model,
-            y_test_np,
-            y_preds,
-            class_names,
-            save=self.savefigs,
-        )
-        log.info("ROC DONE...")
+        # plot_multiROC(
+        #     self.architecture,
+        #     self.dataset,
+        #     self.model_name,
+        #     model,
+        #     y_test_np,
+        #     y_preds,
+        #     class_names,
+        #     save=self.savefigs,
+        # )
+        # log.info("ROC DONE...")
 
-        plot_multiPR(
-            self.architecture,
-            self.dataset,
-            self.model_name,
-            model,
-            y_test_np,
-            y_preds,
-            class_names,
-            save=self.savefigs,
-        )
-        log.info("PR DONE...")
+        # plot_multiPR(
+        #     self.architecture,
+        #     self.dataset,
+        #     self.model_name,
+        #     model,
+        #     y_test_np,
+        #     y_preds,
+        #     class_names,
+        #     save=self.savefigs,
+        # )
+        # log.info("PR DONE...")
 
         end = time.time()
         log.info(f"PLOTS GENERATED IN {(end - start) / 60:.2f} MINUTES")

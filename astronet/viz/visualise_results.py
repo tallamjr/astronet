@@ -30,6 +30,7 @@ from numpy import interp
 from sklearn.metrics import (
     auc,
     average_precision_score,
+    classification_report,
     confusion_matrix,
     precision_recall_curve,
     roc_curve,
@@ -131,21 +132,40 @@ def plot_confusion_matrix(
     encoding,
     class_names,
     cmap=None,
+    normalize=False,
     save=True,
 ):
     # TODO: Update docstrings
+    sns.set(style="whitegrid", palette="muted", font_scale=1.5)
 
     y_true = encoding.inverse_transform(y_test)
     y_pred = encoding.inverse_transform(y_preds)
 
-    sns.set(style="whitegrid", palette="muted", font_scale=1.5)
     cm = confusion_matrix(y_true, y_pred)
-    fig, ax = plt.subplots(figsize=(26, 20))
+
+    if normalize:
+        cm = cm / np.sum(cm, axis=1, keepdims=1)
+        fmt = ".2f"
+
+        fig, ax = plt.subplots(figsize=(14, 10))
+    else:
+        fmt = "d"
+        x = 11  # SNIa index
+        tot = np.sum(cm[:, x])
+        cc = cm[3, x] + cm[6, x]  # SNII index = 3, SNIbc index = 6
+
+        cross = (cc / tot) * 100
+
+        print(classification_report(y_true, y_pred, target_names=class_names))
+        print(f"CC-SNe cross-contamination: {cross:.2f}%")
+
+        fig, ax = plt.subplots(figsize=(18, 10))
+
     ax = sns.heatmap(
-        cm / np.sum(cm, axis=1, keepdims=1),
+        cm,  # / np.sum(cm, axis=1, keepdims=1),
         annot=True,
-        # fmt="d",
-        fmt=".2f",
+        fmt=fmt,
+        # fmt=".2f",
         # cmap=sns.diverging_palette(220, 20, n=7),
         cmap=cmap,
         cbar=True,
@@ -186,14 +206,14 @@ def plot_confusion_matrix(
     #     label.set_transform(label.get_transform() + offset)
     plt.tight_layout()
     if save:
-        try:
-            os.makedirs(
-                f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}",
-                exist_ok=True,
-            )
-            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/{model_name}/model-cm-{model_name}.pdf"
-        except Exception:
-            fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-cm-{model_name}.pdf"
+        os.makedirs(
+            f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-{model_name}",
+            exist_ok=True,
+        )
+        model_name_with_labael = (
+            model_name + "-normalized" if normalize else model_name + "-rawcount"
+        )  # append type of plot info
+        fname = f"{asnwd}/astronet/{architecture}/plots/{dataset}/model-{model_name}/model-cm-{model_name_with_labael}.pdf"
         plt.savefig(fname, format="pdf")
         plt.clf()
     else:
@@ -434,7 +454,7 @@ def plot_multiPR(
     )
     lines = []
     labels = []
-    (line,) = plt.plot(
+    line = plt.plot(
         recall["micro"], precision["micro"], color="deeppink", linestyle=":", lw=lw
     )
     lines.append(line)
@@ -444,7 +464,7 @@ def plot_multiPR(
     )
 
     for i, color in zip(range(n_classes), colors):
-        (line,) = plt.plot(recall[i], precision[i], color=color, lw=lw)
+        line = plt.plot(recall[i], precision[i], color=color, lw=lw)
         lines.append(line)
         labels.append(
             "Precision-Recall for {0} (area = {1:0.2f})"
