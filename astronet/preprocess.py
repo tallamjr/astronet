@@ -19,6 +19,7 @@ from typing import Dict, List, Tuple, Union
 import george
 import numpy as np
 import pandas as pd
+import polars as pl
 import scipy.optimize as op
 from astropy.table import Table, vstack
 
@@ -283,13 +284,14 @@ def generate_gp_single_event(
     number_gp = timesteps
     gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
 
-    gp_predict = fit_2d_gp(df, pb_wavelengths=pb_wavelengths)
+    gp_predict = fit_2d_gp(df.to_pandas(), pb_wavelengths=pb_wavelengths)
     gp_wavelengths = np.vectorize(pb_wavelengths.get)(filter_set)
     obj_gps = predict_2d_gp(gp_predict, gp_times, gp_wavelengths)
 
-    return obj_gps
+    return pl.from_pandas(obj_gps)
 
 
+# TODO: Generate polars version of this function.
 def generate_gp_all_objects(
     object_list: List[str],
     obs_transient: pd.DataFrame,
@@ -336,22 +338,45 @@ def generate_gp_all_objects(
         columns.append(filt)
     columns.append("object_id")
 
-    adf = pd.DataFrame(
+    dtypes = {
+        "mjd": pl.Float64,
+        "lsstu": pl.Float64,
+        "lsstg": pl.Float64,
+        "lsstr": pl.Float64,
+        "lssti": pl.Float64,
+        "lsstz": pl.Float64,
+        "lssty": pl.Float64,
+        "object_id": pl.Int64,
+    }
+
+    schema = {c: dtypes[c] for c in columns}
+
+    df = pl.DataFrame(
         data=[],
-        columns=columns,
+        schema=schema,
     )
 
     for object_id in object_list:
-        df = obs_transient[obs_transient["object_id"] == object_id]
+        # df = obs_transient[obs_transient["object_id"] == object_id]
+        pdf = obs_transient.filter(pl.col("object_id") == object_id)
+        obj_gps = generate_gp_single_event(pdf, timesteps, pb_wavelengths)
 
-        obj_gps = generate_gp_single_event(df, timesteps, pb_wavelengths)
+        obj_gps = obj_gps.pivot(index="mjd", columns="filter", values="flux")
+        # obj_gps = obj_gps.reset_index()
+        obj_gps = obj_gps.with_column(
+            pl.lit(object_id).cast(pl.Int64, strict=False).alias("object_id")
+        )
+        # obj_gps["object_id"] = object_id
+        df = df.select(obj_gps.columns)
+        # if object_id == object_list[-1]:
+        #     df = pl.concat([df, obj_gps], rechunk=True)
+        # else:
+        df = df.vstack(
+            obj_gps
+        ).rechunk()  # Ref: https://stackoverflow.com/a/71658695/4521950
 
-        obj_gps = pd.pivot_table(obj_gps, index="mjd", columns="filter", values="flux")
-        obj_gps = obj_gps.reset_index()
-        obj_gps["object_id"] = object_id
-        adf = np.vstack((adf, obj_gps))
         print(f"COMPLETED OBJECT ID:{object_id}")
-    return pd.DataFrame(data=adf, columns=obj_gps.columns)
+    return df
 
 
 def predict_2d_gp(gp_predict, gp_times, gp_wavelengths):
