@@ -280,6 +280,61 @@ def create_dataset(
         group = g[i : (i + time_steps)]
 
         Xs.append(v)
+        ys.append(labels.to_series().mode().item())
+        gids.append(group.to_series().mode().item())
+
+        # ys.append(stats.mode(labels)[0][0][0])
+        # gids.append(stats.mode(group)[0][0][0])
+
+    return np.array(Xs), np.array(ys).reshape(-1, 1), np.array(gids).reshape(-1, 1)
+
+
+def create_dataset_window(
+    X: pl.DataFrame, y: pl.Series, g: pl.Series, time_steps: int = 1, step: int = 1
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Create dataset from GP interpolated data and splitting according to the timesteps used when
+    generating the GP dataframe. This allows for the correct label to be assigned to the
+    corresponding X values
+
+    Parameters
+    ----------
+    X: pl.DataFrame
+        Subset of full dataframe containing only the passband columns
+    y: pl.Series
+        A pl.Series containing the object labels
+    TIME_STEPS: int
+        Number relating to how many times the GP has been evaluated
+    STEP: int
+        Relates to window size, if TIME_STEPS == STEP, there is no window, but one can create
+        overlapping segments if the STEP size is changed.
+
+    Returns
+    -------
+    (Xs, ys): (np.ndarray, np.ndarray):
+        A matrix of X values with corresponding y labels given as a column vector
+
+    Examples
+    --------
+    >>> cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
+    >>> robust_scale(df, cols)
+    >>> TIME_STEPS = timesteps
+    >>> STEP = step
+    >>> Xs, ys = create_dataset(df[cols], df.target, TIME_STEPS, STEP)
+    >>> X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    ...     Xs, ys, random_state=RANDOM_SEED
+    ... )
+    """
+
+    Xs, ys, gids = [], [], []
+    for i in range(0, len(X) - time_steps, step):
+        # v = X.iloc[i : (i + time_steps)].values
+        v = X[i : (i + time_steps), :].to_numpy()
+        # labels = y.iloc[i : i + time_steps]
+        labels = y[i : (i + time_steps)]
+
+        group = g[i : (i + time_steps)]
+
+        Xs.append(v)
         ys.append(stats.mode(labels)[0][0])
         gids.append(stats.mode(group)[0][0])
 
