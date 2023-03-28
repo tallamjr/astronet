@@ -28,6 +28,7 @@ import tensorflow as tf
 from scipy import stats
 from sklearn import model_selection
 from sklearn.preprocessing import OneHotEncoder
+from tqdm import tqdm
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import (
@@ -203,7 +204,8 @@ def find_optimal_batch_size(training_set_length: int) -> int:
         batch_size_list = [16, 32, 64]
     else:
         # batch_size_list = [96, 128, 256]
-        batch_size_list = [2048]
+        batch_size_list = [256, 512, 1024]
+        # batch_size_list = [2048]
     ratios = []
     for batch_size in batch_size_list:
         remainder = training_set_length % batch_size
@@ -235,8 +237,13 @@ def train_val_test_split(df, cols):
 
 
 def create_dataset(
-    X: pl.DataFrame, y: pl.Series, g: pl.Series, time_steps: int = 1, step: int = 1
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    X: pl.DataFrame,
+    y: pl.Series,
+    g: pl.Series,
+    b: pl.Series,
+    time_steps: int = 1,
+    step: int = 1,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Create dataset from GP interpolated data and splitting according to the timesteps used when
     generating the GP dataframe. This allows for the correct label to be assigned to the
     corresponding X values
@@ -270,23 +277,40 @@ def create_dataset(
     ... )
     """
 
-    Xs, ys, gids = [], [], []
-    for i in range(0, len(X) - time_steps, step):
-        # v = X.iloc[i : (i + time_steps)].values
-        v = X[i : (i + time_steps), :].to_numpy()
-        # labels = y.iloc[i : i + time_steps]
-        labels = y[i : (i + time_steps)]
+    Xs, ys, gids, bs = [], [], [], []
+    for i in tqdm(range(0, len(X) - time_steps, step)):
+        # print(f"ITERATION: {i}")
 
-        group = g[i : (i + time_steps)]
+        # v = X.iloc[i : (i + time_steps)].values <-- pandas
+        # v = X[i : (i + time_steps), :].to_numpy() <-- polars square bracket notation
+        v = X.select(pl.all().slice(i, time_steps))
 
-        Xs.append(v)
+        # labels = y.iloc[i : i + time_steps] <-- pandas
+        # labels = y[i : (i + time_steps)] <-- polars square bracket notation
+
+        labels = y.slice(i, time_steps)
+        group = g.slice(i, time_steps)
+        branch = b.slice(i, time_steps)
+        if group.n_unique() > 1:
+            # print("SKIPPING NON-UNIQUE uuid IN GROUP")
+            continue
+
+        # group = g[i : (i + time_steps)]
+
+        Xs.append(v.to_numpy())
         ys.append(labels.to_series().mode().item())
         gids.append(group.to_series().mode().item())
+        bs.append(branch.to_series().mode().item())
 
         # ys.append(stats.mode(labels)[0][0][0])
         # gids.append(stats.mode(group)[0][0][0])
 
-    return np.array(Xs), np.array(ys).reshape(-1, 1), np.array(gids).reshape(-1, 1)
+    return (
+        np.array(Xs),
+        np.array(ys).reshape(-1, 1),
+        np.array(gids).reshape(-1, 1),
+        np.array(bs).reshape(-1, 1),
+    )
 
 
 def create_dataset_window(
