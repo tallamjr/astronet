@@ -41,7 +41,7 @@ If you find the software here useful, please consider citing this work.
 ```
 ___________________________
 
-### `astronet.tinho`
+### `astronet.tinho` [https://arxiv.org/pdf/2303.08951.pdf]
 
 <p>
   <img src="./resources/tinho.png" width="30%" align="middle" />
@@ -51,7 +51,7 @@ ___________________________
 
 ![CM](./astronet/tests/reg/baseline/test_confusion_matrix_tinho-plasticc-UGRIZY-wZ-31367-1654360237-0.5.1.dev78+g702e399.d20220604-LL0.450)
 
-### `astronet.t2` [https://arxiv.org/abs/2105.06178]
+### `astronet.t2` [https://arxiv.org/pdf/2105.06178.pdf]
 
 <p>
   <img src="./resources/t2-cam-transformer.png" width="30%" align="middle" />
