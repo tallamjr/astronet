@@ -1,0 +1,86 @@
+#!/bin/bash -l
+# Copyright 2022
+# Author: Tarek Allam Jr.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Batch script to run a serial job under SGE.
+# https://www.rc.ucl.ac.uk/docs/Job_Results/#qsub-emailing
+#$ -m base
+
+# Request a number of GPU cards, (V100:EF - 2 max, A100:L - 4 max)
+#$ -l gpu=1
+
+# Request 1 gigabyte of RAM (must be an integer followed by M, G, or T)
+#$ -l mem=10G
+
+# Request 15 gigabyte of TMPDIR space (default is 10 GB - remove if cluster is diskless)
+#$ -l tmpfs=15G
+
+## #$ -o logs/$JOB_ID.log
+
+# Combine stdout with stderr
+#$ -j yes
+
+# Set the name of the job.
+#$ -N tf2-issues-test
+
+# Set the working directory to somewhere in your scratch space.
+#  This is a necessary step as compute nodes cannot write to $HOME.
+# Replace "<your_UCL_id>" with your UCL user ID.
+#$ -wd /home/zcicg57/Scratch/workspace
+
+# Your work should be done in $TMPDIR
+cd $TMPDIR
+
+# load the cuda module (in case you are running a CUDA program)
+module unload compilers mpi
+module load compilers/gnu/4.9.2
+module load python/3.7.4
+module load cuda/10.0.130/gnu-4.9.2
+# module load cuda/8.0.61-patch2/gnu-4.9.2
+module load cudnn/7.4.2.24/cuda-10.0
+# module load tensorflow/2.0.0/gpu-py37
+# export LD_LIBRAY_PATH="/shared/ucl/apps/modulefiles/development/cuda/10.0.130/gnu-4.9.2:$LD_LIBRAY_PATH"
+
+# Run the application
+SECONDS=0 # https://stackoverflow.com/a/8903280/4521950
+source /home/zcicg57/Scratch/astronet/conf/astronet.conf
+
+export PATH="$HOME/miniconda3/envs/tensorflow-tensorflow-issues-56837/bin:$PATH"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issue-1047548284
+export CUDA_VISIBLE_DEVICES=0,1 # https://stackoverflow.com/a/48079860/4521950
+# export TF_CPP_MIN_VLOG_LEVEL=3 # https://stackoverflow.com/q/66118532/4521950, https://stackoverflow.com/a/45142985/4521950
+export TF_CPP_MIN_LOG_LEVEL=2
+export TF_XLA_FLAGS=--tf_xla_enable_xla_devices # https://github.com/tensorflow/tensorflow/issues/46479
+conda activate astronet
+conda env config vars set LD_LIBRARY_PATH=$CONDA_PREFIX/lib # https://github.com/tensorflow/tensorflow/issues/52988#issuecomment-1024604306
+conda activate base # To make your changes take effect reactivating astronet environment
+conda activate astronet
+which python
+which pip
+export PYTHONHASHSEED=0
+date
+# Test Imports
+python -c "import tensorflow as tf; print(tf.__version__);"
+python -c "import tensorflow as tf; print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))"
+# Log GPU information
+nvidia-smi
+
+python $ASNWD/sbin/multigpu-test.py
+date
+duration=$SECONDS
+echo "$(($duration / 60)) minutes and $(($duration % 60)) seconds elapsed."
+
+# Preferably, tar-up (archive) all output files onto the shared scratch area
+tar -zcvf $HOME/Scratch/files_from_job_$JOB_ID.tar.gz $TMPDIR
+# Make sure you have given enough time for the copy to complete!
