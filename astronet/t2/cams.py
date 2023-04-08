@@ -25,7 +25,7 @@ import seaborn as sns
 import tensorflow as tf
 from keras.models import Model
 from matplotlib import rcParams
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+from matplotlib.ticker import MultipleLocator
 from sklearn.preprocessing import minmax_scale, normalize
 
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
@@ -78,13 +78,22 @@ else:
 
 X_test = np.load(
     f"{asnwd}/data/plasticc/test_set/infer/X_test.npy",
+    mmap_mode="r",
 )
 y_test = np.load(
     f"{asnwd}/data/plasticc/test_set/infer/y_test.npy",
+    mmap_mode="r",
 )
 Z_test = np.load(
     f"{asnwd}/data/plasticc/test_set/infer/Z_test.npy",
+    mmap_mode="r",
 )
+
+sub = 20_000
+
+X_test = X_test[:sub, :, :]
+y_test = y_test[:sub, :]
+Z_test = Z_test[:sub, :]
 
 num_classes = y_test.shape[1]
 print(num_classes)
@@ -101,7 +110,7 @@ print(input_shape)
 _, num_z_features = Z_test.shape
 Z_input_shape = (BATCH_SIZE, num_z_features)
 
-model_name = "1619624444-0.1.dev765+g7c90cbb.d20210428"
+model_name = "UGRIZY-wZ-1619624444-0.1.dev765+g7c90cbb.d20210428-LL0.507"
 
 with open(f"{asnwd}/astronet/{architecture}/models/{dataset}/results_with_z.json") as f:
     events = json.load(f)
@@ -251,7 +260,6 @@ df = pd.DataFrame(data=cam_all.reshape((num_objects * num_classes), num_cam_feat
 data = pd.DataFrame(columns=df.columns)
 
 for i in range(num_classes):
-
     mm = minmax_scale(cam_all[:, :, i], feature_range=(0, 1), axis=1)
     norm = normalize(mm, norm="l1")
     ddf = pd.DataFrame(data=norm)
@@ -453,8 +461,6 @@ def show_cam(image_index, desired_class, counter):
         + str(results[image_index][prediction])
     )
 
-    from sklearn.preprocessing import minmax_scale, normalize
-
     cam_output = minmax_scale(cam_output, feature_range=(0, 1), axis=1)
     cam_output = normalize(cam_output, norm="l1")
 
@@ -610,7 +616,6 @@ def show_maps(desired_class, num_maps):
 
 
 def make_cams(num_maps=40):
-
     for i in range(len(class_names)):
         show_maps(desired_class=i, num_maps=num_maps)
 

@@ -35,15 +35,8 @@ from tensorflow import keras
 from astronet.constants import ASTRONET_WORKING_DIRECTORY as asnwd
 from astronet.constants import LOCAL_DEBUG
 from astronet.metrics import WeightedLogLoss
-from astronet.preprocess import one_hot_encode
 from astronet.utils import astronet_logger, find_optimal_batch_size
-from astronet.viz.visualise_results import (
-    plot_acc_history,
-    plot_confusion_matrix,
-    plot_loss_history,
-    plot_multiPR,
-    plot_multiROC,
-)
+from astronet.viz.visualise_results import plot_confusion_matrix
 
 try:
     log = astronet_logger(__file__)
@@ -87,7 +80,7 @@ class Plots(object):
     def __call__(self):
         start = time.time()
 
-        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed"
+        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/all-classes-tsonly"
 
         X_test = np.load(f"{DPATH}/X_test.npy", mmap_mode="r")
         Z_test = np.load(f"{DPATH}/Z_test.npy", mmap_mode="r")
@@ -95,12 +88,12 @@ class Plots(object):
 
         print(f"X_TEST: {X_test.shape}, Y_TEST: {y_test.shape}, Z_TEST: {Z_test.shape}")
 
-        y_train = np.load(f"{DPATH}/y_train.npy", mmap_mode="r")
-        enc, y_train, y_test = one_hot_encode(y_train, y_test)
-        encoding_file = f"{DPATH}/x-dataset.enc"
+        # y_train = np.load(f"{DPATH}/y_train.npy", mmap_mode="r")
+        # enc, y_train, y_test = one_hot_encode(y_train, y_test)
+        # encoding_file = f"{DPATH}/x-dataset.enc"
 
-        with open(encoding_file, "wb") as f:
-            joblib.dump(enc, f)
+        # with open(encoding_file, "wb") as f:
+        #     joblib.dump(enc, f)
 
         (
             num_samples,
@@ -156,7 +149,7 @@ class Plots(object):
             compile=False,
         )
 
-        encoding_filename = f"{DPATH}/x-dataset.enc"
+        encoding_filename = f"{DPATH}/labels.enc"
 
         with open(encoding_filename, "rb") as eb:
             encoding = joblib.load(eb)

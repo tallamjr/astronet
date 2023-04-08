@@ -32,6 +32,8 @@ data/plasticc/test_set
 data/plasticc-backup
 data/plasticc/avocado
 data/plasticc/processed
+data/plasticc/kaggle
+data/plasticc/zenodo
 data/tfrecords
 
 logs/

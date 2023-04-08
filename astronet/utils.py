@@ -236,6 +236,70 @@ def train_val_test_split(df, cols):
     return df_train, df_val, df_test, num_features
 
 
+def create_dataset_nob(
+    X: pl.DataFrame,
+    y: pl.Series,
+    time_steps: int = 1,
+    step: int = 1,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Create dataset from GP interpolated data and splitting according to the timesteps used when
+    generating the GP dataframe. This allows for the correct label to be assigned to the
+    corresponding X values
+
+    Parameters
+    ----------
+    X: pl.DataFrame
+        Subset of full dataframe containing only the passband columns
+    y: pl.Series
+        A pl.Series containing the object labels
+    TIME_STEPS: int
+        Number relating to how many times the GP has been evaluated
+    STEP: int
+        Relates to window size, if TIME_STEPS == STEP, there is no window, but one can create
+        overlapping segments if the STEP size is changed.
+
+    Returns
+    -------
+    (Xs, ys): (np.ndarray, np.ndarray):
+        A matrix of X values with corresponding y labels given as a column vector
+
+    Examples
+    --------
+    >>> cols = ["lsstg", "lssti", "lsstr", "lsstu", "lssty", "lsstz"]
+    >>> robust_scale(df, cols)
+    >>> TIME_STEPS = timesteps
+    >>> STEP = step
+    >>> Xs, ys = create_dataset(df[cols], df.target, TIME_STEPS, STEP)
+    >>> X_train, X_test, y_train, y_test = model_selection.train_test_split(
+    ...     Xs, ys, random_state=RANDOM_SEED
+    ... )
+    """
+
+    Xs, ys = [], []
+    for i in tqdm(range(0, len(X) - time_steps, step)):
+        # print(f"ITERATION: {i}")
+
+        # v = X.iloc[i : (i + time_steps)].values <-- pandas
+        # v = X[i : (i + time_steps), :].to_numpy() <-- polars square bracket notation
+        v = X.select(pl.all().slice(i, time_steps))
+
+        # labels = y.iloc[i : i + time_steps] <-- pandas
+        # labels = y[i : (i + time_steps)] <-- polars square bracket notation
+
+        labels = y.slice(i, time_steps)
+
+        if labels.n_unique() > 1:
+            # print("SKIPPING NON-UNIQUE uuid IN GROUP")
+            continue
+        Xs.append(v.to_numpy())
+        ys.append(labels.to_series().mode().item())
+
+    return (
+        np.array(Xs),
+        np.array(ys).reshape(-1, 1),
+    )
+
+
 def create_dataset(
     X: pl.DataFrame,
     y: pl.Series,

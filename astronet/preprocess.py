@@ -278,8 +278,9 @@ def generate_gp_single_event(
     >>> ax = plot_event_data_with_model(data, obj_model=_obj_gps, pb_colors=ZTF_PB_COLORS)
     """
 
-    filters = df["filter"]
-    filters = list(np.unique(filters))
+    # filters = df["filter"]
+    # filters = list(np.unique(filters))
+    # filters = df.select("filter").unique().to_series().to_list()
 
     number_gp = timesteps
     gp_times = np.linspace(min(df["mjd"]), max(df["mjd"]), number_gp)
@@ -329,8 +330,10 @@ def generate_gp_all_objects(
     ...
     """
 
-    filters = obs_transient["filter"]
-    filters = list(np.unique(filters))
+    # filters = obs_transient["filter"]
+    # filters = list(np.unique(filters))
+
+    filters = obs_transient.select("filter").unique().to_series().to_list()
 
     columns = []
     columns.append("mjd")
