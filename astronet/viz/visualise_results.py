@@ -134,6 +134,7 @@ def plot_confusion_matrix(
     cmap=None,
     normalize=False,
     save=True,
+    figsize=(14, 10),
 ):
     # TODO: Update docstrings
     sns.set(style="whitegrid", palette="muted", font_scale=1.5)
@@ -147,7 +148,7 @@ def plot_confusion_matrix(
         cm = cm / np.sum(cm, axis=1, keepdims=1)
         fmt = ".2f"
 
-        fig, ax = plt.subplots(figsize=(14, 10))
+        fig, ax = plt.subplots(figsize=figsize)
     else:
         fmt = "d"
         x = 11  # SNIa index

@@ -92,11 +92,11 @@ class Objective(object):
 
         # Lazy load data
         # DPATH = f"{asnwd}/data/plasticc/processed"
-        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/t2"
+        DPATH = "/Users/tallamjr/github/tallamjr/origin/elasticc/data/processed/all-classes-tsonly"
 
         X_train = np.load(f"{DPATH}/X_train.npy", mmap_mode="r")
-        Z_train = np.load(f"{DPATH}/Z_train.npy", mmap_mode="r")
-        y_train = np.load(f"{DPATH}/y_train.npy", mmap_mode="r")
+        # Z_train = np.load(f"{DPATH}/Z_train.npy", mmap_mode="r")
+        y_train = np.load(f"{DPATH}/y_train_bs.npy", mmap_mode="r")
 
         num_classes = y_train.shape[1]
 
