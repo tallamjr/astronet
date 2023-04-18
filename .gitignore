@@ -16,25 +16,23 @@ archive
 weights
 
 # Data
-data/WISDM_ar_v1.1/*
-!data/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt
-data/wisdm-dataset
-data/WISDM_ar_latest.tar.gz
-data/mtsdata
+data/wisdm
+data/wisdm/WISDM_ar_v1.1/*
+!data/wisdm/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt
+data/mts
 data/transformed-mtsdata
-data/plasticc/*.pckl
-data/plasticc/*.npy
-data/plasticc/augmented*
-data/plasticc/__*
-data/plasticc/full_transformed_df_timesteps_100_with_z.csv
-data/plasticc/snonly_transformed_df_timesteps_100_with_z.csv
-data/plasticc/test_set
 data/plasticc-backup
-data/plasticc/avocado
-data/plasticc/processed
-data/plasticc/kaggle
-data/plasticc/zenodo
+data/plasticc/arch
 data/tfrecords
+
+data/plasticc/kaggle-train/*
+!data/plasticc/kaggle-train/*.py
+
+data/plasticc/zenodo-test/*
+!data/plasticc/zenodo-test/*.py
+
+data/plasticc/kaggle-train/chunks/
+data/plasticc/zenodo-test/chunks/
 
 logs/
 *.log
