@@ -22,7 +22,30 @@
 
 Expect this to be "unstable" with frequent changes to the API. See below for details on [The Road to `v1.0.0`](#roadmap)
 
-If you are interested in contributing to this package, please review [`CONTRIBUTING.md`](https://github.com/tallamjr/astronet/blob/master/CONTRIBUTING.md)
+## Installation
+
+### Quick Start
+
+Install [uv](https://docs.astral.sh/uv/) (recommended):
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Install astronet:
+```bash
+uv pip install git+https://github.com/tallamjr/astronet.git
+```
+
+### Development
+
+For contributing to astronet:
+```bash
+git clone https://github.com/tallamjr/astronet.git
+cd astronet
+uv sync
+```
+
+See [`CONTRIBUTING.md`](https://github.com/tallamjr/astronet/blob/master/CONTRIBUTING.md) for detailed development setup.
 
 ___________________________
 
