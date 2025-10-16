@@ -1,19 +1,138 @@
-[build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "astronet"
+version = "0.10.0"
+description = "Multivariate Time-Series Classification of Astrophysical Transients using Deep Learning"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Tarek Allam Jr.", email = "tarekallam@icloud.com"},
+]
+maintainers = [
+    {name = "Tarek Allam Jr.", email = "tarekallam@icloud.com"},
+]
+keywords = [
+    "astronomy",
+    "astrophysics",
+    "machine-learning",
+    "deep-learning",
+    "time-series",
+    "classification",
+    "transients",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
-# Not necessary for packaging but every self-respecting Python
-# package should a) use black and b) fix the WRONG default.
+dependencies = [
+    "astropy>=5.3",
+    "colorama>=0.4.4",
+    "fink-client",
+    "fink-utils",
+    "george>=0.4.0",
+    "imbalanced-learn>=0.12.0",
+    "joblib>=1.3.0",
+    "matplotlib>=3.8.0",
+    "numpy>=1.24.0,<2.0",
+    "optuna>=3.5.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.4.0",
+    "scipy>=1.11.0",
+    "seaborn>=0.13.0",
+]
+
+[project.optional-dependencies]
+tensorflow = [
+    "tensorflow>=2.15.0; sys_platform == 'linux'",
+    "tensorflow-macos>=2.15.0; sys_platform == 'darwin'",
+    "tensorflow-metal; sys_platform == 'darwin'",
+    "tensorflow-model-optimization>=0.8.0",
+]
+pytorch = [
+    "torch>=2.1.0",
+    "torchvision>=0.16.0",
+    "lightning>=2.1.0",
+    "torchmetrics>=1.3.0",
+]
+data = [
+    "polars>=0.20.0",
+    "pyarrow>=15.0.0",
+    "dvc>=3.30.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mpl>=0.16.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-subtests>=0.11.0",
+    "nbmake>=1.5.0",
+    "black>=24.0.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+]
+jupyter = [
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.0.0",
+    "ipywidgets>=8.1.0",
+    "nbval>=0.10.0",
+]
+profiling = [
+    "py-spy>=0.3.0",
+    "memory-profiler>=0.61.0",
+    "memray>=1.11.0",
+]
+all = [
+    "astronet[dev,docs,jupyter,profiling]",
+]
+
+[project.urls]
+Homepage = "https://github.com/tallamjr/astronet"
+Documentation = "https://github.com/tallamjr/astronet"
+Repository = "https://github.com/tallamjr/astronet"
+Issues = "https://github.com/tallamjr/astronet/issues"
+Changelog = "https://github.com/tallamjr/astronet/releases"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.10.0"
+
+[tool.hatch.build.targets.wheel]
+packages = ["astronet"]
+
+[tool.uv]
+dev-dependencies = [
+    "astronet[dev]",
+]
+
 [tool.black]
 line-length = 88
-target-version = ['py37']
+target-version = ['py310', 'py311', 'py312']
 include = '\.pyi?$'
 exclude = '''
-
 (
   /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
+      \.eggs
+    | \.git
     | \.hg
     | \.mypy_cache
     | \.tox
@@ -23,66 +142,116 @@ exclude = '''
     | build
     | dist
   )/
-  | foo.py           # also separately exclude a file named foo.py in
-                     # the root of the project
 )
 '''
 
-[tool.setuptools_scm]
-fallback_version = "v0.10.0"
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = [
+    ".eggs",
+    ".git",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+]
 
-[tool.check-manifest]
-ignore-default-rules = false
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"astronet/tests/*" = ["F401", "F811"]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-
-log_cli = true
-log_cli_level = "INFO"
-
-log_file = "astronet/tests/pytest.log"
-log_file_level = "INFO"
-
+minversion = "7.0"
+testpaths = ["astronet/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 addopts = [
-    "--ignore=sbin",
-    "--ignore=notebooks",
-    "--ignore-glob=**/viz/*", # Run visualisation tests separately: $ pytest tests/unit/viz/
-    "--color=yes",
     "--verbose",
-    "--capture=tee-sys",
+    "--color=yes",
+    "--strict-markers",
+    "--strict-config",
     "--showlocals",
-    "--durations=0",
-    "--setup-show",
-    "--cov",
+    "--durations=10",
+    "--cov=astronet",
+    "--cov-report=term-missing",
+    "--cov-report=html",
     "--mpl",
     "--nbmake",
-    "--log-cli-level=INFO",
-    "--numprocesses=auto",
+    "--ignore=sbin",
+    "--ignore=notebooks",
+    "--ignore-glob=**/viz/*",
     "-ra",
-    # "--exitfirst",
 ]
-testpaths = [
-    "astronet/tests",
+log_cli = true
+log_cli_level = "INFO"
+log_file = "astronet/tests/pytest.log"
+log_file_level = "INFO"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "serial: marks tests that must run serially",
+    "integration: marks integration tests",
+    "unit: marks unit tests",
 ]
 filterwarnings = [
     "ignore::UserWarning",
-    # note the use of single quote below to denote "raw" strings in TOML
-    'ignore:function ham\(\) is deprecated:DeprecationWarning',
-]
-
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "serial",
+    "ignore::DeprecationWarning",
 ]
 
 [tool.coverage.run]
+source = ["astronet"]
 omit = [
     "astronet/tests/*",
     "**/constants.py",
+    "**/__init__.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
 
 [tool.mypy]
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 no_strict_optional = true
+disallow_untyped_defs = false
+disallow_any_generics = false
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = true
+no_implicit_reexport = false
+
+[[tool.mypy.overrides]]
+module = "astronet.tests.*"
+ignore_errors = true
