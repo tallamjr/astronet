@@ -1,23 +1,35 @@
 name: Lint
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the master branch
   push:
     branches:
       - master
-      - issues/69/refactor
+      - issues/**
   pull_request:
     branches:
       - master
 
 jobs:
-  black:
+  lint:
+    name: Code quality checks
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: psf/black@stable
-        with:
-          options: "--check --verbose"
-          version: "22.3.0"
+    - name: Checkout astronet
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Check formatting with black
+      run: |
+        uv tool run black --check --diff .
+
+    - name: Check linting with ruff
+      run: |
+        uv tool run ruff check .
